@@ -1,16 +1,12 @@
 {
-  "compileOnSave": false,
-  "exclude": [
-    "bak",
-    "node_modules",
-    ".next",
-    "dist"
-  ],
   "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "strict": false,
+    "composite": true,
     "target": "esnext",
     "module": "esnext",
-    "jsx": "preserve",
-    "allowJs": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
@@ -20,15 +16,11 @@
     "preserveConstEnums": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
-    "typeRoots": [
-      "./node_modules/@types",
-      "./types"
-    ],
     "lib": [
       "dom",
       "es2015",
       "es2016"
     ]
+
   }
 }

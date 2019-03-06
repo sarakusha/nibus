@@ -1855,9 +1855,9 @@
     url-template "^2.0.8"
 
 "@pm2/agent-node@~1.1.1":
-  version "1.1.7"
-  resolved "https://registry.yarnpkg.com/@pm2/agent-node/-/agent-node-1.1.7.tgz#398039cb54e165c692f8ad7112002cb928f88120"
-  integrity sha512-9x7Qrk+HHeOOFEYAFlMU3dQl6FkaVGXdbpF5TAi961uSYFNoiNw9woU2HodMu7gwHG9XjjEHjYBQSpOZTpr8YA==
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/@pm2/agent-node/-/agent-node-1.1.8.tgz#e75bc2b5392a36f033aee20e9cb313e1744a8b5c"
+  integrity sha512-R5X6P+eZM9wVxix5HzJnoAo0F0JCnu9kJcPfscCKx+gVFw69VjmvXxTHGejYNMokrkIGQ+BIJQ2+/uGnLFvi3w==
   dependencies:
     debug "^3.1.0"
     eventemitter2 "^5.0.1"
@@ -1905,9 +1905,9 @@
     tslib "1.9.3"
 
 "@pm2/js-api@^0.5.43":
-  version "0.5.49"
-  resolved "https://registry.yarnpkg.com/@pm2/js-api/-/js-api-0.5.49.tgz#e6589a31f2cdf2c2e8dc45bd008674c80f9427b8"
-  integrity sha512-H5BP9aAYLadqqKzs8qWisb2Gt9rnWzYfocn42+UKFVSEsDrGpV18dNi8nexIJ3Lm+Z7vraxtQ42K7EQgslJwdA==
+  version "0.5.50"
+  resolved "https://registry.yarnpkg.com/@pm2/js-api/-/js-api-0.5.50.tgz#30e49eb7516917cc7f426e1fd3653332606ba452"
+  integrity sha512-K6EYVTPJg9mHSv5pzL7Fjg+79jdd+XcndQ8gQjIY5uYZ3T+gz4ZBw+d3gnLjBxzaJrXOT2LuRKLXq5UhLGZENQ==
   dependencies:
     async "^2.4.1"
     axios "^0.16.2"
@@ -2160,9 +2160,9 @@
   integrity sha512-vVjM0SVzgaOUpflq4GYBvCpozes8OgIIS5gVXVka+OfK3hvnkC1i93U8WiY2OtNE4XUWyyy/86Kf6e0IHTQw1Q==
 
 "@types/node@^8.0.7":
-  version "8.10.40"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.40.tgz#4314888d5cd537945d73e9ce165c04cc550144a4"
-  integrity sha512-RRSjdwz63kS4u7edIwJUn8NqKLLQ6LyqF/X4+4jp38MBT3Vwetewi2N4dgJEshLbDwNgOJXNYoOwzVZUSSLhkQ==
+  version "8.10.42"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.10.42.tgz#d3d8e738e13540a09b3f4a714dac1ffbf8939f7d"
+  integrity sha512-8LCqostMfYwQs9by1k21/P4KZp9uFQk3Q528y3qtPKQnCJmKz0Em3YzgeNjTNV1FVrG/7n/6j12d4UKg9zSgDw==
 
 "@types/passport-jwt@^3.0.1":
   version "3.0.1"
@@ -9101,7 +9101,7 @@ pm2-multimeter@^0.1.2:
   dependencies:
     charm "~0.1.1"
 
-pm2@^3.2.9:
+pm2@^3.3.1:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/pm2/-/pm2-3.3.1.tgz#f4fa62d90a11c524f92926277d2ee5e244c14589"
   integrity sha512-TOazXvJwTnPDSavHyWMgeYo72iDggidk5qnvPNJ5CZ9P/PBN1roioL+5x4dNqdMdEi4t99VVopkEFYmoWYdQ1A==
@@ -9797,9 +9797,9 @@ readable-stream@1.1.x:
     string_decoder "~0.10.x"
 
 readable-stream@3:
-  version "3.1.1"
-  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.1.1.tgz#ed6bbc6c5ba58b090039ff18ce670515795aeb06"
-  integrity sha512-DkN66hPyqDhnIQ6Jcsvx9bFjhw214O4poMBcIMgPVpQvNy9a0e0Uhg5SqySyDKAmUlwt8LonTBz1ezOnM8pUdA==
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-3.2.0.tgz#de17f229864c120a9f56945756e4f32c4045245d"
+  integrity sha512-RV20kLjdmpZuTF1INEb9IA3L68Nmi+Ri7ppZqo78wj//Pn62fCoJyV9zalccNzDD/OuJpMG4f+pfMl8+L6QdGw==
   dependencies:
     inherits "^2.0.3"
     string_decoder "^1.1.1"

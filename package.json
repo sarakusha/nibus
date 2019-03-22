@@ -13,6 +13,6 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "clean": "rimraf packages/**/lib",
-    "publish": "lerna publish --registry=http://192.168.20.111:4873"
+    "publish": "lerna publish --registry=https://npm.nata-info.ru"
   }
 }

@@ -2,7 +2,7 @@
   "packages": [
     "packages/*"
   ],
-  "registry": "http://192.168.20.111:4873",
+  "registry": "http://npm.nata-info.ru",
   "npmClient": "yarn",
   "useWorkspaces": true,
   "version": "independent"

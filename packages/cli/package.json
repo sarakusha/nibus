@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -86,7 +86,7 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "@nibus/core": "^1.5.0",
+    "@nibus/core": "^1.5.1",
     "chalk": "^2.4.2",
     "cli-table3": "^0.5.1",
     "configstore": "^4.0.0",

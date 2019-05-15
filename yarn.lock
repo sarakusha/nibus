@@ -1910,26 +1910,6 @@
     call-me-maybe "^1.0.1"
     glob-to-regexp "^0.3.0"
 
-"@nata/nibus.js-client@^1.2.6":
-  version "1.3.7"
-  resolved "https://npm.nata-info.ru/@nata%2fnibus.js-client/-/nibus.js-client-1.3.7.tgz#09d1d05e183876439f7d482d78c9cc85f03b4f5d"
-  integrity sha512-QA9N0GqgKvQAYN+HTxPu3F7wnW70ZK/UxbUn3V7ygxSvBX6rFksqSAPULdq4aR80n4YEtPxI2xwuYTqjuMjBuA==
-  dependencies:
-    crc "^3.8.0"
-    debug "^4.1.1"
-    fp-ts "^1.15.0"
-    iconv-lite "^0.4.24"
-    io-ts "^1.8.5"
-    io-ts-types "^0.4.6"
-    lodash "^4.17.11"
-    monocle-ts "^1.7.1"
-    newtype-ts "^0.2.4"
-    printf "^0.5.1"
-    reflect-metadata "^0.1.13"
-    sax "^1.2.4"
-    xdg-basedir "^3.0.0"
-    xpipe "^1.0.5"
-
 "@nodelib/fs.stat@^1.1.2":
   version "1.1.3"
   resolved "https://npm.nata-info.ru/@nodelib%2ffs.stat/-/fs.stat-1.1.3.tgz#2b5a3ab3f918cca48a8c754c08168e3f03eba61b"
@@ -12381,12 +12361,19 @@ tslint-eslint-rules@^5.4.0:
     tslib "1.9.0"
     tsutils "^3.0.0"
 
-tslint-microsoft-contrib@~5.2.1:
+tslint-microsoft-contrib@^5.0.3, tslint-microsoft-contrib@~5.2.1:
   version "5.2.1"
   resolved "https://npm.nata-info.ru/tslint-microsoft-contrib/-/tslint-microsoft-contrib-5.2.1.tgz#a6286839f800e2591d041ea2800c77487844ad81"
   integrity sha512-PDYjvpo0gN9IfMULwKk0KpVOPMhU6cNoT9VwCOLeDl/QS8v8W2yspRpFFuUS7/c5EIH/n8ApMi8TxJAz1tfFUA==
   dependencies:
     tsutils "^2.27.2 <2.29.0"
+
+tslint-react-a11y@^1.0.0:
+  version "1.0.0"
+  resolved "https://npm.nata-info.ru/tslint-react-a11y/-/tslint-react-a11y-1.0.0.tgz#001a71747a25b8ccd3df240131d66aef02411fe8"
+  integrity sha512-F6BeD5OWkossIOcgdIbm6C/V+Y+EodpgSHy64QF2kpiem72SI4yZ8Z3G7dZQSle0nyKqWGYnAqXsnRpoqCpWGA==
+  dependencies:
+    tslint-microsoft-contrib "^5.0.3"
 
 tslint-react-hooks@^2.0.0:
   version "2.1.0"

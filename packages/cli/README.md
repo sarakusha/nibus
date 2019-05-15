@@ -53,9 +53,9 @@ npm set registry https://npm.nata-info.ru
 ## Установка/обновление пакета `@nata/nibus.js`
 Чтобы установить или обновить пакет выполните команду
 ```bash
-npm i -g @nata/nibus.js
+npm i -g @nibus/cli --registry https://npm.nata-info.ru
 ```
-Перед обновлением остановите службу `nibus stop`
+**Перед обновлением сначала остановите службу!** `nibus stop`
 ## Запуск сервиса `nibus.js` и команды
 * запуск
 ```bash

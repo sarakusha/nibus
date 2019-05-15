@@ -19,13 +19,12 @@
     "nibus": "lib/index.js"
   },
   "author": "Andrei Sarakeev <avs@nata-info.ru>",
-  "license": "SEE LICENSE IN EULA.md",
+  "license": "MIT",
   "directories": {
     "lib": "lib"
   },
   "files": [
     "lib",
-    "EULA.md",
     "detection.yml"
   ],
   "publishConfig": {

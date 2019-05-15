@@ -9,7 +9,7 @@
   ],
   "author": "Andrei Sarakeev <sarakusha@gmail.com>",
   "homepage": "https://github.com/sarakusha/nata/package/nibus.js-client#readme",
-  "license": "ISC",
+  "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "directories": {

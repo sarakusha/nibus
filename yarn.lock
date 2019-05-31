@@ -12694,9 +12694,9 @@ url@^0.11.0:
     punycode "1.3.2"
     querystring "0.2.0"
 
-"usb-detection@git+https://git@github.com/sarakusha/node-usb-detection.git#unbind-ATL-dep":
+"usb-detection@git+https://git@github.com/sarakusha/node-usb-detection.git#unbind-ATL":
   version "4.3.0"
-  resolved "git+https://git@github.com/sarakusha/node-usb-detection.git#27ef6d559532f50ae1ae3457da768494a442be9f"
+  resolved "git+https://git@github.com/sarakusha/node-usb-detection.git#f2817e82c11fb201ea719e80dab39e3b3eac8ad8"
   dependencies:
     bindings "^1.3.0"
     eventemitter2 "^5.0.1"

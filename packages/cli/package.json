@@ -86,7 +86,7 @@
     "typescript": "^3.0.1"
   },
   "dependencies": {
-    "@nibus/core": "^1.5.2",
+    "@nibus/core": "^1.5.7",
     "chalk": "^2.4.2",
     "cli-table3": "^0.5.1",
     "configstore": "^4.0.0",

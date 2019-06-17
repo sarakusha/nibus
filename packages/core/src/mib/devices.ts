@@ -41,7 +41,7 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { ConfigV } from '../session/common';
+import { Config, ConfigV } from '../session/common';
 import timeid from '../timeid';
 import {
   booleanConverter,
@@ -709,7 +709,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     debug(`drain [${this.address}]`);
     const { [$dirties]: dirties } = this;
     const ids = Object.keys(dirties).map(Number).filter(id => dirties[id]);
-    return ids.length > 0 ? this.write(...ids).catch(() => []) : Promise.resolve([]);
+    return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
   }
 
   private writeAll() {
@@ -730,18 +730,24 @@ class DevicePrototype extends EventEmitter implements IDevice {
     }
     debug(`writing ${ids.join()} to [${this.address}]`);
     const map = Reflect.getMetadata('map', this);
+    const invalidNms: number[] = [];
     const requests = ids.reduce(
       (acc: NmsDatagram[], id) => {
         const [name] = map[id];
         if (!name) {
           debug(`Unknown id: ${id} for ${Reflect.getMetadata('mib', this)}`);
         } else {
-          acc.push(createNmsWrite(
-            this.address,
-            id,
-            Reflect.getMetadata('nmsType', this, name),
-            this.getRawValue(id),
-          ));
+          try {
+            acc.push(createNmsWrite(
+              this.address,
+              id,
+              Reflect.getMetadata('nmsType', this, name),
+              this.getRawValue(id),
+            ));
+          } catch (e) {
+            console.error('Error while create NMS datagram', e.message);
+            invalidNms.push(-id);
+          }
         }
         return acc;
       },
@@ -757,12 +763,12 @@ class DevicePrototype extends EventEmitter implements IDevice {
               return datagram.id;
             }
             this.setError(datagram.id, new NibusError(status!, this));
-            return -1;
+            return -datagram.id;
           }, (reason) => {
             this.setError(datagram.id, reason);
-            return -1;
+            return -datagram.id;
           })))
-      .then(ids => ids.filter(id => id > 0));
+      .then(ids => ids.concat(invalidNms));
   }
 
   public writeValues(source: object, strong = true): Promise<number[]> {
@@ -1016,8 +1022,9 @@ interface DevicePrototype {
   [$dirties]: { [id: number]: boolean };
 }
 
-export const getMibTypes = () => {
+export const getMibTypes = (): Config['mibTypes'] => {
   const conf = path.resolve(configDir || '/tmp', 'configstore', pkgName);
+  if (!fs.existsSync(`${conf}.json`)) return {};
   const validate = ConfigV.decode(JSON.parse(fs.readFileSync(`${conf}.json`).toString()));
 //   const validate = ConfigV.decode(require(conf));
   if (validate.isLeft()) {
@@ -1026,7 +1033,7 @@ export const getMibTypes = () => {
   }
   const { mibTypes } = validate.value;
   return mibTypes;
-}
+};
 
 export function findMibByType(type: number, version?: number): string | undefined {
   const mibTypes = getMibTypes();

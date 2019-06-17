@@ -25,8 +25,8 @@ class Utf8Converter extends Transform {
   }
 
   // tslint:disable-next-line
-  public _transform(chunk: any, encoding: string, callback: TransformCallback): void {
-    callback(undefined, decode(chunk, encoding));
+  public _transform(chunk: any, _encoding: string, callback: TransformCallback): void {
+    callback(undefined, decode(chunk, this.encoding));
   }
 }
 
@@ -172,19 +172,19 @@ ${text}`;
   });
 }
 
-export async function convert(mibpath: string, dir?: string): Promise<void> {
+export async function convert(mibpath: string, dir?: string): Promise<string> {
   const json = await mib2json(mibpath);
   let jsonpath = `${mibpath.replace(/\.[^/.]+$/, '')}.json`;
   if (dir) {
     jsonpath = path.resolve(dir, path.basename(jsonpath));
   }
   const data = JSON.stringify(json, null, 2);
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<string>((resolve, reject) => {
     fs.writeFile(jsonpath, data, (err) => {
       if (err) {
         reject(err);
       } else {
-        resolve();
+        resolve(jsonpath);
       }
     });
   });

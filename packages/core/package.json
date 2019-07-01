@@ -61,7 +61,7 @@
     "@types/crc": "^3.4.0",
     "@types/debug": "^4.1.3",
     "@types/lodash": "^4.14.123",
-    "@types/node": "^11.13.0",
+    "@types/node": "^12.0.8",
     "@types/xdg-basedir": "^2.0.0",
     "cross-env": "^5.2.0",
     "eslint-config-airbnb-base": "^13.1.0",
@@ -70,18 +70,18 @@
   "dependencies": {
     "crc": "^3.8.0",
     "debug": "^4.1.1",
-    "fp-ts": "^1.15.0",
+    "fp-ts": "^1.19.0",
     "iconv-lite": "^0.4.24",
     "io-ts": "^1.8.5",
     "io-ts-types": "^0.4.6",
     "lodash": "^4.17.11",
-    "monocle-ts": "^1.7.1",
-    "newtype-ts": "^0.2.4",
+    "monocle-ts": "^1.7.2",
+    "newtype-ts": "^0.3.1",
     "printf": "^0.5.1",
     "reflect-metadata": "^0.1.13",
     "sax": "^1.2.4",
-    "xdg-basedir": "^3.0.0",
+    "xdg-basedir": "^4.0.0",
     "xpipe": "^1.0.5"
   },
-  "gitHead": "90c44fc5669d84c5ecbcbb68675b06aae1208572"
+  "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"
 }

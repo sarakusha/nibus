@@ -37,7 +37,7 @@ const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
       let count = await session.start();
       // На Windows сложнее метод определения и занимает больше времени
       if (process.platform === 'win32') {
-        count *= 2;
+        count *= 3;
       }
       // const setCount: NibusCounter = (handler = (c: number) => c) => count = handler(count);
 

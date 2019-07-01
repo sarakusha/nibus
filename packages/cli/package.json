@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -66,7 +66,7 @@
     "@types/jest-diff": "^20.0.0",
     "@types/js-yaml": "^3.11.1",
     "@types/lodash": "^4.14.109",
-    "@types/node": "^11.9.3",
+    "@types/node": "^12.0.8",
     "@types/progress": "^2.0.3",
     "@types/serialport": "^7.0.0",
     "@types/tail": "^1.2.1",
@@ -78,7 +78,7 @@
     "cross-env": "^5.2.0",
     "jest": "^24.1.0",
     "rimraf": "^2.6.3",
-    "supports-color": "^6.1.0",
+    "supports-color": "^7.0.0",
     "ts-jest": "^24.0.0",
     "tslint": "^5.10.0",
     "tslint-config-airbnb": "^5.9.2",
@@ -89,16 +89,16 @@
     "@nibus/core": "^1.5.7",
     "chalk": "^2.4.2",
     "cli-table3": "^0.5.1",
-    "configstore": "^4.0.0",
+    "configstore": "^5.0.0",
     "crc": "^3.5.0",
     "debug": "^4.1.0",
-    "fp-ts": "^1.18.0",
+    "fp-ts": "^1.19.0",
     "io-ts": "^1.8.2",
     "io-ts-types": "^0.4.7",
-    "js-yaml": "^3.12.0",
+    "js-yaml": "^3.13.1",
     "lodash": "^4.17.10",
     "monocle-ts": "^1.7.2",
-    "newtype-ts": "^0.2.4",
+    "newtype-ts": "^0.3.1",
     "pm2": "^3.3.1",
     "progress": "^2.0.3",
     "serialport": "^7.1.4",
@@ -127,5 +127,5 @@
       "**/src/**/*.spec.+(ts|tsx|js)"
     ]
   },
-  "gitHead": "90c44fc5669d84c5ecbcbb68675b06aae1208572"
+  "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"
 }

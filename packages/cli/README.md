@@ -15,15 +15,22 @@ wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.34.0/install.sh | 
 nvm install 10
 nvm alias default node
 ```
-На **Windows** можно использовать  [официальный установщик](https://nodejs.org/en/download/current/). Необходимо перезагрузить **Windows** после установки.
-
-После установки node.js обновите `npm` и укажите репозиторий *Nata-Info*
+### Windows
+1. Загрузите скрипты для автоматической установки [setup.cmd](ftp://ftp.nata-info.ru/software/nibus.js/setup.cmd)
+и [nibus-installer.ps1](ftp://ftp.nata-info.ru/software/nibus.js/nibus-installer.ps1). Они должны находится в одной папке.
+2. В проводнике найдите загруженный файл `nibus-installer.ps1` правой кнопкой мыши Свойства/Общие/Разблокировать
+3. Запустите скрипт `setup.cmd` с правами администратора.
+4. Когда появится окно установщика `Node.JS` подтвердите установку, выполните что он потребует
+5. Тоже при установке `Git for Windows`
+6. Дождитесь установки `Visual Studio Build Tools`, если он еще не установлен.
+7. Возможно будет установлен `.NET Framework`, если он еще не установлен.
+8. В конце рекомендуется запустить в командной строке (если *UAC/Контроль учетных записей* включен запускайте **без прав администратора**)
 ```bash
-npm i -g npm
-npm set registry https://npm.nata-info.ru
+nibus start
+pm2 save
+pm2-startup install
 ```
 
-Выполните 
 ### Ubuntu
 1. Убедитесь что установлен [Python 2.7](https://www.python.org/downloads/) <sub><sup>(требуется для node-gyp)</sup></sub>
   ```bash
@@ -39,23 +46,14 @@ npm set registry https://npm.nata-info.ru
 2. [Xcode](https://developer.apple.com/xcode/download/)
 3. Command Line Tools `xcode-select --install`
 
-### Windows 7 и выше
-* Устанвите [git](https://gitforwindows.org/)
-* #### Опция 1 (автоматически)
-  Установка всех утилит используя [windows-build-tools](https://github.com/felixrieseberg/windows-build-tools)
-
-  `npm i -g --production windows-build-tools`
-* #### Опция 2 (вручную)
-  * [Visual Studio Build Tools](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools)
-  * [Python 2.7](https://www.python.org/downloads/)
-  * `npm config set msvs_version 2017`
-
-## Установка/обновление пакета `@nata/nibus.js`
+## Установка/обновление пакета `@nibus/cli`
 Чтобы установить или обновить пакет выполните команду
 ```bash
+nibus stop
 npm i -g @nibus/cli --registry https://npm.nata-info.ru
+nibus start
 ```
-**Перед обновлением сначала остановите службу!** `nibus stop`
+
 ## Запуск сервиса `nibus.js` и команды
 * запуск
 ```bash

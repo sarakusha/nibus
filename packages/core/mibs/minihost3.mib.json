@@ -553,7 +553,7 @@
           }
         },
         "redVertexX": {
-          "type": "xs:byte",
+          "type": "RedVertexX",
           "annotation": "Х красной вершины",
           "appinfo": {
             "nms_id": "0x3A1",
@@ -562,7 +562,7 @@
           }
         },
         "redVertexY": {
-          "type": "xs:byte",
+          "type": "RedVertexY",
           "annotation": "Y красной вершины",
           "appinfo": {
             "nms_id": "0x3A2",
@@ -571,7 +571,7 @@
           }
         },
         "greenVertexX": {
-          "type": "xs:byte",
+          "type": "GreenVertexX",
           "annotation": "X зеленой вершины",
           "appinfo": {
             "nms_id": "0x3A3",
@@ -580,7 +580,7 @@
           }
         },
         "greenVertexY": {
-          "type": "xs:byte",
+          "type": "GreenVertexY",
           "annotation": "Y зеленой вершины",
           "appinfo": {
             "nms_id": "0x3A4",
@@ -589,7 +589,7 @@
           }
         },
         "blueVertexX": {
-          "type": "xs:byte",
+          "type": "BlueVertexX",
           "annotation": "X синей вершины",
           "appinfo": {
             "nms_id": "0x3A5",
@@ -598,7 +598,7 @@
           }
         },
         "blueVertexY": {
-          "type": "xs:byte",
+          "type": "BlueVertexY",
           "annotation": "Y синей вершины",
           "appinfo": {
             "nms_id": "0x3A6",
@@ -674,6 +674,51 @@
     "versionType": {
       "base": "xs:unsignedInt"
     },
+    "RedVertexX": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => 640/1024 + x/2048",
+        "set": "value => 2048*value - 1280",
+        "precision": "3"
+      }
+    },
+    "RedVertexY": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "y => 256/1024 + y/2048",
+        "set": "value => 2048*value - 512",
+        "precision": "3"
+      }
+    },
+    "GreenVertexX": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => 128/1024 + x/2048",
+        "set": "value => 2048*value - 256",
+        "precision": "3"
+      }
+    },
+    "GreenVertexY": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "y => 640/1024 + y/2048",
+        "set": "value => 2048*value - 1280",
+        "precision": "3"
+      }},
+    "BlueVertexX": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => 640/1024 + x/2048",
+        "set": "value => 2048*value - 1280",
+        "precision": "3"
+      }},
+    "BlueVertexY": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => x/2048",
+        "set": "value => 2048*value",
+        "precision": "3"
+      }},
     "TypeColorTable": {
       "base": "xs:unsignedByte",
       "enumeration": {

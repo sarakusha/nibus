@@ -1,7 +1,7 @@
 import { CommandModule, Defined } from 'yargs';
 import { CommonOpts } from '../options';
 declare type FlashOpts = Defined<CommonOpts, 'm' | 'mac'> & {
-    kind: string;
+    kind?: string;
     source: string;
     src?: string;
     execute?: string;

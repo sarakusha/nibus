@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "1.5.8",
+  "version": "1.5.9",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -92,6 +92,7 @@
     "configstore": "^5.0.0",
     "crc": "^3.5.0",
     "debug": "^4.1.0",
+    "fast-xml-parser": "^3.12.16",
     "fp-ts": "^1.19.0",
     "io-ts": "^1.8.2",
     "io-ts-types": "^0.4.7",

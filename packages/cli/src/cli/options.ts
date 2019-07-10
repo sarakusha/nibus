@@ -18,7 +18,7 @@ export interface CommonOpts {
   compact: boolean;
   quiet: boolean;
   q: boolean;
-  fw: boolean;
+  // fw: boolean;
   timeout: number;
 }
 

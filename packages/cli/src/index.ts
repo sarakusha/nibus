@@ -24,7 +24,7 @@ import mib from './cli/commands/mib';
 import flash from './cli/commands/flash';
 import execute from './cli/commands/execute';
 
-// noinspection JSUnusedLocalSymbols 111
+// noinspection JSUnusedLocalSymbols
 const argv = yargs
   .option('m', {
     alias: 'mac',
@@ -34,7 +34,7 @@ const argv = yargs
   .option('raw', {
     boolean: true,
     default: false,
-    desc: 'Cырые данные',
+    desc: 'Сырые данные',
   })
   .option('id', {
     alias: 'name',
@@ -56,11 +56,11 @@ const argv = yargs
     boolean: true,
     alias: 'quiet',
   })
-  .option('fw', {
-    desc: 'использовать firmware_version для определения типа устройства',
-    boolean: true,
-    default: true,
-  })
+  // .option('fw', {
+  //   desc: 'использовать firmware_version для определения типа устройства',
+  //   boolean: true,
+  //   default: true,
+  // })
   .option('timeout', {
     desc: 'тймаут в секундах',
     number: true,

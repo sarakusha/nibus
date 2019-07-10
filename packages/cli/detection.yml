@@ -12,6 +12,7 @@ mibCategories:
     link: true
   c22:
     link: true
+    find: version
     # baudRate: 57600
     # В случае прямого подключения для эмуляции 9 бита любой even/odd (mark, space только на Windows)
 #    parity: even

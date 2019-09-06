@@ -21,15 +21,19 @@ import { makeAddressHandler } from '../handlers';
 import { CommonOpts } from '../options';
 import { action as writeAction } from './write';
 
-const domain = 'RFLASH';
+// const domain = 'RFLASH';
 const crcPrev = 0xAA55;
 
-type Kind = 'rbf' | 'tca' | 'tcc' | 'ttc' | 'ctrl';
+type Kind = 'rbf' | 'tca' | 'tcc' | 'ttc' | 'ctrl' | 'mcu' | 'fpga';
+type Domains = 'RFLASH' | 'MCU' | 'FPGA';
+type Routines = 'reloadHost' | 'updateHost' | 'reloadModule' | 'updateModule';
 type KindOpts = {
   offset: number,
+  begin?: number,
   size?: number[],
-  converter: (buffer: Buffer) => Buffer,
-  exec?: 'reload' | 'update',
+  converter: (buffer: Buffer, size?: number, delta?: number) => Buffer,
+  exec?: Routines,
+  domain: Domains,
   // kind?: 'rbf' | 'tca' | 'tcc',
 };
 type KindMeta = Record<Kind, KindOpts>;
@@ -56,10 +60,9 @@ const createHeader = (kind: string, option: number, data: Buffer) => {
 };
 
 const hexToBuf = (hex: string) => Buffer.from(hex.replace(/[\s:-=]/g, ''), 'hex');
-const txtConvert = (buffer: Buffer): Buffer => {
+const txtConvert: KindOpts['converter'] = (buffer, size = 32768, begin = 0): Buffer => {
   const lines = buffer.toString('ascii').split(/\r?\n/g);
-  const result = Buffer.alloc(32768, 0xFF);
-  const begin = 0x8000;
+  const result = Buffer.alloc(size, 0xFF);
   let offset = 0;
   lines.forEach((line) => {
     if (line[0] === '@') {
@@ -68,7 +71,11 @@ const txtConvert = (buffer: Buffer): Buffer => {
     } else {
       const buf = hexToBuf(line);
       // console.log(offset, buf);
-      offset += buf.copy(result, offset);
+      if (offset < 0) {
+        offset += buf.length;
+      } else {
+        offset += buf.copy(result, offset);
+      }
     }
   });
   return result;
@@ -143,40 +150,61 @@ const meta: KindMeta = {
     offset: 0x60000,
     size: [368011],
     converter: ident,
-    exec: 'reload',
+    exec: 'reloadModule',
+    domain: 'RFLASH',
+  },
+  fpga: {
+    offset: 0,
+    size: [368011],
+    converter: ident,
+    exec: 'reloadHost',
+    domain: 'FPGA',
   },
   tca: {
     offset: 0xC0000,
     size: [1536, 2822],
     converter: decConvert,
-    exec: 'reload',
+    exec: 'reloadModule',
+    domain: 'RFLASH',
   },
   tcc: {
     offset: 0xC0000,
     size: [1536, 2822],
     converter: decConvert,
-    exec: 'reload',
+    exec: 'reloadModule',
+    domain: 'RFLASH',
   },
   ttc: {
     offset: 0xC0000,
     converter: xmlConvert,
-    exec: 'reload',
+    exec: 'reloadModule',
+    domain: 'RFLASH',
   },
   ctrl: {
     offset: 0xF0000,
+    begin: 0x8000,
     size: [32768],
     converter: txtConvert,
-    exec: 'update',
+    exec: 'updateModule',
+    domain: 'RFLASH',
+  },
+  mcu: {
+    offset: 0,
+    begin: 0x4400,
+    size: [65536],
+    converter: txtConvert,
+    exec: 'updateHost',
+    domain: 'MCU',
   },
 };
 
 async function action(device: IDevice, args: Arguments<FlashOpts>) {
-  await writeAction(device, args);
+  const isModule = (await writeAction(device, args)).includes('moduleSelect');
   let kind: Kind = args.kind as Kind;
   if (!kind) {
     switch (path.extname(args.source)) {
       case '.rbf':
-        kind = 'rbf';
+        kind = isModule ? 'rbf' : 'fpga';
         break;
       case '.tcc':
         kind = 'tcc';
@@ -188,19 +216,23 @@ async function action(device: IDevice, args: Arguments<FlashOpts>) {
         kind = 'ttc';
         break;
       case '.txt':
-        kind = 'ctrl';
+        kind = isModule ? 'ctrl' : 'mcu';
         break;
       default:
         throw new Error('Unknown kind of source');
     }
   }
+  if (!isModule && kind !== 'mcu' && kind !== 'fpga') {
+    throw new Error('Conflict kind of source and destination');
+  }
   const opts = meta[kind];
   process.env['NODE_NO_WARNINGS'] = '1';
-  let buffer = opts.converter(await fs.promises.readFile(args.source));
+  let buffer =
+    opts.converter(await fs.promises.readFile(args.source), opts.size && opts.size[0], opts.begin);
   if (opts.size && !opts.size.includes(buffer.length)) {
     throw new Error(`Invalid data length. Expected ${opts.size.join(',')} got ${buffer.length}`);
   }
-  if (kind !== 'ctrl') {
+  if (kind !== 'ctrl' && kind !== 'mcu') {
     const header = createHeader(kind, 0, buffer);
     buffer = Buffer.concat([header, buffer, header]);
   } else {
@@ -208,31 +240,33 @@ async function action(device: IDevice, args: Arguments<FlashOpts>) {
     crc.writeUInt16LE(crc16ccitt(buffer, 0x55AA), 0);
     buffer = Buffer.concat([buffer, crc]);
   }
-  const dest = opts.offset.toString(16).padStart(4, '0');
+  const dest = opts.offset.toString(16).padStart(5, '0');
   const bar = new Progress(
-    `  flashing [:bar] to ${dest} :rate/bps :percent :current/:total :etas`,
+    `  flashing [:bar] to ${dest}h :rate/bps :percent :current/:total :etas`,
     {
       total: buffer.length,
       width: 30,
     },
   );
   device.on('downloadData', ({ domain: downloadDomain, length }) => {
-    if (domain === downloadDomain) bar.tick(length);
+    if (opts.domain === downloadDomain) bar.tick(length);
   });
 
-  await device.download(domain, buffer, opts.offset);
-  device.selector = 0;
-  await device.write(device.getId('selector'));
-  const data = await device.upload('MODUL', 0, 6);
-  // console.log('RESULT', data[3].toString(2), data);
-  if (data[3] & 0b100) {
-    console.error('Ошибка контрольной суммы в кадре');
-  }
-  if (data[3] & 0b1000) {
-    console.error('Таймаут ожидания валидности страницы');
-  }
-  if (data[3] & 0b10000) {
-    console.error('Ошибка в работе флеш памяти');
+  await device.download(opts.domain, buffer, opts.offset);
+  if (isModule) {
+    device.selector = 0;
+    await device.write(device.getId('selector'));
+    const data = await device.upload('MODUL', 0, 6);
+    // console.log('RESULT', data[3].toString(2), data);
+    if (data[3] & 0b100) {
+      console.error('Ошибка контрольной суммы в кадре');
+    }
+    if (data[3] & 0b1000) {
+      console.error('Таймаут ожидания валидности страницы');
+    }
+    if (data[3] & 0b10000) {
+      console.error('Ошибка в работе флеш памяти');
+    }
   }
   if (opts.exec) {
     await device.execute(opts.exec);
@@ -246,7 +280,7 @@ const flashCommand: CommandModule<CommonOpts, FlashOpts> = {
   builder: argv => argv
     .option('kind', {
       alias: 'k',
-      choices: ['rbf', 'tca', 'tcc', 'ttc', 'ctrl'],
+      choices: ['rbf', 'tca', 'tcc', 'ttc', 'ctrl', 'mcu', 'fpga'],
     })
     // .option('offset', {
     //   alias: 'ofs',
@@ -274,20 +308,28 @@ const flashCommand: CommandModule<CommonOpts, FlashOpts> = {
     // })
     // .conflicts('hex', 'dec')
     .example(
-      '$0 flash -m ::1 -k rbf moduleSelect=0 --src Alpha_Ctrl_SPI_Module_C10_320_104.rbf',
-      'Прошивка ПЛИС (если расширение .rbf, [-k rbf] - можно не указывать) ',
+      '$0 flash -m ::1 moduleSelect=0 --src Alpha_Ctrl_SPI_Module_C10_320_104.rbf',
+      'Прошивка ПЛИС модуля 0:0 (если расширение .rbf, [-k rbf] - можно не указывать) ',
     )
     .example(
-      '$0 flash -m ::1 -k tcc moduleSelect=0 --src data.tcc',
-      'Прошивка таблицы цветокоррекции v1 (если расширение .tcc, [-k tcc] - можно не указывать)',
+      '$0 flash -m ::1 moduleSelect=0 --src data.tcc',
+      `Прошивка таблицы цветокоррекции v1 для модуля
+\t(если расширение .tcc, [-k tcc] - можно не указывать)`,
     )
     .example(
-      '$0 flash -m ::1 -k ttc moduleSelect=0 --src config.xml',
-      'Прошивка таблицы цветокоррекции v2 (если расширение .xml, [-k ttc] - можно не указывать)',
+      '$0 flash -m ::1 moduleSelect=0 --src config.xml',
+      `Прошивка таблицы цветокоррекции v2 для модуля
+\t(если расширение .xml, [-k ttc] - можно не указывать)`,
     )
     .example(
-      '$0 flash -m ::1 -k ctrl moduleSelect=0 --src Slim_Ctrl_v5_Mcu_v1.2.txt',
-      'Прошивка процессора (если расширение .txt, [-k ctrl] - можно не указывать)',
+      '$0 flash -m ::1 moduleSelect=0 --src Slim_Ctrl_v5_Mcu_v1.2.txt',
+      `Прошивка процессора модуля
+\t(если расширение .txt, [-k ctrl] - можно не указывать)`,
+    )
+    .example(
+      '$0 flash -m ::1 --src NataInfo_4.0.1.1.txt',
+      `Прошивка процессора хоста
+\t(если расширение .txt, [-k ctrl] - можно не указывать)`,
     )
     .demandOption(['mac', 'm', 'source']),
   handler: makeAddressHandler(action),

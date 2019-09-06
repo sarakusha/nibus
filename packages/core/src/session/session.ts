@@ -162,23 +162,28 @@ class NibusSession extends EventEmitter {
         }
         case 'version':
           connection.sendDatagram(createNmsRead(Address.empty, 2))
-            .then((datagram) => {
-              if (!datagram || Array.isArray(datagram)) return;
-              if (connection.description.category === 'ftdi') {
-                debug(`category was changed: ${connection.description.category} => ${category}`);
-                connection.description = descr;
-              }
-              const address = new Address(datagram.source.mac);
-              this.emit(
-                'found',
-                {
-                  connection,
-                  category,
-                  address,
-                },
-              );
-              debug(`device ${category}[${address}] was found on ${connection.path}`);
-            }, noop);
+            .then(
+              (datagram) => {
+                if (!datagram || Array.isArray(datagram)) return;
+                if (connection.description.category === 'ftdi') {
+                  debug(`category was changed: ${connection.description.category} => ${category}`);
+                  connection.description = descr;
+                }
+                const address = new Address(datagram.source.mac);
+                this.emit(
+                  'found',
+                  {
+                    connection,
+                    category,
+                    address,
+                  },
+                );
+                debug(`device ${category}[${address}] was found on ${connection.path}`);
+              },
+              () => {
+                this.emit('pureConnection', connection);
+              },
+            );
           break;
         default:
           this.emit('pureConnection', connection);

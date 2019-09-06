@@ -421,6 +421,9 @@ function defineMibProperty(
           toInt(key),
         ]), target, propertyKey);
     }
+    if (representation) {
+      debug('REPR', representation, size, propertyKey);
+    }
     representation && size && converters.push(representationConverter(representation, size));
     if (get && set) {
       const conv = evalConverter(get, set);
@@ -956,7 +959,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
       }
     };
     if (buffer.length > max - offset) {
-      throw new Error(`Buffer to large. Expected ${max - offset} bytes`);
+      throw new Error(`Buffer too large. Expected ${max - offset} bytes`);
     }
     const initDownload = createNmsInitiateDownloadSequence(this.address, id);
     const { status: initStat } = await connection.sendDatagram(initDownload) as NmsDatagram;

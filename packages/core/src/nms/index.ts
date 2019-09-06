@@ -143,7 +143,7 @@ export function createNmsTerminateDownloadSequence(destination: AddressParam, id
     destination,
     id,
     service: NmsServiceType.TerminateDownloadSequence,
-    timeout: getNibusTimeout() * 6,
+    timeout: getNibusTimeout() * 10,
   });
 }
 
@@ -168,7 +168,7 @@ export function createNmsVerifyDomainChecksum(
     id,
     nms,
     service: NmsServiceType.VerifyDomainChecksum,
-    timeout: getNibusTimeout() * 3,
+    timeout: getNibusTimeout() * 10,
   });
 }
 

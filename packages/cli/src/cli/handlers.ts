@@ -17,7 +17,7 @@ import { CommonOpts } from './options';
 // export type NibusCounter = (handler: (count: number) => number) => void;
 
 interface ActionFunc<O> {
-  (device: IDevice, args: Arguments<O>): Promise<void>;
+  (device: IDevice, args: Arguments<O>): Promise<any>;
 }
 
 const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>

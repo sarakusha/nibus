@@ -13,16 +13,28 @@
         "nms_id": "7"
       }
     },
-    "reload": {
+    "reloadModule": {
       "annotation": "Перезагрузить модуль",
       "appinfo": {
         "nms_id": "8"
       }
     },
-    "update": {
-      "annotation": "Обновить ПО",
+    "updateModule": {
+      "annotation": "Обновить ПО модуля",
       "appinfo": {
         "nms_id": "9"
+      }
+    },
+    "reloadHost": {
+      "annotation": "Перезагрузить хост",
+      "appinfo": {
+        "nms_id": "10"
+      }
+    },
+    "updateHost": {
+      "annotation": "Обновить хост",
+      "appinfo": {
+        "nms_id": "11"
       }
     }
   },
@@ -43,6 +55,16 @@
           "appinfo": {
             "nms_id": "2",
             "access": "r",
+            "category": "Устройство"
+          }
+        },
+        "fw_version": {
+          "type": "xs:unsignedInt",
+          "annotation": "Полная версия ПО",
+          "appinfo": {
+            "nms_id": "0x85",
+            "access": "r",
+            "representation": "%X",
             "category": "Устройство"
           }
         },

@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "1.6.1",
+  "version": "1.6.4",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -12,7 +12,7 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "service": "cross-env NODE_ENV=development DEBUG=nibus babel-node --extensions \".ts,.tsx,.js\" src/index.ts start",
-    "build": "cross-env BABEL_ENV=production yarn clean && tsc --emitDeclarationOnly && babel src --out-dir lib --extensions \".ts,.tsx,.js\" && chmod +x lib/index.js",
+    "build": "cross-env BABEL_ENV=production yarn clean && tsc --emitDeclarationOnly && babel src --out-dir lib --extensions \".ts,.tsx,.js\"",
     "clean": "rimraf -rf lib tsconfig.tsbuildinfo"
   },
   "bin": {

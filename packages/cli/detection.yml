@@ -27,8 +27,7 @@ mibCategories:
       - siolynx
       - minihost
 knownDevices:
-  - device: 'MiniHost_V3'
-    vid: '2047'
+  - vid: '2047'
     pid: '0a3d'
     category: 'minihost'
   - device: Siolynx2

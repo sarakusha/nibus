@@ -249,29 +249,20 @@
             "category": "Параметры DVI потока"
           }
         },
-        "hblank": {
+        "hfrontporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Hsync до начала HDE (в тактах)",
+          "annotation": "Число тактов от начала кадра до начала импульса H.Sync",
           "appinfo": {
             "nms_id": "0x354",
             "access": "r",
             "category": "Параметры DVI потока"
           }
         },
-        "hde": {
+        "hbackporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Hsync до конца HDE (в тактах)",
+          "annotation": "Число тактов после импульса H.Sync до начала кадра",
           "appinfo": {
             "nms_id": "0x355",
-            "access": "r",
-            "category": "Параметры DVI потока"
-          }
-        },
-        "hperiod": {
-          "type": "xs:unsignedShort",
-          "annotation": "Длительность строки (в тактах)",
-          "appinfo": {
-            "nms_id": "0x356",
             "access": "r",
             "category": "Параметры DVI потока"
           }
@@ -285,29 +276,20 @@
             "category": "Параметры DVI потока"
           }
         },
-        "vblank": {
+        "vfrontporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Vsync до начала VDE(в строках)",
+          "annotation": "Число строк от начала кадра до начала импульса V.Sync",
           "appinfo": {
             "nms_id": "0x358",
             "access": "r",
             "category": "Параметры DVI потока"
           }
         },
-        "vde": {
+        "vbackporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Vsync до конца VDE (в строках)",
+          "annotation": "Число строк после V.Sync до конца кадра",
           "appinfo": {
             "nms_id": "0x359",
-            "access": "r",
-            "category": "Параметры DVI потока"
-          }
-        },
-        "vperiod": {
-          "type": "xs:unsignedShort",
-          "annotation": "Длительность кадра (в строках)",
-          "appinfo": {
-            "nms_id": "0x35A",
             "access": "r",
             "category": "Параметры DVI потока"
           }

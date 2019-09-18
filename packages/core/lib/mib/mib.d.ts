@@ -24,7 +24,7 @@ export declare const evalConverter: (get: string, set: string) => {
     from: any;
     to: any;
 };
-export declare const convertTo: (converters: IConverter[]) => (value: string | number | boolean | undefined) => string | number | boolean | undefined;
-export declare const convertFrom: (converters: IConverter[]) => (value: string | number | boolean | undefined) => string | number | boolean | undefined;
+export declare const convertTo: (converters: IConverter[]) => (value: PresentType) => PresentType;
+export declare const convertFrom: (converters: IConverter[]) => (value: PresentType) => PresentType;
 export {};
 //# sourceMappingURL=mib.d.ts.map

@@ -8,7 +8,6 @@ export interface CommonOpts {
     compact: boolean;
     quiet: boolean;
     q: boolean;
-    fw: boolean;
     timeout: number;
 }
 declare type Omit<T, K> = {

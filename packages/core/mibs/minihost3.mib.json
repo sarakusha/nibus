@@ -13,16 +13,28 @@
         "nms_id": "7"
       }
     },
-    "reload": {
+    "reloadModule": {
       "annotation": "Перезагрузить модуль",
       "appinfo": {
         "nms_id": "8"
       }
     },
-    "update": {
-      "annotation": "Обновить ПО",
+    "updateModule": {
+      "annotation": "Обновить ПО модуля",
       "appinfo": {
         "nms_id": "9"
+      }
+    },
+    "reloadHost": {
+      "annotation": "Перезагрузить хост",
+      "appinfo": {
+        "nms_id": "10"
+      }
+    },
+    "updateHost": {
+      "annotation": "Обновить хост",
+      "appinfo": {
+        "nms_id": "11"
       }
     }
   },
@@ -43,6 +55,16 @@
           "appinfo": {
             "nms_id": "2",
             "access": "r",
+            "category": "Устройство"
+          }
+        },
+        "fw_version": {
+          "type": "xs:unsignedInt",
+          "annotation": "Полная версия ПО",
+          "appinfo": {
+            "nms_id": "0x85",
+            "access": "r",
+            "representation": "%X",
             "category": "Устройство"
           }
         },
@@ -227,29 +249,20 @@
             "category": "Параметры DVI потока"
           }
         },
-        "hblank": {
+        "hfrontporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Hsync до начала HDE (в тактах)",
+          "annotation": "Число тактов от начала кадра до начала импульса H.Sync",
           "appinfo": {
             "nms_id": "0x354",
             "access": "r",
             "category": "Параметры DVI потока"
           }
         },
-        "hde": {
+        "hbackporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Hsync до конца HDE (в тактах)",
+          "annotation": "Число тактов после импульса H.Sync до начала кадра",
           "appinfo": {
             "nms_id": "0x355",
-            "access": "r",
-            "category": "Параметры DVI потока"
-          }
-        },
-        "hperiod": {
-          "type": "xs:unsignedShort",
-          "annotation": "Длительность строки (в тактах)",
-          "appinfo": {
-            "nms_id": "0x356",
             "access": "r",
             "category": "Параметры DVI потока"
           }
@@ -263,29 +276,20 @@
             "category": "Параметры DVI потока"
           }
         },
-        "vblank": {
+        "vfrontporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Vsync до начала VDE(в строках)",
+          "annotation": "Число строк от начала кадра до начала импульса V.Sync",
           "appinfo": {
             "nms_id": "0x358",
             "access": "r",
             "category": "Параметры DVI потока"
           }
         },
-        "vde": {
+        "vbackporch": {
           "type": "xs:unsignedShort",
-          "annotation": "Время от начала Vsync до конца VDE (в строках)",
+          "annotation": "Число строк после V.Sync до конца кадра",
           "appinfo": {
             "nms_id": "0x359",
-            "access": "r",
-            "category": "Параметры DVI потока"
-          }
-        },
-        "vperiod": {
-          "type": "xs:unsignedShort",
-          "annotation": "Длительность кадра (в строках)",
-          "appinfo": {
-            "nms_id": "0x35A",
             "access": "r",
             "category": "Параметры DVI потока"
           }
@@ -553,7 +557,7 @@
           }
         },
         "redVertexX": {
-          "type": "xs:byte",
+          "type": "RedVertexX",
           "annotation": "Х красной вершины",
           "appinfo": {
             "nms_id": "0x3A1",
@@ -562,7 +566,7 @@
           }
         },
         "redVertexY": {
-          "type": "xs:byte",
+          "type": "RedVertexY",
           "annotation": "Y красной вершины",
           "appinfo": {
             "nms_id": "0x3A2",
@@ -571,7 +575,7 @@
           }
         },
         "greenVertexX": {
-          "type": "xs:byte",
+          "type": "GreenVertexX",
           "annotation": "X зеленой вершины",
           "appinfo": {
             "nms_id": "0x3A3",
@@ -580,7 +584,7 @@
           }
         },
         "greenVertexY": {
-          "type": "xs:byte",
+          "type": "GreenVertexY",
           "annotation": "Y зеленой вершины",
           "appinfo": {
             "nms_id": "0x3A4",
@@ -589,7 +593,7 @@
           }
         },
         "blueVertexX": {
-          "type": "xs:byte",
+          "type": "BlueVertexX",
           "annotation": "X синей вершины",
           "appinfo": {
             "nms_id": "0x3A5",
@@ -598,7 +602,7 @@
           }
         },
         "blueVertexY": {
-          "type": "xs:byte",
+          "type": "BlueVertexY",
           "annotation": "Y синей вершины",
           "appinfo": {
             "nms_id": "0x3A6",
@@ -674,6 +678,51 @@
     "versionType": {
       "base": "xs:unsignedInt"
     },
+    "RedVertexX": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => 640/1024 + x/2048",
+        "set": "value => 2048*value - 1280",
+        "precision": "3"
+      }
+    },
+    "RedVertexY": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "y => 256/1024 + y/2048",
+        "set": "value => 2048*value - 512",
+        "precision": "3"
+      }
+    },
+    "GreenVertexX": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => 128/1024 + x/2048",
+        "set": "value => 2048*value - 256",
+        "precision": "3"
+      }
+    },
+    "GreenVertexY": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "y => 640/1024 + y/2048",
+        "set": "value => 2048*value - 1280",
+        "precision": "3"
+      }},
+    "BlueVertexX": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => 640/1024 + x/2048",
+        "set": "value => 2048*value - 1280",
+        "precision": "3"
+      }},
+    "BlueVertexY": {
+      "base": "xs:unsignedByte",
+      "appinfo": {
+        "get": "x => x/2048",
+        "set": "value => 2048*value",
+        "precision": "3"
+      }},
     "TypeColorTable": {
       "base": "xs:unsignedByte",
       "enumeration": {
@@ -1152,6 +1201,9 @@
           "annotation": "Доступ запрещен"
         },
         "-26": {
+          "annotation": "Регистр имеет недопустимое значение"
+        },
+        "-27": {
           "annotation": "Регистр имеет недопустимое значение"
         },
         "-30": {

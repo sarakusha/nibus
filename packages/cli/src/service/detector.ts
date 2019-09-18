@@ -207,7 +207,7 @@ async function detectDevice(port: SerialPort.PortInfo, lastAdded?: usbDetection.
 const matchCategory = (port: IKnownPort): Category => {
   const match = detection && _.find(
     detection!.knownDevices,
-    item => (port.device && port.device.startsWith(item.device))
+    item => (!item.device || (port.device && port.device.startsWith(item.device)))
       && (!item.serialNumber
         || (port.serialNumber && port.serialNumber.startsWith(item.serialNumber)))
       && (!item.manufacturer || (port.manufacturer === item.manufacturer))

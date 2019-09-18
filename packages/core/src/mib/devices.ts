@@ -41,13 +41,13 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { ConfigV } from '../session/common';
+import { Config, ConfigV } from '../session/common';
 import timeid from '../timeid';
 import {
   booleanConverter,
   convertFrom,
   convertTo,
-  enumerationConverter,
+  enumerationConverter, evalConverter,
   fixedPointNumber4Converter,
   getIntSize,
   IConverter,
@@ -139,6 +139,8 @@ const MibTypeV = t.intersection([
       units: t.string,
       precision: t.string,
       representation: t.string,
+      get: t.string,
+      set: t.string,
     }),
     minInclusive: t.string,
     maxInclusive: t.string,
@@ -366,10 +368,12 @@ function defineMibProperty(
       break;
   }
   if (key === 'brightness' && prop.type === 'xs:unsignedByte') {
+    // console.log('uSE PERCENT 100<->250');
     converters.push(percentConverter);
     Reflect.defineMetadata('unit', '%', target, propertyKey);
     Reflect.defineMetadata('min', 0, target, propertyKey);
     Reflect.defineMetadata('max', 100, target, propertyKey);
+    min = max = undefined;
   } else if (isWritable) {
     if (type != null) {
       const { minInclusive, maxInclusive } = type;
@@ -384,25 +388,31 @@ function defineMibProperty(
     }
     if (min !== undefined) {
       min = convertTo(converters)(min) as number;
-      converters.push(minInclusiveConverter(min));
       Reflect.defineMetadata('min', min, target, propertyKey);
     }
     if (max !== undefined) {
       max = convertTo(converters)(max) as number;
-      converters.push(maxInclusiveConverter(max));
       Reflect.defineMetadata('max', max, target, propertyKey);
     }
   }
   if (type != null) {
     const { appinfo: info = {} } = type;
     enumeration = type.enumeration;
-    const { units, precision, representation } = info;
+    const { units, precision, representation, get, set } = info;
     const size = getIntSize(simpleType);
     if (units) {
       converters.push(unitConverter(units));
       Reflect.defineMetadata('unit', units, target, propertyKey);
     }
-    precision && converters.push(precisionConverter(precision));
+    let precisionConv: IConverter = {
+      from: v => v,
+      to: v => v,
+    };
+    if (precision) {
+      precisionConv = precisionConverter(precision);
+      converters.push(precisionConv);
+      Reflect.defineMetadata('step', 1 / (10 ** parseInt(precision, 10)), target, propertyKey);
+    }
     if (enumeration) {
       converters.push(enumerationConverter(enumeration));
       Reflect.defineMetadata('enum', Object.entries(enumeration)
@@ -411,7 +421,25 @@ function defineMibProperty(
           toInt(key),
         ]), target, propertyKey);
     }
+    if (representation) {
+      debug('REPR', representation, size, propertyKey);
+    }
     representation && size && converters.push(representationConverter(representation, size));
+    if (get && set) {
+      const conv = evalConverter(get, set);
+      converters.push(conv);
+      const [a, b] = [conv.to(min), conv.to(max)];
+      const minEval = parseFloat(precisionConv.to(Math.min(a, b)) as string);
+      const maxEval = parseFloat(precisionConv.to(Math.max(a, b)) as string);
+      Reflect.defineMetadata('min', minEval, target, propertyKey);
+      Reflect.defineMetadata('max', maxEval, target, propertyKey);
+    }
+  }
+  if (min !== undefined) {
+    converters.push(minInclusiveConverter(min));
+  }
+  if (max !== undefined) {
+    converters.push(maxInclusiveConverter(max));
   }
 
   if (prop.type === 'versionType') {
@@ -709,7 +737,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     debug(`drain [${this.address}]`);
     const { [$dirties]: dirties } = this;
     const ids = Object.keys(dirties).map(Number).filter(id => dirties[id]);
-    return ids.length > 0 ? this.write(...ids).catch(() => []) : Promise.resolve([]);
+    return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
   }
 
   private writeAll() {
@@ -730,18 +758,24 @@ class DevicePrototype extends EventEmitter implements IDevice {
     }
     debug(`writing ${ids.join()} to [${this.address}]`);
     const map = Reflect.getMetadata('map', this);
+    const invalidNms: number[] = [];
     const requests = ids.reduce(
       (acc: NmsDatagram[], id) => {
         const [name] = map[id];
         if (!name) {
           debug(`Unknown id: ${id} for ${Reflect.getMetadata('mib', this)}`);
         } else {
-          acc.push(createNmsWrite(
-            this.address,
-            id,
-            Reflect.getMetadata('nmsType', this, name),
-            this.getRawValue(id),
-          ));
+          try {
+            acc.push(createNmsWrite(
+              this.address,
+              id,
+              Reflect.getMetadata('nmsType', this, name),
+              this.getRawValue(id),
+            ));
+          } catch (e) {
+            console.error('Error while create NMS datagram', e.message);
+            invalidNms.push(-id);
+          }
         }
         return acc;
       },
@@ -757,12 +791,12 @@ class DevicePrototype extends EventEmitter implements IDevice {
               return datagram.id;
             }
             this.setError(datagram.id, new NibusError(status!, this));
-            return -1;
+            return -datagram.id;
           }, (reason) => {
             this.setError(datagram.id, reason);
-            return -1;
+            return -datagram.id;
           })))
-      .then(ids => ids.filter(id => id > 0));
+      .then(ids => ids.concat(invalidNms));
   }
 
   public writeValues(source: object, strong = true): Promise<number[]> {
@@ -925,7 +959,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
       }
     };
     if (buffer.length > max - offset) {
-      throw new Error(`Buffer to large. Expected ${max - offset} bytes`);
+      throw new Error(`Buffer too large. Expected ${max - offset} bytes`);
     }
     const initDownload = createNmsInitiateDownloadSequence(this.address, id);
     const { status: initStat } = await connection.sendDatagram(initDownload) as NmsDatagram;
@@ -1016,8 +1050,9 @@ interface DevicePrototype {
   [$dirties]: { [id: number]: boolean };
 }
 
-export const getMibTypes = () => {
+export const getMibTypes = (): Config['mibTypes'] => {
   const conf = path.resolve(configDir || '/tmp', 'configstore', pkgName);
+  if (!fs.existsSync(`${conf}.json`)) return {};
   const validate = ConfigV.decode(JSON.parse(fs.readFileSync(`${conf}.json`).toString()));
 //   const validate = ConfigV.decode(require(conf));
   if (validate.isLeft()) {
@@ -1026,7 +1061,7 @@ export const getMibTypes = () => {
   }
   const { mibTypes } = validate.value;
   return mibTypes;
-}
+};
 
 export function findMibByType(type: number, version?: number): string | undefined {
   const mibTypes = getMibTypes();

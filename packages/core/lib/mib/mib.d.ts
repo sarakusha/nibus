@@ -20,7 +20,11 @@ export declare const versionTypeConverter: IConverter;
 export declare function getIntSize(type: string): 1 | 2 | 4 | 8 | undefined;
 export declare function minInclusiveConverter(min: number): IConverter;
 export declare function maxInclusiveConverter(max: number): IConverter;
-export declare const convertTo: (converters: IConverter[]) => (value: string | number | boolean | undefined) => string | number | boolean | undefined;
-export declare const convertFrom: (converters: IConverter[]) => (value: string | number | boolean | undefined) => string | number | boolean | undefined;
+export declare const evalConverter: (get: string, set: string) => {
+    from: any;
+    to: any;
+};
+export declare const convertTo: (converters: IConverter[]) => (value: PresentType) => PresentType;
+export declare const convertFrom: (converters: IConverter[]) => (value: PresentType) => PresentType;
 export {};
 //# sourceMappingURL=mib.d.ts.map

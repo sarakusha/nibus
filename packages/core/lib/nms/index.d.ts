@@ -15,7 +15,7 @@ export declare function createNmsRequestDomainUpload(destination: AddressParam, 
 export declare function createNmsUploadSegment(destination: AddressParam, id: number, offset: number, length: number): NmsDatagram;
 export declare function createNmsRequestDomainDownload(destination: AddressParam, domain: string): NmsDatagram;
 export declare function createNmsInitiateDownloadSequence(destination: AddressParam, id: number): NmsDatagram;
-export declare function createNmsDownloadSegment(destination: AddressParam, id: number, offset: number, data: Buffer): NmsDatagram;
+export declare function createNmsDownloadSegment(destination: AddressParam, id: number, offset: number, data: Buffer, notReply?: boolean): NmsDatagram;
 export declare function createNmsTerminateDownloadSequence(destination: AddressParam, id: number): NmsDatagram;
 export declare function createNmsVerifyDomainChecksum(destination: AddressParam, id: number, offset: number, size: number, crc: number): NmsDatagram;
 export declare type TypedValue = [NmsValueType, any];

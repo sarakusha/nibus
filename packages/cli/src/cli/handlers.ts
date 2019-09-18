@@ -11,13 +11,13 @@
 import { Arguments, Defined } from 'yargs';
 import { devices, IDevice } from '@nibus/core/lib/mib';
 import session, { Address } from '@nibus/core';
-import { getNibusTimeout, NibusConnection } from '@nibus/core/lib/nibus';
+import { getNibusTimeout, NibusConnection, setNibusTimeout } from '@nibus/core/lib/nibus';
 import { CommonOpts } from './options';
 
 // export type NibusCounter = (handler: (count: number) => number) => void;
 
 interface ActionFunc<O> {
-  (device: IDevice, args: Arguments<O>): Promise<void>;
+  (device: IDevice, args: Arguments<O>): Promise<any>;
 }
 
 const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
@@ -35,9 +35,12 @@ const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
       };
       const mac = new Address(args.mac);
       let count = await session.start();
+      if (args.timeout && args.timeout !== getNibusTimeout() * 1000) {
+        setNibusTimeout(args.timeout * 1000);
+      }
       // На Windows сложнее метод определения и занимает больше времени
       if (process.platform === 'win32') {
-        count *= 2;
+        count *= 3;
       }
       // const setCount: NibusCounter = (handler = (c: number) => c) => count = handler(count);
 

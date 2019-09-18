@@ -23,9 +23,9 @@ const mibCommand: CommandModule = {
     })
     .demandOption('mibfile'),
   handler: async ({ mibfile }) => {
-    const dest = path.resolve(__dirname, '../../../mibs');
-    await convert(mibfile as string, dest);
-    const validation = MibDeviceV.decode(require(dest));
+    const dest = path.resolve(__dirname, '../../../../core/mibs');
+    const jsonpath = await convert(mibfile as string, dest);
+    const validation = MibDeviceV.decode(require(jsonpath));
     if (validation.isLeft()) {
       throw new Error(`Invalid mib file: ${mibfile}
       ${PathReporter.report(validation)}`);

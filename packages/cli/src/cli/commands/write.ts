@@ -18,7 +18,7 @@ type WriteOpts = Defined<CommonOpts, 'mac' | 'm'>;
 
 type NameIdValue = [string, number, string];
 
-export async function action(device: IDevice, args: Arguments<WriteOpts>) {
+export async function action(device: IDevice, args: Arguments<WriteOpts>): Promise<string[]> {
   const vars: NameIdValue[] = args._
     .slice(1)
     .map(arg => arg.split('=', 2))
@@ -28,13 +28,15 @@ export async function action(device: IDevice, args: Arguments<WriteOpts>) {
     device[name] = value;
   });
   if (vars.length === 0) {
-    return;
+    return [];
   }
   args.quiet || console.log(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
   return device.write(...vars.map(([, id]) => id)).then((ids) => {
-    if (args.quiet) return;
-    ids.map(id => device.getName(id))
-      .forEach(name => console.log(` - ${name} = ${JSON.stringify(device[name])}`));
+    const names = ids.map(id => device.getName(id));
+    if (!args.quiet) {
+      names.forEach(name => console.log(` - ${name} = ${JSON.stringify(device[name])}`));
+    }
+    return names;
   });
 }
 

@@ -36,6 +36,8 @@ declare const MibTypeV: t.IntersectionC<[t.TypeC<{
         units: t.StringC;
         precision: t.StringC;
         representation: t.StringC;
+        get: t.StringC;
+        set: t.StringC;
     }>;
     minInclusive: t.StringC;
     maxInclusive: t.StringC;
@@ -75,6 +77,8 @@ export declare const MibDeviceV: t.IntersectionC<[t.TypeC<{
             units: t.StringC;
             precision: t.StringC;
             representation: t.StringC;
+            get: t.StringC;
+            set: t.StringC;
         }>;
         minInclusive: t.StringC;
         maxInclusive: t.StringC;

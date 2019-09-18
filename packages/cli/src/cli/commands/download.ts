@@ -48,17 +48,24 @@ function readAllFromStdin() {
 }
 
 export const convert = (buffer: Buffer): [Buffer, number] => {
-  const lines = buffer.toString('ascii').split(/\r?\n/g);
+  const lines = buffer.toString('ascii')
+    .split(/\r?\n/g)
+    .map(line => line.replace(/[\s:-=]/g, ''));
   let offset = 0;
   if (lines.length === 0) return [Buffer.alloc(0), 0];
   const first = lines[0];
-  let start = 0;
   if (first[0] === '@') {
     offset = parseInt(first.slice(1), 16);
-    start = 1;
+    lines.splice(0, 1);
   }
-  const hexToBuf = (hex: string) => Buffer.from(hex.split(/[\s:-=]/g).join(''), 'hex');
-  return [Buffer.concat(lines.slice(start).map(hexToBuf)), offset];
+  const invalidLines = lines.reduce(
+    (result, line, index) => (/^[0-9a-fA-F]$/.test(line) && line.length % 2 === 0)
+      ? result
+      : [...result, String(index)],
+    [] as string[],
+  );
+  if (invalidLines.length > 0) throw new Error(`Invalid hex in lines ${invalidLines.join(',')}`);
+  return [Buffer.from(lines.join('')), offset];
 };
 
 export async function action(

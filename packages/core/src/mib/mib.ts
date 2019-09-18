@@ -1,3 +1,4 @@
+/* tslint:disable:no-eval */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -224,6 +225,11 @@ export function maxInclusiveConverter(max: number): IConverter {
     to: value => value,
   };
 }
+
+export const evalConverter = (get: string, set: string) => ({
+  from: eval(set),
+  to: eval(get),
+});
 
 export const convertTo = (converters: IConverter[]) => (value: ResultType) =>
   converters.reduceRight(

@@ -117,7 +117,8 @@ export function createNmsDownloadSegment(
   destination: AddressParam,
   id: number,
   offset: number,
-  data: Buffer) {
+  data: Buffer,
+  notReply = false) {
   if (offset < 0) {
     throw new Error('Invalid offset');
   }
@@ -131,6 +132,7 @@ export function createNmsDownloadSegment(
   return new NmsDatagram({
     destination,
     id,
+    notReply,
     nms: Buffer.concat([ofs, data]),
     service: NmsServiceType.DownloadSegment,
   });
@@ -141,7 +143,7 @@ export function createNmsTerminateDownloadSequence(destination: AddressParam, id
     destination,
     id,
     service: NmsServiceType.TerminateDownloadSequence,
-    timeout: getNibusTimeout() * 6,
+    timeout: getNibusTimeout() * 10,
   });
 }
 
@@ -166,7 +168,7 @@ export function createNmsVerifyDomainChecksum(
     id,
     nms,
     service: NmsServiceType.VerifyDomainChecksum,
-    timeout: getNibusTimeout() * 3,
+    timeout: getNibusTimeout() * 10,
   });
 }
 

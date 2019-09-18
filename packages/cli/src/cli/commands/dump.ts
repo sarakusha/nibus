@@ -137,9 +137,11 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
     count = await session.start();
     // На Windows сложнее метод определения и занимает больше времени
     if (process.platform === 'win32') {
-      count *= 2;
+      count *= 3;
     }
+    // console.log('RUN DUMP');
     session.on('found', async ({ address, connection }) => {
+      // console.log('FOUND', connection.description);
       try {
         if (connection.description.link) {
           if (mac) {

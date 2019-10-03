@@ -23,6 +23,7 @@ import log from './cli/commands/log';
 import mib from './cli/commands/mib';
 import flash from './cli/commands/flash';
 import execute from './cli/commands/execute';
+import parse from './cli/commands/parse';
 
 // noinspection JSUnusedLocalSymbols
 const argv = yargs
@@ -79,6 +80,7 @@ const argv = yargs
   .command(mib as any)
   .command(flash as any)
   .command(execute as any)
+  .command(parse as any)
   .locale('ru')
   .completion('completion')
   .showHelpOnFail(false)

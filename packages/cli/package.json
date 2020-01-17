@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "1.6.6",
+  "version": "1.6.9",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -105,7 +105,7 @@
     "serialport": "^7.1.4",
     "table-layout": "^0.4.4",
     "tail": "^2.0.2",
-    "usb-detection": "git+https://git@github.com/sarakusha/node-usb-detection.git#unbind-ATL",
+    "usb-detection": "^4.5.0",
     "xpipe": "^1.0.5",
     "yargs": "^13.1.0"
   },

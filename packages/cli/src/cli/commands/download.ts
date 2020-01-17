@@ -59,7 +59,7 @@ export const convert = (buffer: Buffer): [Buffer, number] => {
     lines.splice(0, 1);
   }
   const invalidLines = lines.reduce(
-    (result, line, index) => (/^[0-9a-fA-F]$/.test(line) && line.length % 2 === 0)
+    (result, line, index) => (/^[0-9a-fA-F]*$/.test(line) && line.length % 2 === 0)
       ? result
       : [...result, String(index)],
     [] as string[],

@@ -12,6 +12,7 @@ import { NibusDatagram, NibusDecoder } from '@nibus/core/lib/nibus';
 // import Configstore from 'configstore';
 import fs from 'fs';
 import path from 'path';
+import { Transform } from 'stream';
 
 // const { Writable } = require('stream');
 import { CommandModule } from 'yargs';
@@ -28,6 +29,17 @@ const conf = new Configstore(
 );
 */
 
+const hexTransform = new Transform({
+  transform: function (
+    chunk: any,
+    encoding: string,
+    callback: (error?: (Error | null), data?: any) => void): void {
+    const data = chunk.toString().replace(/-/g, '').replace(/\n/g, '');
+    const buffer = Buffer.from(data, 'hex');
+    callback(null, buffer);
+  },
+});
+
 const makeNibusDecoder = (pick?: string[], omit?: string[]) => {
   const decoder = new NibusDecoder();
   decoder.on('data', (datagram: NibusDatagram) => {
@@ -40,10 +52,11 @@ const makeNibusDecoder = (pick?: string[], omit?: string[]) => {
 };
 
 type ParseOptions = CommonOpts & {
-  pick?: string[],
-  omit?: string[],
+  pick?: string[];
+  omit?: string[];
   // level: string,
-  input: string,
+  input: string;
+  hex?: boolean;
 };
 
 const parseCommand: CommandModule<CommonOpts, ParseOptions> = {
@@ -72,8 +85,14 @@ const parseCommand: CommandModule<CommonOpts, ParseOptions> = {
       string: true,
       desc: 'входной файл с данными',
       required: true,
+    })
+    .option('hex', {
+      boolean: true,
+      desc: 'входной файл в формате hex',
     }),
-  handler: (({ level, pick, omit, input }) => new Promise((resolve, reject) => {
+  handler: (({
+    level, pick, omit, input, hex,
+  }) => new Promise((resolve, reject) => {
     const inputPath = path.resolve(process.cwd(), input);
     // console.log('PARSE', inputPath);
     if (!fs.existsSync(inputPath)) {
@@ -84,7 +103,12 @@ const parseCommand: CommandModule<CommonOpts, ParseOptions> = {
     stream.on('error', reject);
     // if (level === 'nibus') {
     const decoder = makeNibusDecoder(pick, omit);
-    stream.pipe(decoder);
+    if (hex) {
+      console.log('HEEEEX');
+      stream.pipe(hexTransform).pipe(decoder);
+    } else {
+      stream.pipe(decoder);
+    }
     // } else {
     //   const logger = new Writable({
     //     write: (chunk: any, encoding: string, callback: Function) => {

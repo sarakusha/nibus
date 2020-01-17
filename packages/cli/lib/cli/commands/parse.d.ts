@@ -4,6 +4,7 @@ declare type ParseOptions = CommonOpts & {
     pick?: string[];
     omit?: string[];
     input: string;
+    hex?: boolean;
 };
 declare const parseCommand: CommandModule<CommonOpts, ParseOptions>;
 export default parseCommand;

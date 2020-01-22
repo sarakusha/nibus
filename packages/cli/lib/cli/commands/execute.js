@@ -1,34 +1,27 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-require("source-map-support/register");
-
-var _handlers = require("../handlers");
-
+import makeAddressHandler from '../handlers';
 async function action(device, args) {
-  const vars = args._.slice(1).map(arg => arg.split('=', 2)).filter(([name, value]) => name !== '' && value !== '');
-
-  const opts = vars.reduce((res, [name, value]) => {
-    res[name] = value;
-    return res;
-  }, {});
-  await device.execute(args.program, opts);
+    const vars = args._
+        .slice(1)
+        .map(arg => arg.split('=', 2))
+        .filter(([name, value]) => name !== '' && value !== '');
+    const opts = vars.reduce((res, [name, value]) => {
+        res[name] = value;
+        return res;
+    }, {});
+    await device.execute(args.program, opts);
 }
-
 const executeCommand = {
-  command: 'execute <program>',
-  aliases: 'exec',
-  describe: 'выполнить подпрограмму',
-  builder: argv => argv.positional('program', {
-    describe: 'название подпрограммы',
-    type: 'string'
-  }).example('$0 execute signal duration=30 source=1 -m 45:33', 'выполнить программу signal с' + ' параметрами duration и source').demandOption(['mac', 'm', 'program']),
-  handler: (0, _handlers.makeAddressHandler)(action, true)
+    command: 'execute <program>',
+    describe: 'выполнить подпрограмму',
+    builder: argv => argv
+        .positional('program', {
+        describe: 'название подпрограммы',
+        type: 'string',
+    })
+        .example('$0 execute signal duration=30 source=1 -m 45:33', 'выполнить программу signal с'
+        + ' параметрами duration и source')
+        .demandOption(['mac', 'program']),
+    handler: makeAddressHandler(action, true),
 };
-var _default = executeCommand;
-exports.default = _default;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NyYy9jbGkvY29tbWFuZHMvZXhlY3V0ZS50cyJdLCJuYW1lcyI6WyJhY3Rpb24iLCJkZXZpY2UiLCJhcmdzIiwidmFycyIsIl8iLCJzbGljZSIsIm1hcCIsImFyZyIsInNwbGl0IiwiZmlsdGVyIiwibmFtZSIsInZhbHVlIiwib3B0cyIsInJlZHVjZSIsInJlcyIsImV4ZWN1dGUiLCJwcm9ncmFtIiwiZXhlY3V0ZUNvbW1hbmQiLCJjb21tYW5kIiwiYWxpYXNlcyIsImRlc2NyaWJlIiwiYnVpbGRlciIsImFyZ3YiLCJwb3NpdGlvbmFsIiwidHlwZSIsImV4YW1wbGUiLCJkZW1hbmRPcHRpb24iLCJoYW5kbGVyIl0sIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7QUFhQTs7QUFTQSxlQUFlQSxNQUFmLENBQXNCQyxNQUF0QixFQUF1Q0MsSUFBdkMsRUFBcUU7QUFDbkUsUUFBTUMsSUFBaUIsR0FBR0QsSUFBSSxDQUFDRSxDQUFMLENBQ3ZCQyxLQUR1QixDQUNqQixDQURpQixFQUV2QkMsR0FGdUIsQ0FFbkJDLEdBQUcsSUFBSUEsR0FBRyxDQUFDQyxLQUFKLENBQVUsR0FBVixFQUFlLENBQWYsQ0FGWSxFQUd2QkMsTUFIdUIsQ0FHaEIsQ0FBQyxDQUFDQyxJQUFELEVBQU9DLEtBQVAsQ0FBRCxLQUFtQkQsSUFBSSxLQUFLLEVBQVQsSUFBZUMsS0FBSyxLQUFLLEVBSDVCLENBQTFCOztBQUtBLFFBQU1DLElBQUksR0FBR1QsSUFBSSxDQUFDVSxNQUFMLENBQVksQ0FBQ0MsR0FBRCxFQUFNLENBQUNKLElBQUQsRUFBT0MsS0FBUCxDQUFOLEtBQXdCO0FBQy9DRyxJQUFBQSxHQUFHLENBQUNKLElBQUQsQ0FBSCxHQUFZQyxLQUFaO0FBQ0EsV0FBT0csR0FBUDtBQUNELEdBSFksRUFHVixFQUhVLENBQWI7QUFLQSxRQUFNYixNQUFNLENBQUNjLE9BQVAsQ0FBZWIsSUFBSSxDQUFDYyxPQUFwQixFQUE2QkosSUFBN0IsQ0FBTjtBQUNEOztBQUVELE1BQU1LLGNBQXNELEdBQUc7QUFDN0RDLEVBQUFBLE9BQU8sRUFBRSxtQkFEb0Q7QUFFN0RDLEVBQUFBLE9BQU8sRUFBRSxNQUZvRDtBQUc3REMsRUFBQUEsUUFBUSxFQUFFLHdCQUhtRDtBQUk3REMsRUFBQUEsT0FBTyxFQUFFQyxJQUFJLElBQUlBLElBQUksQ0FDbEJDLFVBRGMsQ0FDSCxTQURHLEVBQ1E7QUFDckJILElBQUFBLFFBQVEsRUFBRSx1QkFEVztBQUVyQkksSUFBQUEsSUFBSSxFQUFFO0FBRmUsR0FEUixFQUtkQyxPQUxjLENBS04saURBTE0sRUFLNkMsaUNBQzFELGdDQU5hLEVBT2RDLFlBUGMsQ0FPRCxDQUFDLEtBQUQsRUFBUSxHQUFSLEVBQWEsU0FBYixDQVBDLENBSjRDO0FBWTdEQyxFQUFBQSxPQUFPLEVBQUUsa0NBQW1CM0IsTUFBbkIsRUFBMkIsSUFBM0I7QUFab0QsQ0FBL0Q7ZUFlZWlCLGMiLCJzb3VyY2VzQ29udGVudCI6WyIvKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCAoYykgMjAxOS4gTmF0YS1JbmZvXG4gKiBAYXV0aG9yIEFuZHJlaSBTYXJha2VldiA8YXZzQG5hdGEtaW5mby5ydT5cbiAqXG4gKiBUaGlzIGZpbGUgaXMgcGFydCBvZiB0aGUgXCJAbmF0YVwiIHByb2plY3QuXG4gKiBGb3IgdGhlIGZ1bGwgY29weXJpZ2h0IGFuZCBsaWNlbnNlIGluZm9ybWF0aW9uLCBwbGVhc2Ugdmlld1xuICogdGhlIEVVTEEgZmlsZSB0aGF0IHdhcyBkaXN0cmlidXRlZCB3aXRoIHRoaXMgc291cmNlIGNvZGUuXG4gKi9cblxuaW1wb3J0IHsgQXJndW1lbnRzLCBDb21tYW5kTW9kdWxlLCBEZWZpbmVkIH0gZnJvbSAneWFyZ3MnO1xuXG5pbXBvcnQgeyBJRGV2aWNlIH0gZnJvbSAnQG5pYnVzL2NvcmUvbGliL21pYic7XG5pbXBvcnQgeyBtYWtlQWRkcmVzc0hhbmRsZXIgfSBmcm9tICcuLi9oYW5kbGVycyc7XG5pbXBvcnQgeyBDb21tb25PcHRzIH0gZnJvbSAnLi4vb3B0aW9ucyc7XG5cbnR5cGUgRXhlY3V0ZU9wdHMgPSBEZWZpbmVkPENvbW1vbk9wdHMsICdtJyB8ICdtYWMnPiAmIHtcbiAgcHJvZ3JhbTogc3RyaW5nLFxufTtcblxudHlwZSBOYW1lVmFsdWUgPSBbc3RyaW5nLCBzdHJpbmddO1xuXG5hc3luYyBmdW5jdGlvbiBhY3Rpb24oZGV2aWNlOiBJRGV2aWNlLCBhcmdzOiBBcmd1bWVudHM8RXhlY3V0ZU9wdHM+KSB7XG4gIGNvbnN0IHZhcnM6IE5hbWVWYWx1ZVtdID0gYXJncy5fXG4gICAgLnNsaWNlKDEpXG4gICAgLm1hcChhcmcgPT4gYXJnLnNwbGl0KCc9JywgMikgYXMgTmFtZVZhbHVlKVxuICAgIC5maWx0ZXIoKFtuYW1lLCB2YWx1ZV0pID0+IG5hbWUgIT09ICcnICYmIHZhbHVlICE9PSAnJyk7XG5cbiAgY29uc3Qgb3B0cyA9IHZhcnMucmVkdWNlKChyZXMsIFtuYW1lLCB2YWx1ZV0pID0+IHtcbiAgICByZXNbbmFtZV0gPSB2YWx1ZTtcbiAgICByZXR1cm4gcmVzO1xuICB9LCB7fSBhcyBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+KTtcblxuICBhd2FpdCBkZXZpY2UuZXhlY3V0ZShhcmdzLnByb2dyYW0sIG9wdHMpO1xufVxuXG5jb25zdCBleGVjdXRlQ29tbWFuZDogQ29tbWFuZE1vZHVsZTxDb21tb25PcHRzLCBFeGVjdXRlT3B0cz4gPSB7XG4gIGNvbW1hbmQ6ICdleGVjdXRlIDxwcm9ncmFtPicsXG4gIGFsaWFzZXM6ICdleGVjJyxcbiAgZGVzY3JpYmU6ICfQstGL0L/QvtC70L3QuNGC0Ywg0L/QvtC00L/RgNC+0LPRgNCw0LzQvNGDJyxcbiAgYnVpbGRlcjogYXJndiA9PiBhcmd2XG4gICAgLnBvc2l0aW9uYWwoJ3Byb2dyYW0nLCB7XG4gICAgICBkZXNjcmliZTogJ9C90LDQt9Cy0LDQvdC40LUg0L/QvtC00L/RgNC+0LPRgNCw0LzQvNGLJyxcbiAgICAgIHR5cGU6ICdzdHJpbmcnLFxuICAgIH0pXG4gICAgLmV4YW1wbGUoJyQwIGV4ZWN1dGUgc2lnbmFsIGR1cmF0aW9uPTMwIHNvdXJjZT0xIC1tIDQ1OjMzJywgJ9Cy0YvQv9C+0LvQvdC40YLRjCDQv9GA0L7Qs9GA0LDQvNC80YMgc2lnbmFsINGBJyArXG4gICAgICAnINC/0LDRgNCw0LzQtdGC0YDQsNC80LggZHVyYXRpb24g0Lggc291cmNlJylcbiAgICAuZGVtYW5kT3B0aW9uKFsnbWFjJywgJ20nLCAncHJvZ3JhbSddKSxcbiAgaGFuZGxlcjogbWFrZUFkZHJlc3NIYW5kbGVyKGFjdGlvbiwgdHJ1ZSksXG59O1xuXG5leHBvcnQgZGVmYXVsdCBleGVjdXRlQ29tbWFuZDtcbiJdfQ==
+export default executeCommand;
+//# sourceMappingURL=execute.js.map

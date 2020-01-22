@@ -1,76 +1,54 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-require("source-map-support/register");
-
-var _debug = _interopRequireDefault(require("debug"));
-
-var _tail = require("tail");
-
-var _path = _interopRequireDefault(require("path"));
-
-var _os = require("os");
-
-var _core = require("@nibus/core");
-
-var _ipc = require("@nibus/core/lib/ipc");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const debug = (0, _debug.default)('nibus:log');
+import debugFactory from 'debug';
+import { Tail } from 'tail';
+import path from 'path';
+import { homedir } from 'os';
+import { PATH, Client } from '@nibus/core';
+const debug = debugFactory('nibus:log');
 const logCommand = {
-  command: 'log',
-  describe: 'задать уровень логгирования',
-  builder: argv => argv.option('level', {
-    alias: ['l', 'lev'],
-    desc: 'уровень',
-    choices: ['none', 'hex', 'nibus']
-  }).option('pick', {
-    desc: 'выдавать указанные поля в логах nibus',
-    array: true
-  }).option('omit', {
-    desc: 'выдавть поля кроме указанных в логах nibus',
-    array: true
-  }).option('begin', {
-    alias: 'b',
-    describe: 'вывод с начала',
-    boolean: true
-  }),
-  handler: ({
-    level,
-    pick,
-    omit,
-    begin
-  }) => new Promise((resolve, reject) => {
-    const socket = _ipc.Client.connect(_core.PATH);
-
-    let resolved = false;
-    socket.once('close', () => {
-      resolved ? resolve() : reject();
-    });
-    socket.on('error', err => {
-      debug('<error>', err);
-    });
-    socket.on('connect', async () => {
-      try {
-        await socket.send('setLogLevel', level, pick, omit);
-        resolved = true;
-      } catch {}
-
-      socket.destroy();
-    });
-    const log = new _tail.Tail(_path.default.resolve((0, _os.homedir)(), '.pm2', 'logs', 'nibus.service-error.log'), {
-      fromBeginning: !!begin
-    });
-    process.on('SIGINT', () => log.unwatch());
-    log.watch();
-    log.on('line', console.log.bind(console));
-  })
+    command: 'log',
+    describe: 'задать уровень логгирования',
+    builder: argv => argv
+        .option('level', {
+        alias: ['l', 'lev'],
+        desc: 'уровень',
+        choices: ['none', 'hex', 'nibus'],
+    })
+        .option('pick', {
+        desc: 'выдавать указанные поля в логах nibus',
+        array: true,
+    })
+        .option('omit', {
+        desc: 'выдавть поля кроме указанных в логах nibus',
+        array: true,
+    })
+        .option('begin', {
+        alias: 'b',
+        describe: 'вывод с начала',
+        boolean: true,
+    }),
+    handler: ({ level, pick, omit, begin, }) => new Promise((resolve, reject) => {
+        const socket = Client.connect(PATH);
+        let resolved = false;
+        socket.once('close', () => {
+            resolved ? resolve() : reject();
+        });
+        socket.on('error', err => {
+            debug('<error>', err);
+        });
+        socket.on('connect', async () => {
+            try {
+                await socket.send('setLogLevel', level, pick, omit);
+                resolved = true;
+            }
+            finally {
+                socket.destroy();
+            }
+        });
+        const log = new Tail(path.resolve(homedir(), '.pm2', 'logs', 'nibus.service-error.log'), { fromBeginning: !!begin });
+        process.on('SIGINT', () => log.unwatch());
+        log.watch();
+        log.on('line', console.info.bind(console));
+    }),
 };
-var _default = logCommand;
-exports.default = _default;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NyYy9jbGkvY29tbWFuZHMvbG9nLnRzIl0sIm5hbWVzIjpbImRlYnVnIiwibG9nQ29tbWFuZCIsImNvbW1hbmQiLCJkZXNjcmliZSIsImJ1aWxkZXIiLCJhcmd2Iiwib3B0aW9uIiwiYWxpYXMiLCJkZXNjIiwiY2hvaWNlcyIsImFycmF5IiwiYm9vbGVhbiIsImhhbmRsZXIiLCJsZXZlbCIsInBpY2siLCJvbWl0IiwiYmVnaW4iLCJQcm9taXNlIiwicmVzb2x2ZSIsInJlamVjdCIsInNvY2tldCIsIkNsaWVudCIsImNvbm5lY3QiLCJQQVRIIiwicmVzb2x2ZWQiLCJvbmNlIiwib24iLCJlcnIiLCJzZW5kIiwiZGVzdHJveSIsImxvZyIsIlRhaWwiLCJwYXRoIiwiZnJvbUJlZ2lubmluZyIsInByb2Nlc3MiLCJ1bndhdGNoIiwid2F0Y2giLCJjb25zb2xlIiwiYmluZCJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7O0FBV0E7O0FBQ0E7O0FBQ0E7O0FBQ0E7O0FBQ0E7O0FBQ0E7Ozs7QUFFQSxNQUFNQSxLQUFLLEdBQUcsb0JBQWEsV0FBYixDQUFkO0FBQ0EsTUFBTUMsVUFBeUIsR0FBRztBQUNoQ0MsRUFBQUEsT0FBTyxFQUFFLEtBRHVCO0FBRWhDQyxFQUFBQSxRQUFRLEVBQUUsNkJBRnNCO0FBR2hDQyxFQUFBQSxPQUFPLEVBQUVDLElBQUksSUFBSUEsSUFBSSxDQUNsQkMsTUFEYyxDQUNQLE9BRE8sRUFDRTtBQUNmQyxJQUFBQSxLQUFLLEVBQUUsQ0FBQyxHQUFELEVBQU0sS0FBTixDQURRO0FBRWZDLElBQUFBLElBQUksRUFBRSxTQUZTO0FBR2ZDLElBQUFBLE9BQU8sRUFBRSxDQUFDLE1BQUQsRUFBUyxLQUFULEVBQWdCLE9BQWhCO0FBSE0sR0FERixFQU1kSCxNQU5jLENBTVAsTUFOTyxFQU1DO0FBQ2RFLElBQUFBLElBQUksRUFBRSx1Q0FEUTtBQUVkRSxJQUFBQSxLQUFLLEVBQUU7QUFGTyxHQU5ELEVBVWRKLE1BVmMsQ0FVUCxNQVZPLEVBVUM7QUFDZEUsSUFBQUEsSUFBSSxFQUFFLDRDQURRO0FBRWRFLElBQUFBLEtBQUssRUFBRTtBQUZPLEdBVkQsRUFjZEosTUFkYyxDQWNQLE9BZE8sRUFjRTtBQUNmQyxJQUFBQSxLQUFLLEVBQUUsR0FEUTtBQUVmSixJQUFBQSxRQUFRLEVBQUUsZ0JBRks7QUFHZlEsSUFBQUEsT0FBTyxFQUFFO0FBSE0sR0FkRixDQUhlO0FBc0JoQ0MsRUFBQUEsT0FBTyxFQUFFLENBQUM7QUFBRUMsSUFBQUEsS0FBRjtBQUFTQyxJQUFBQSxJQUFUO0FBQWVDLElBQUFBLElBQWY7QUFBcUJDLElBQUFBO0FBQXJCLEdBQUQsS0FBa0MsSUFBSUMsT0FBSixDQUFZLENBQUNDLE9BQUQsRUFBVUMsTUFBVixLQUFxQjtBQUMxRSxVQUFNQyxNQUFNLEdBQUdDLFlBQU9DLE9BQVAsQ0FBZUMsVUFBZixDQUFmOztBQUNBLFFBQUlDLFFBQVEsR0FBRyxLQUFmO0FBQ0FKLElBQUFBLE1BQU0sQ0FBQ0ssSUFBUCxDQUFZLE9BQVosRUFBcUIsTUFBTTtBQUN6QkQsTUFBQUEsUUFBUSxHQUFHTixPQUFPLEVBQVYsR0FBZUMsTUFBTSxFQUE3QjtBQUNELEtBRkQ7QUFHQUMsSUFBQUEsTUFBTSxDQUFDTSxFQUFQLENBQVUsT0FBVixFQUFvQkMsR0FBRCxJQUFTO0FBQzFCM0IsTUFBQUEsS0FBSyxDQUFDLFNBQUQsRUFBWTJCLEdBQVosQ0FBTDtBQUNELEtBRkQ7QUFHQVAsSUFBQUEsTUFBTSxDQUFDTSxFQUFQLENBQVUsU0FBVixFQUFxQixZQUFZO0FBQy9CLFVBQUk7QUFDRixjQUFNTixNQUFNLENBQUNRLElBQVAsQ0FBWSxhQUFaLEVBQTJCZixLQUEzQixFQUFrQ0MsSUFBbEMsRUFBd0NDLElBQXhDLENBQU47QUFDQVMsUUFBQUEsUUFBUSxHQUFHLElBQVg7QUFDRCxPQUhELENBR0UsTUFBTSxDQUFFOztBQUNWSixNQUFBQSxNQUFNLENBQUNTLE9BQVA7QUFDRCxLQU5EO0FBT0EsVUFBTUMsR0FBRyxHQUFHLElBQUlDLFVBQUosQ0FBU0MsY0FBS2QsT0FBTCxDQUNuQixrQkFEbUIsRUFFbkIsTUFGbUIsRUFHbkIsTUFIbUIsRUFJbkIseUJBSm1CLENBQVQsRUFLVDtBQUFFZSxNQUFBQSxhQUFhLEVBQUUsQ0FBQyxDQUFDakI7QUFBbkIsS0FMUyxDQUFaO0FBTUFrQixJQUFBQSxPQUFPLENBQUNSLEVBQVIsQ0FBVyxRQUFYLEVBQXFCLE1BQU1JLEdBQUcsQ0FBQ0ssT0FBSixFQUEzQjtBQUNBTCxJQUFBQSxHQUFHLENBQUNNLEtBQUo7QUFDQU4sSUFBQUEsR0FBRyxDQUFDSixFQUFKLENBQU8sTUFBUCxFQUFlVyxPQUFPLENBQUNQLEdBQVIsQ0FBWVEsSUFBWixDQUFpQkQsT0FBakIsQ0FBZjtBQUNELEdBekIwQztBQXRCWCxDQUFsQztlQWtEZXBDLFUiLCJzb3VyY2VzQ29udGVudCI6WyIvKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCAoYykgMjAxOS4gTmF0YS1JbmZvXG4gKiBAYXV0aG9yIEFuZHJlaSBTYXJha2VldiA8YXZzQG5hdGEtaW5mby5ydT5cbiAqXG4gKiBUaGlzIGZpbGUgaXMgcGFydCBvZiB0aGUgXCJAbmF0YVwiIHByb2plY3QuXG4gKiBGb3IgdGhlIGZ1bGwgY29weXJpZ2h0IGFuZCBsaWNlbnNlIGluZm9ybWF0aW9uLCBwbGVhc2Ugdmlld1xuICogdGhlIEVVTEEgZmlsZSB0aGF0IHdhcyBkaXN0cmlidXRlZCB3aXRoIHRoaXMgc291cmNlIGNvZGUuXG4gKi9cblxuaW1wb3J0IHsgQ29tbWFuZE1vZHVsZSB9IGZyb20gJ3lhcmdzJztcbmltcG9ydCBkZWJ1Z0ZhY3RvcnkgZnJvbSAnZGVidWcnO1xuaW1wb3J0IHsgVGFpbCB9IGZyb20gJ3RhaWwnO1xuaW1wb3J0IHBhdGggZnJvbSAncGF0aCc7XG5pbXBvcnQgeyBob21lZGlyIH0gZnJvbSAnb3MnO1xuaW1wb3J0IHsgUEFUSCB9IGZyb20gJ0BuaWJ1cy9jb3JlJztcbmltcG9ydCB7IENsaWVudCB9IGZyb20gJ0BuaWJ1cy9jb3JlL2xpYi9pcGMnO1xuXG5jb25zdCBkZWJ1ZyA9IGRlYnVnRmFjdG9yeSgnbmlidXM6bG9nJyk7XG5jb25zdCBsb2dDb21tYW5kOiBDb21tYW5kTW9kdWxlID0ge1xuICBjb21tYW5kOiAnbG9nJyxcbiAgZGVzY3JpYmU6ICfQt9Cw0LTQsNGC0Ywg0YPRgNC+0LLQtdC90Ywg0LvQvtCz0LPQuNGA0L7QstCw0L3QuNGPJyxcbiAgYnVpbGRlcjogYXJndiA9PiBhcmd2XG4gICAgLm9wdGlvbignbGV2ZWwnLCB7XG4gICAgICBhbGlhczogWydsJywgJ2xldiddLFxuICAgICAgZGVzYzogJ9GD0YDQvtCy0LXQvdGMJyxcbiAgICAgIGNob2ljZXM6IFsnbm9uZScsICdoZXgnLCAnbmlidXMnXSxcbiAgICB9KVxuICAgIC5vcHRpb24oJ3BpY2snLCB7XG4gICAgICBkZXNjOiAn0LLRi9C00LDQstCw0YLRjCDRg9C60LDQt9Cw0L3QvdGL0LUg0L/QvtC70Y8g0LIg0LvQvtCz0LDRhSBuaWJ1cycsXG4gICAgICBhcnJheTogdHJ1ZSxcbiAgICB9KVxuICAgIC5vcHRpb24oJ29taXQnLCB7XG4gICAgICBkZXNjOiAn0LLRi9C00LDQstGC0Ywg0L/QvtC70Y8g0LrRgNC+0LzQtSDRg9C60LDQt9Cw0L3QvdGL0YUg0LIg0LvQvtCz0LDRhSBuaWJ1cycsXG4gICAgICBhcnJheTogdHJ1ZSxcbiAgICB9KVxuICAgIC5vcHRpb24oJ2JlZ2luJywge1xuICAgICAgYWxpYXM6ICdiJyxcbiAgICAgIGRlc2NyaWJlOiAn0LLRi9Cy0L7QtCDRgSDQvdCw0YfQsNC70LAnLFxuICAgICAgYm9vbGVhbjogdHJ1ZSxcbiAgICB9KSxcbiAgaGFuZGxlcjogKHsgbGV2ZWwsIHBpY2ssIG9taXQsIGJlZ2luIH0pID0+IG5ldyBQcm9taXNlKChyZXNvbHZlLCByZWplY3QpID0+IHtcbiAgICBjb25zdCBzb2NrZXQgPSBDbGllbnQuY29ubmVjdChQQVRIKTtcbiAgICBsZXQgcmVzb2x2ZWQgPSBmYWxzZTtcbiAgICBzb2NrZXQub25jZSgnY2xvc2UnLCAoKSA9PiB7XG4gICAgICByZXNvbHZlZCA/IHJlc29sdmUoKSA6IHJlamVjdCgpO1xuICAgIH0pO1xuICAgIHNvY2tldC5vbignZXJyb3InLCAoZXJyKSA9PiB7XG4gICAgICBkZWJ1ZygnPGVycm9yPicsIGVycik7XG4gICAgfSk7XG4gICAgc29ja2V0Lm9uKCdjb25uZWN0JywgYXN5bmMgKCkgPT4ge1xuICAgICAgdHJ5IHtcbiAgICAgICAgYXdhaXQgc29ja2V0LnNlbmQoJ3NldExvZ0xldmVsJywgbGV2ZWwsIHBpY2ssIG9taXQpO1xuICAgICAgICByZXNvbHZlZCA9IHRydWU7XG4gICAgICB9IGNhdGNoIHt9XG4gICAgICBzb2NrZXQuZGVzdHJveSgpO1xuICAgIH0pO1xuICAgIGNvbnN0IGxvZyA9IG5ldyBUYWlsKHBhdGgucmVzb2x2ZShcbiAgICAgIGhvbWVkaXIoKSxcbiAgICAgICcucG0yJyxcbiAgICAgICdsb2dzJyxcbiAgICAgICduaWJ1cy5zZXJ2aWNlLWVycm9yLmxvZycsXG4gICAgKSwgeyBmcm9tQmVnaW5uaW5nOiAhIWJlZ2luIH0pO1xuICAgIHByb2Nlc3Mub24oJ1NJR0lOVCcsICgpID0+IGxvZy51bndhdGNoKCkpO1xuICAgIGxvZy53YXRjaCgpO1xuICAgIGxvZy5vbignbGluZScsIGNvbnNvbGUubG9nLmJpbmQoY29uc29sZSkpO1xuICB9KSxcbn07XG5cbmV4cG9ydCBkZWZhdWx0IGxvZ0NvbW1hbmQ7XG4iXX0=
+export default logCommand;
+//# sourceMappingURL=log.js.map

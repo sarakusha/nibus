@@ -1,4 +1,5 @@
 /// <reference types="node" />
+export declare const MAC_LENGTH = 6;
 export declare enum AddressType {
     broadcast = "broadcast",
     empty = "empty",
@@ -8,11 +9,9 @@ export declare enum AddressType {
 }
 export declare type AddressParam = string | Buffer | number[] | Uint8Array | Address;
 export default class Address {
-    private static autocount;
     static readonly empty: Address;
     static broadcast: Address;
-    static toAddress(address?: AddressParam | null): Address | null | undefined;
-    static read(type: AddressType, buffer: Buffer, offset?: number): Address;
+    private static autocount;
     readonly type: AddressType;
     readonly domain?: number;
     readonly group?: number;
@@ -21,10 +20,12 @@ export default class Address {
     readonly mac?: Buffer;
     readonly raw: Buffer;
     constructor(address?: AddressParam);
-    readonly isEmpty: boolean;
-    readonly isBroadcast: boolean;
-    readonly rawType: number;
+    get isEmpty(): boolean;
+    get isBroadcast(): boolean;
+    get rawType(): 0 | 1 | 2;
+    static toAddress(address?: AddressParam | null): Address | null | undefined;
+    static read(type: AddressType, buffer: Buffer, offset?: number): Address;
     toString(): string;
-    equals(other?: string | number[] | Buffer | Address | null): boolean;
+    equals(other?: AddressParam | null): boolean;
 }
 //# sourceMappingURL=Address.d.ts.map

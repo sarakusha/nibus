@@ -1,42 +1,48 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
 import { Arguments, Defined } from 'yargs';
-import { devices, IDevice } from '@nibus/core/lib/mib';
-import session, { Address } from '@nibus/core';
-import { getNibusTimeout, NibusConnection, setNibusTimeout } from '@nibus/core/lib/nibus';
+import session, {
+  devices, IDevice, Address, config, NibusConnection,
+} from '@nibus/core';
+
+
 import { CommonOpts } from './options';
 
 // export type NibusCounter = (handler: (count: number) => number) => void;
 
 interface ActionFunc<O> {
-  (device: IDevice, args: Arguments<O>): Promise<any>;
+  (device: IDevice, args: Arguments<O>): Promise<unknown>;
 }
 
-const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
-(action: ActionFunc<O>, breakout = false) =>
-  (args: Arguments<O>) =>
-    new Promise(async (resolve, reject) => {
+export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>(
+  action: ActionFunc<O>, breakout = false,
+) {
+  return (args: Arguments<O>) => new Promise(
+    (resolve, reject) => {
+      let timeout: NodeJS.Timeout;
+      let count = 0;
       let hasFound = false;
-      const close = (err?: string) => {
+      session.start().then(value => { count = value; });
+      const close = (err?: string): void => {
         clearTimeout(timeout);
         session.close();
         if (err || !hasFound) {
-          return reject(err || 'Устройство не найдено');
+          reject(err || 'Устройство не найдено');
+          return;
         }
         resolve();
       };
       const mac = new Address(args.mac);
-      let count = await session.start();
-      if (args.timeout && args.timeout !== getNibusTimeout() * 1000) {
-        setNibusTimeout(args.timeout * 1000);
+      if (args.timeout && args.timeout !== config.timeout * 1000) {
+        config.timeout = args.timeout * 1000;
       }
       // На Windows сложнее метод определения и занимает больше времени
       if (process.platform === 'win32') {
@@ -44,7 +50,10 @@ const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
       }
       // const setCount: NibusCounter = (handler = (c: number) => c) => count = handler(count);
 
-      const perform = async (connection: NibusConnection, mibOrType: any, version?: number) => {
+      const perform = async (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        connection: NibusConnection, mibOrType: any, version?: number,
+      ): Promise<void> => {
         clearTimeout(timeout);
         const device = devices.create(mac, mibOrType, version);
         device.connection = connection;
@@ -52,21 +61,36 @@ const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
         hasFound = true;
       };
 
+      const wait = (): void => {
+        count -= 1;
+        if (count > 0) {
+          timeout = setTimeout(wait, config.timeout);
+        } else {
+          close();
+        }
+      };
+
       session.on('found', async ({ address, connection }) => {
         try {
           if (address.equals(mac) && connection.description.mib) {
             if (!args.mib || args.mib === connection.description.mib) {
               await perform(connection, connection.description.mib);
-              if (breakout) return close();
+              if (breakout) {
+                close();
+                return;
+              }
               wait();
             }
           }
-          if (address.equals(mac) && connection.description.type || connection.description.link) {
+          if ((address.equals(mac) && connection.description.type) || connection.description.link) {
             count += 1;
             const [version, type] = await connection.getVersion(mac);
             if (type) {
               await perform(connection, type, version);
-              if (breakout) return close();
+              if (breakout) {
+                close();
+                return;
+              }
               wait();
             }
           }
@@ -80,16 +104,7 @@ const makeAddressHandler = <O extends Defined<CommonOpts, 'm' | 'mac'>>
         }
       });
 
-      const wait = () => {
-        count -= 1;
-        if (count > 0) {
-          timeout = setTimeout(wait, getNibusTimeout());
-        } else {
-          close();
-        }
-      };
-
-      let timeout = setTimeout(wait, getNibusTimeout());
-    });
-
-export { makeAddressHandler };
+      timeout = setTimeout(wait, config.timeout);
+    },
+  );
+}

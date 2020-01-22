@@ -1,39 +1,41 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
-import { Arguments, CommandModule, Defined } from 'yargs';
+import { Arguments, CommandModule } from 'yargs';
 import fs from 'fs';
 import path from 'path';
 import Progress from 'progress';
 import { EOL } from 'os';
 
-import { IDevice } from '@nibus/core/lib/mib';
-import { UploadDataListener } from '@nibus/core/lib/mib/devices';
-import { printBuffer } from '@nibus/core/lib/nibus/helper';
-import { makeAddressHandler } from '../handlers';
-import { CommonOpts } from '../options';
+import { IDevice, UploadDataListener, printBuffer } from '@nibus/core';
+
+
+import makeAddressHandler from '../handlers';
+import { CommonOpts, MacOptions } from '../options';
 import { action as writeAction } from './write';
 
-type UploadOpts = Defined<CommonOpts, 'mac' | 'm'> & {
-  domain: string,
-  offset: number,
-  size?: number,
-  o?: string,
-  out?: string,
-  hex?: boolean,
-  f?: boolean,
-  force?: boolean,
+type UploadOpts = MacOptions & {
+  domain: string;
+  offset: number;
+  size?: number;
+  o?: string;
+  out?: string;
+  hex?: boolean;
+  f?: boolean;
+  force?: boolean;
 };
 
-export async function action(device: IDevice, args: Arguments<UploadOpts>) {
-  const { domain, offset, size, out, force, hex, quiet } = args;
+export async function action(device: IDevice, args: Arguments<UploadOpts>): Promise<void> {
+  const {
+    domain, offset, size, out, force, hex,
+  } = args;
   const writeArgs = out
     ? {
       ...args,
@@ -41,9 +43,10 @@ export async function action(device: IDevice, args: Arguments<UploadOpts>) {
     }
     : args;
   await writeAction(device, writeArgs);
-  let close = () => {};
+  let close = (): void => {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let write: (data: any) => void;
-  let tick = (size: number) => {};
+  let tick = (_size: number): void => {};
 
   if (out) {
     if (!force && fs.existsSync(out)) {
@@ -80,10 +83,10 @@ export async function action(device: IDevice, args: Arguments<UploadOpts>) {
     }
     if (hex && offset > 0) {
       write(`@${offset.toString(16).padStart(4, '0')}${EOL}`);
-//       write(`DOMAIN: ${domain}
-// OFFSET: ${offset}
-// SIZE: ${total!}
-// `);
+      //       write(`DOMAIN: ${domain}
+      // OFFSET: ${offset}
+      // SIZE: ${total!}
+      // `);
     }
   });
   device.on('uploadData', dataHandler);
@@ -99,39 +102,38 @@ export async function action(device: IDevice, args: Arguments<UploadOpts>) {
 const uploadCommand: CommandModule<CommonOpts, UploadOpts> = {
   command: 'upload',
   describe: 'выгрузить домен из устройства',
-  builder: argv =>
-    argv
-      .option('domain', {
-        default: 'CODE',
-        describe: 'имя домена',
-        string: true,
-      })
-      .option('offset', {
-        alias: 'ofs',
-        default: 0,
-        number: true,
-        describe: 'смещение в домене',
-      })
-      .option('size', {
-        alias: 'length',
-        number: true,
-        describe: 'требуемое количество байт',
-      })
-      .option('out', {
-        alias: 'o',
-        string: true,
-        describe: 'сохранить в файл',
-      })
-      .option('hex', {
-        boolean: true,
-        describe: 'использовать текстовый формат',
-      })
-      .option('f', {
-        alias: 'force',
-        boolean: true,
-        describe: 'перезаписать существующий файл',
-      })
-      .demandOption(['m', 'mac', 'domain']),
+  builder: argv => argv
+    .option('domain', {
+      default: 'CODE',
+      describe: 'имя домена',
+      string: true,
+    })
+    .option('offset', {
+      alias: 'ofs',
+      default: 0,
+      number: true,
+      describe: 'смещение в домене',
+    })
+    .option('size', {
+      alias: 'length',
+      number: true,
+      describe: 'требуемое количество байт',
+    })
+    .option('out', {
+      alias: 'o',
+      string: true,
+      describe: 'сохранить в файл',
+    })
+    .option('hex', {
+      boolean: true,
+      describe: 'использовать текстовый формат',
+    })
+    .option('f', {
+      alias: 'force',
+      boolean: true,
+      describe: 'перезаписать существующий файл',
+    })
+    .demandOption(['mac', 'domain']),
   handler: makeAddressHandler(action, true),
 };
 

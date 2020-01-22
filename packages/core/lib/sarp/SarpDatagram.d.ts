@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { NibusDatagram, INibusCommon } from '../nibus';
+import NibusDatagram, { INibusCommon } from '../nibus/NibusDatagram';
 import SarpQueryType from './SarpQueryType';
 export interface ISarpOptions extends INibusCommon {
     isResponse?: boolean;
@@ -14,6 +14,6 @@ export default class SarpDatagram extends NibusDatagram implements ISarpOptions 
     readonly queryParam: Buffer;
     readonly mac: Buffer;
     constructor(frameOrOptions: ISarpOptions | Buffer);
-    readonly deviceType: number | undefined;
+    get deviceType(): number | undefined;
 }
 //# sourceMappingURL=SarpDatagram.d.ts.map

@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
+
 import yargs from 'yargs';
 import { getMibsSync } from '@nibus/core/lib/mib';
 import dump from './cli/commands/dump';
@@ -25,10 +26,10 @@ import flash from './cli/commands/flash';
 import execute from './cli/commands/execute';
 import parse from './cli/commands/parse';
 
-// noinspection JSUnusedLocalSymbols
-const argv = yargs
-  .option('m', {
-    alias: 'mac',
+// eslint-disable-next-line  @typescript-eslint/no-unused-vars
+const { argv } = yargs
+  .option('mac', {
+    alias: 'm',
     desc: 'Адрес устройства',
     type: 'string',
   })
@@ -52,10 +53,11 @@ const argv = yargs
     boolean: true,
     default: true,
   })
-  .option('q', {
+  .option('quiet', {
     desc: 'тихий режим',
     boolean: true,
-    alias: 'quiet',
+    default: false,
+    alias: 'q',
   })
   // .option('fw', {
   //   desc: 'использовать firmware_version для определения типа устройства',
@@ -69,23 +71,22 @@ const argv = yargs
   })
   .command(start)
   .command(stop)
+  .command(ping)
+  .command(dump)
   .command(list)
-  .command(ping as any)
-  .command(dump as any)
-  .command(read as any)
-  .command(write as any)
-  .command(upload as any)
-  .command(download as any)
-  .command(log as any)
-  .command(mib as any)
-  .command(flash as any)
-  .command(execute as any)
-  .command(parse as any)
+  .command(read)
+  .command(write)
+  .command(upload)
+  .command(download)
+  .command(log)
+  .command(mib)
+  .command(flash)
+  .command(execute)
+  .command(parse)
   .locale('ru')
   .completion('completion')
   .showHelpOnFail(false)
   .strict()
   .help()
   .wrap(Math.min(yargs.terminalWidth(), 100))
-  .epilogue('(c) Nata-Info, 2019')
-  .argv;
+  .epilogue(`(c) Nata-Info, ${new Date().getFullYear()}`);

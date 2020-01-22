@@ -1,12 +1,14 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NibusDatagram, NibusDecoder } from '@nibus/core/lib/nibus';
 // import { printBuffer } from '@nibus/core/lib/nibus/helper';
 // import Configstore from 'configstore';
@@ -30,17 +32,18 @@ const conf = new Configstore(
 */
 
 const hexTransform = new Transform({
-  transform: function (
+  transform(
     chunk: any,
     encoding: string,
-    callback: (error?: (Error | null), data?: any) => void): void {
+    callback: (error?: (Error | null), data?: any) => void,
+  ): void {
     const data = chunk.toString().replace(/-/g, '').replace(/\n/g, '');
     const buffer = Buffer.from(data, 'hex');
     callback(null, buffer);
   },
 });
 
-const makeNibusDecoder = (pick?: string[], omit?: string[]) => {
+const makeNibusDecoder = (pick?: string[], omit?: string[]): NibusDecoder => {
   const decoder = new NibusDecoder();
   decoder.on('data', (datagram: NibusDatagram) => {
     console.info(datagram.toString({
@@ -91,12 +94,13 @@ const parseCommand: CommandModule<CommonOpts, ParseOptions> = {
       desc: 'входной файл в формате hex',
     }),
   handler: (({
-    level, pick, omit, input, hex,
+    _level, pick, omit, input, hex,
   }) => new Promise((resolve, reject) => {
     const inputPath = path.resolve(process.cwd(), input);
     // console.log('PARSE', inputPath);
     if (!fs.existsSync(inputPath)) {
-      return reject(Error(`File ${inputPath} not found`));
+      reject(Error(`File ${inputPath} not found`));
+      return;
     }
     const stream = fs.createReadStream(inputPath);
     stream.on('finish', () => resolve());
@@ -104,7 +108,6 @@ const parseCommand: CommandModule<CommonOpts, ParseOptions> = {
     // if (level === 'nibus') {
     const decoder = makeNibusDecoder(pick, omit);
     if (hex) {
-      console.log('HEEEEX');
       stream.pipe(hexTransform).pipe(decoder);
     } else {
       stream.pipe(decoder);

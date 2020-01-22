@@ -1,19 +1,27 @@
 {
   "extends": "./tsconfig.settings.json",
   "compilerOptions": {
-    "outDir": "lib",                          /* Redirect output structure to the directory. */
+    "module": "commonjs",
+    "outDir": "lib",
+    /* Redirect output structure to the directory. */
     "rootDir": "src",
-    "strict": true,                           /* Enable all strict type-checking options. */
-    "experimentalDecorators": true,        /* Enables experimental support for ES7 decorators. */
+    "strict": true,
+    /* Enable all strict type-checking options. */
+    "experimentalDecorators": true,
+    /* Enables experimental support for ES7 decorators. */
     "baseUrl": "./",
     "strictNullChecks": true,
     "paths": {
-      "sax": ["@types/sax"],
-      "xpipe": ["@types/xpipe"],
+      "sax": [
+        "@types/sax"
+      ],
+      "xpipe": [
+        "@types/xpipe"
+      ]
     }
   },
   "include": [
-    "src/**/*.ts",
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules/",

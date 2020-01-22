@@ -13,10 +13,13 @@ export {
   IDevice,
   getMibPrototype,
   getMibFile,
-  MibDeviceV,
   DeviceId,
   getMibTypes,
   findMibByType,
+  UploadDataListener,
+  CreateDevice,
 } from './devices';
-export { convert, convertDir, mib2json, getMibs, getMibsSync } from './mib2json';
-export { toInt } from './mib';
+export {
+  convert, convertDir, mib2json, getMibs, getMibsSync,
+} from './mib2json';
+export { toInt, MibDeviceV, IMibDeviceType } from './mib';

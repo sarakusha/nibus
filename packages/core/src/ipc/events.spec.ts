@@ -11,15 +11,15 @@
 import {
   EventFromString,
   PortsEventV,
-  IPortsEvent,
+  PortsEvent,
   PortAddedEventV,
-  IPortAddedEvent,
+  PortAddedEvent,
   PortRemovedEventV,
-  IPortRemovedEvent,
+  PortRemovedEvent,
   EventV,
 } from './events';
 
-const portsEvent = {
+const portsEvent: PortsEvent = {
   event: 'ports',
   args: [[
     {
@@ -41,7 +41,7 @@ const portsEvent = {
   ]],
 };
 
-const addEvent = {
+const addEvent: PortAddedEvent = {
   event: 'add',
   args: [{
     portInfo: {
@@ -53,7 +53,7 @@ const addEvent = {
   }],
 };
 
-const removeEvent = {
+const removeEvent: PortRemovedEvent = {
   event: 'remove',
   args: [{
     portInfo: {
@@ -74,9 +74,9 @@ const testEvent = {
 };
 
 const events = [
-  portsEvent as IPortsEvent,
-  addEvent as IPortAddedEvent,
-  removeEvent as IPortRemovedEvent,
+  portsEvent,
+  addEvent,
+  removeEvent,
 ];
 
 describe('event tests', () => {
@@ -107,14 +107,14 @@ describe('event tests', () => {
     expect(EventV.is(testEvent)).toBeFalsy();
   });
   test('stringify', () => {
-    events.forEach((event) => {
+    events.forEach(event => {
       expect(EventFromString.encode(event)).toBe(JSON.stringify(event));
     });
   });
 
   test('parse', () => {
-    events.forEach((event) => {
-      expect(EventFromString.decode(JSON.stringify(event)).getOrElse(undefined)).toEqual(event);
+    events.forEach(event => {
+      expect(EventFromString.decode(JSON.stringify(event)).value).toEqual(event);
     });
   });
 });

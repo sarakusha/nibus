@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { INibusCommon, INibusDatagramJSON, NibusDatagram } from '../nibus';
+import NibusDatagram, { INibusCommon, INibusDatagramJSON } from '../nibus/NibusDatagram';
 import NmsServiceType from './NmsServiceType';
 export interface INmsOptions extends INibusCommon {
     id: number;
@@ -31,9 +31,9 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
     readonly nms: Buffer;
     readonly timeout?: number;
     constructor(frameOrOptions: Buffer | INmsOptions);
-    readonly valueType: number | undefined;
-    readonly status: number | undefined;
-    readonly value: any;
+    get valueType(): number | undefined;
+    get status(): number | undefined;
+    get value(): any;
     isResponseFor(req: NmsDatagram): boolean;
     toJSON(): INmsDatagramJSON;
 }

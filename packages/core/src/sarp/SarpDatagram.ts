@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -10,7 +11,7 @@
 
 import Address from '../Address';
 import { Offsets } from '../nbconst';
-import { NibusDatagram, INibusCommon, INibusOptions } from '../nibus';
+import NibusDatagram, { INibusCommon, INibusOptions } from '../nibus/NibusDatagram';
 import SarpQueryType from './SarpQueryType';
 
 export interface ISarpOptions extends INibusCommon {
@@ -21,14 +22,17 @@ export interface ISarpOptions extends INibusCommon {
 }
 
 export default class SarpDatagram extends NibusDatagram implements ISarpOptions {
-  public static isSarpFrame(frame: Buffer) {
+  public static isSarpFrame(frame: Buffer): boolean {
     return Buffer.isBuffer(frame) && frame.length === Offsets.DATA + 12 + 2
       && frame[Offsets.PROTOCOL] === 2 && frame[Offsets.LENGTH] === 13;
   }
 
   public readonly isResponse: boolean;
+
   public readonly queryType: SarpQueryType;
+
   public readonly queryParam: Buffer;
+
   public readonly mac: Buffer;
 
   constructor(frameOrOptions: ISarpOptions | Buffer) {
@@ -52,10 +56,11 @@ export default class SarpDatagram extends NibusDatagram implements ISarpOptions 
         ...options.mac,
       ];
 
-      const nibusOptions: INibusOptions = Object.assign({
+      const nibusOptions: INibusOptions = {
         data: Buffer.from(nibusData),
         protocol: 2,
-      }, options);
+        ...options,
+      };
       super(nibusOptions);
     }
     const { data } = this;
@@ -68,6 +73,6 @@ export default class SarpDatagram extends NibusDatagram implements ISarpOptions 
   }
 
   get deviceType(): number | undefined {
-    if (this.isResponse) return this.queryParam.readUInt16BE(3);
+    return this.isResponse ? this.queryParam.readUInt16BE(3) : undefined;
   }
 }

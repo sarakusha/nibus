@@ -1,3 +1,4 @@
+/* eslint-disable max-classes-per-file */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -8,6 +9,8 @@
  * the EULA file that was distributed with this source code.
  */
 
+import { isLeft } from 'fp-ts/lib/Either';
+/* eslint-disable max-classes-per-file,no-bitwise */
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import _ from 'lodash';
 import { Socket, connect } from 'net';
@@ -24,23 +27,24 @@ import {
 } from '../nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import { createSarp, SarpQueryType, SarpDatagram } from '../sarp';
-import { MibDescriptionV, IMibDescription } from '../MibDescription';
+import { MibDescriptionV, MibDescription } from '../MibDescription';
 import NibusDatagram from './NibusDatagram';
 import NibusEncoder from './NibusEncoder';
 import NibusDecoder from './NibusDecoder';
+import config from './config';
 
 export const MINIHOST_TYPE = 0xabc6;
 // const FIRMWARE_VERSION_ID = 0x85;
 const VERSION_ID = 2;
 
 const debug = debugFactory('nibus:connection');
-let NIBUS_TIMEOUT = 1000;
-
-export const setNibusTimeout = (timeout: number) => {
-  NIBUS_TIMEOUT = timeout;
-};
-
-export const getNibusTimeout = () => NIBUS_TIMEOUT;
+// let NIBUS_TIMEOUT = 1000;
+//
+// export const setNibusTimeout = (timeout: number): void => {
+//   NIBUS_TIMEOUT = timeout;
+// };
+//
+// export const getNibusTimeout = (): number => NIBUS_TIMEOUT;
 
 class WaitedNmsDatagram {
   readonly resolve: (datagram: NmsDatagram) => void;
@@ -49,24 +53,28 @@ class WaitedNmsDatagram {
     public readonly req: NmsDatagram,
     resolve: (datagram: NmsDatagram | NmsDatagram[]) => void,
     reject: (reason: Error) => void,
-    callback: (self: WaitedNmsDatagram) => void) {
+    callback: (self: WaitedNmsDatagram) => void,
+  ) {
     let timer: NodeJS.Timer;
     let counter: number = req.service !== NmsServiceType.Read
       ? 1
       : Math.floor(req.nms.length / 3) + 1;
     const datagrams: NmsDatagram[] = [];
-    const timeout = () => {
+    const timeout = (): void => {
       callback(this);
-      datagrams.length === 0
-        ? reject(new TimeoutError(
-        `Timeout error on ${req.destination} while ${NmsServiceType[req.service]}`))
-        : resolve(datagrams);
+      if (datagrams.length === 0) {
+        reject(new TimeoutError(
+          `Timeout error on ${req.destination} while ${NmsServiceType[req.service]}`,
+        ));
+      } else {
+        resolve(datagrams);
+      }
     };
-    const restart = (step = 1) => {
+    const restart = (step = 1): boolean => {
       counter -= step;
       clearTimeout(timer);
       if (counter > 0) {
-        timer = setTimeout(timeout, req.timeout || NIBUS_TIMEOUT);
+        timer = setTimeout(timeout, req.timeout || config.timeout);
       } else if (counter === 0) {
         callback(this);
       }
@@ -99,44 +107,29 @@ declare interface NibusConnection {
 }
 
 class NibusConnection extends EventEmitter {
+  public description: MibDescription;
+
   private readonly socket: Socket;
+
   private readonly encoder = new NibusEncoder();
+
   private readonly decoder = new NibusDecoder();
+
   private ready = Promise.resolve();
+
   private closed = false;
+
   private readonly waited: WaitedNmsDatagram[] = [];
-  public description: IMibDescription;
 
-  private stopWaiting = (waited: WaitedNmsDatagram) => _.remove(this.waited, waited);
-
-  private onDatagram = (datagram: NibusDatagram) => {
-    let showLog = true;
-    if (datagram instanceof NmsDatagram) {
-      if (datagram.isResponse) {
-        const resp = this.waited.find(item => datagram.isResponseFor(item.req));
-        if (resp) {
-          resp.resolve(datagram);
-          showLog = false;
-        }
-      }
-      this.emit('nms', datagram);
-    } else if (datagram instanceof SarpDatagram) {
-      this.emit('sarp', datagram);
-      showLog = false;
-    }
-    showLog &&
-    debug(`datagram received`, JSON.stringify(datagram.toJSON()));
-  };
-
-  constructor(public readonly path: string, description: IMibDescription) {
+  constructor(public readonly path: string, description: MibDescription) {
     super();
     const validate = MibDescriptionV.decode(description);
-    if (validate.isLeft()) {
+    if (isLeft(validate)) {
       const msg = PathReporter.report(validate).join('\n');
       debug('<error>', msg);
       throw new TypeError(msg);
     }
-    this.description = validate.value;
+    this.description = validate.right;
     this.socket = connect(xpipe.eq(getSocketPath(path)));
     this.socket.pipe(this.decoder);
     this.encoder.pipe(this.socket);
@@ -147,7 +140,9 @@ class NibusConnection extends EventEmitter {
 
   public sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined> {
     // debug('write datagram from ', datagram.source.toString());
-    const { encoder, stopWaiting, waited, closed } = this;
+    const {
+      encoder, stopWaiting, waited, closed,
+    } = this;
     return new Promise((resolve, reject) => {
       this.ready = this.ready.finally(async () => {
         if (closed) return reject(new Error('Closed'));
@@ -157,7 +152,7 @@ class NibusConnection extends EventEmitter {
         if (!(datagram instanceof NmsDatagram) || datagram.notReply) {
           return resolve();
         }
-        waited.push(new WaitedNmsDatagram(
+        return waited.push(new WaitedNmsDatagram(
           datagram,
           resolve,
           reject,
@@ -171,16 +166,13 @@ class NibusConnection extends EventEmitter {
     debug(`ping [${address.toString()}] ${this.path}`);
     const now = Date.now();
     return this.sendDatagram(createNmsRead(address, VERSION_ID))
-      .then((datagram) => {
-        return <number>(Reflect.getOwnMetadata('timeStamp', datagram!)) - now;
-      })
-      .catch(() => {
-        // debug(`ping [${address}] failed ${reson}`);
-        return -1;
-      });
+      .then(datagram => Number(Reflect.getOwnMetadata('timeStamp', datagram!)) - now)
+      .catch(() => -1);
   }
 
-  public findByType(type: number = MINIHOST_TYPE) {
+  public findByType(
+    type: number = MINIHOST_TYPE,
+  ): Promise<NmsDatagram | NmsDatagram[] | undefined> {
     debug(`findByType ${type} on ${this.path} (${this.description.category})`);
     const sarp = createSarp(SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xFF, type & 0xFF]);
     return this.sendDatagram(sarp);
@@ -203,7 +195,7 @@ class NibusConnection extends EventEmitter {
     }
   }
 
-  public close = () => {
+  public close = (): void => {
     if (this.closed) return;
     const { path, description } = this;
     debug(`close connection on ${path} (${description.category})`);
@@ -212,6 +204,27 @@ class NibusConnection extends EventEmitter {
     this.decoder.removeAllListeners('data');
     this.socket.destroy();
     this.emit('close');
+  };
+
+  private stopWaiting = (waited: WaitedNmsDatagram): void => { _.remove(this.waited, waited); };
+
+  private onDatagram = (datagram: NibusDatagram): void => {
+    let showLog = true;
+    if (datagram instanceof NmsDatagram) {
+      if (datagram.isResponse) {
+        const resp = this.waited.find(item => datagram.isResponseFor(item.req));
+        if (resp) {
+          resp.resolve(datagram);
+          showLog = false;
+        }
+      }
+      this.emit('nms', datagram);
+    } else if (datagram instanceof SarpDatagram) {
+      this.emit('sarp', datagram);
+      showLog = false;
+    }
+    showLog
+    && debug('datagram received', JSON.stringify(datagram.toJSON()));
   };
 }
 

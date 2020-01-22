@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -11,10 +11,9 @@
 import SerialPort, { OpenOptions } from 'serialport';
 import debugFactory from 'debug';
 import { EventEmitter } from 'events';
-import { ipc } from '@nibus/core/';
+import { getSocketPath, IKnownPort, MibDescription } from '@nibus/core';
 import Server, { Direction } from './Server';
-import { IKnownPort } from '@nibus/core/lib/session';
-import { IMibDescription } from '@nibus/core/lib/MibDescription';
+
 
 const debug = debugFactory('nibus:serial-tee');
 const portOptions: OpenOptions = {
@@ -43,14 +42,17 @@ export interface SerialLogger {
 
 export default class SerialTee extends EventEmitter {
   private readonly serial: SerialPort;
+
   private closed = false;
+
   private readonly server: Server;
+
   private logger: SerialLogger | null = null;
 
-  constructor(public readonly portInfo: IKnownPort, public readonly description: IMibDescription) {
+  constructor(public readonly portInfo: IKnownPort, public readonly description: MibDescription) {
     super();
     const { comName: path } = portInfo;
-    const win32 = process.platform === 'win32' && description.win32 || {};
+    const win32 = (process.platform === 'win32' && description.win32) || {};
     this.serial = new SerialPort(
       path,
       {
@@ -60,17 +62,17 @@ export default class SerialTee extends EventEmitter {
       },
     );
     this.serial.on('close', this.close);
-    this.server = new Server(ipc.getSocketPath(path), true);
+    this.server = new Server(getSocketPath(path), true);
     this.server.pipe(this.serial);
     this.serial.pipe(this.server);
     debug(`new connection on ${path} baud: ${this.serial.baudRate} (${description.category})`);
   }
 
-  public get path() {
+  public get path(): string {
     return this.server.path;
   }
 
-  public close = () => {
+  public close = (): void => {
     if (this.closed) return;
     const { serial, server } = this;
     if (serial.isOpen) {
@@ -82,7 +84,7 @@ export default class SerialTee extends EventEmitter {
     this.emit('close', this.portInfo.comName);
   };
 
-  public setLogger(logger: SerialLogger | null) {
+  public setLogger(logger: SerialLogger | null): void {
     if (this.logger) {
       this.server.off('raw', this.logger);
     }
@@ -92,7 +94,7 @@ export default class SerialTee extends EventEmitter {
     }
   }
 
-  toJSON() {
+  toJSON(): { portInfo: IKnownPort; description: MibDescription } {
     const { portInfo, description } = this;
     return {
       portInfo,

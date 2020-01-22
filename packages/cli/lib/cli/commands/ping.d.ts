@@ -1,9 +1,7 @@
-import { CommandModule, Defined } from 'yargs';
-import { CommonOpts } from '../options';
-declare type PingOpts = Defined<CommonOpts, 'm' | 'mac'> & {
-    c?: number;
+import { CommandModule } from 'yargs';
+import { CommonOpts, MacOptions } from '../options';
+declare type PingOpts = MacOptions & {
     count?: number;
-    t: number;
     timeout?: number;
 };
 declare const pingCommand: CommandModule<CommonOpts, PingOpts>;

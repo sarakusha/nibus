@@ -4,14 +4,14 @@ declare class NibusService {
     private isStarted;
     private connections;
     constructor();
+    get path(): string;
     updateLogger(connection?: SerialTee): void;
+    start(): void;
+    stop(): void;
     private logLevelHandler;
     private connectionHandler;
     private addHandler;
     private removeHandler;
-    start(): void;
-    stop(): void;
-    readonly path: string;
 }
 declare const service: NibusService;
 export default service;

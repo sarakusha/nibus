@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -13,11 +13,19 @@ import debugFactory from 'debug';
 import { Tail } from 'tail';
 import path from 'path';
 import { homedir } from 'os';
-import { PATH } from '@nibus/core';
-import { Client } from '@nibus/core/lib/ipc';
+import { PATH, Client } from '@nibus/core';
+import { CommonOpts } from '../options';
+
 
 const debug = debugFactory('nibus:log');
-const logCommand: CommandModule = {
+type LogOpts = CommonOpts & {
+  level?: string; // 'none' | 'hex' | 'nibus';
+  pick?: ReadonlyArray<string | number>;
+  omit?: ReadonlyArray<string | number>;
+  begin?: boolean;
+};
+
+const logCommand: CommandModule<CommonOpts, LogOpts> = {
   command: 'log',
   describe: 'задать уровень логгирования',
   builder: argv => argv
@@ -39,21 +47,24 @@ const logCommand: CommandModule = {
       describe: 'вывод с начала',
       boolean: true,
     }),
-  handler: ({ level, pick, omit, begin }) => new Promise((resolve, reject) => {
+  handler: ({
+    level, pick, omit, begin,
+  }) => new Promise((resolve, reject) => {
     const socket = Client.connect(PATH);
     let resolved = false;
     socket.once('close', () => {
       resolved ? resolve() : reject();
     });
-    socket.on('error', (err) => {
+    socket.on('error', err => {
       debug('<error>', err);
     });
     socket.on('connect', async () => {
       try {
         await socket.send('setLogLevel', level, pick, omit);
         resolved = true;
-      } catch {}
-      socket.destroy();
+      } finally {
+        socket.destroy();
+      }
     });
     const log = new Tail(path.resolve(
       homedir(),
@@ -63,7 +74,7 @@ const logCommand: CommandModule = {
     ), { fromBeginning: !!begin });
     process.on('SIGINT', () => log.unwatch());
     log.watch();
-    log.on('line', console.log.bind(console));
+    log.on('line', console.info.bind(console));
   }),
 };
 

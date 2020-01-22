@@ -9,11 +9,34 @@
  */
 import _ from 'lodash';
 
-const MAC_LENGTH = 6;
+/**
+ * Длина буфера для хранения адреса
+ */
+export const MAC_LENGTH = 6;
 
-const isHex = (str: string) => /^(?:0X[0-9A-F]+)|(?:[0-9]*[A-F]+)/i.test(str);
-const parseHex = (str: string) => parseInt(str, 16);
+/**
+ * Строка адреса содержит шестнадцатиричные цифры или префикс 0x
+ * @param str - адрес
+ */
+const isHex = (str: string): boolean => /^(?:0X[0-9A-F]+)|(?:[0-9]*[A-F]+)/i.test(str);
+/**
+ * Декодирование 16-ричной строки
+ * @param str - 16-ричная строка
+ */
+const parseHex = (str: string): number => parseInt(str, 16);
+/**
+ * Выравнивание строки нулями слева до ширины 2 символа
+ * @param val - байт
+ */
+const padHex = (val: number): string => val.toString(16).padStart(2, '0');
 
+/**
+ * Тип адреса
+ *
+ * @remarks
+ * broadcast = FF:FF:FF:FF:FF:FF
+ * empty = 00:00:00:00:00:00
+ */
 export enum AddressType {
   broadcast = 'broadcast',
   empty = 'empty',
@@ -22,64 +45,94 @@ export enum AddressType {
   group = 2,
 }
 
-const isEmpty = (array: number[] | Uint8Array) => _.every(array, b => b === 0);
-const isBroadcast = (array: number[] | Uint8Array) => _.every(array, b => b === 255);
+const isEmpty = (array: number[] | Uint8Array): boolean => _.every(array, b => b === 0);
+const isBroadcast = (array: number[] | Uint8Array): boolean => _.every(array, b => b === 255);
 
+/**
+ * Представление адреса
+ * @remarks
+ * используется в конструкторе
+ */
 export type AddressParam = string | Buffer | number[] | Uint8Array | Address;
 
+/**
+ * Представляет обертку для адреса
+ */
 export default class Address {
-  private static autocount = 1;
+  /**
+   * Пустой адрес
+   */
   public static readonly empty = new Address();
+
+  /**
+   * Широковещательный адрес
+   */
   public static broadcast = new Address('broadcast');
 
-  public static toAddress(address?: AddressParam | null) {
-    if (address == null) {
-      return address;
-    }
-    return address instanceof Address ? address! : new Address(address);
-  }
+  private static autocount = 1;
 
-  public static read(type: AddressType, buffer: Buffer, offset: number = 0): Address {
-    if (buffer.length - offset < MAC_LENGTH) {
-      throw new Error('Invalid buffer length');
-    }
-    switch (type) {
-      case AddressType.mac: {
-        const mac = buffer.slice(offset, offset + MAC_LENGTH);
-        return new Address(mac);
-      }
-      case AddressType.net: {
-        const net = [
-          buffer.readUInt16LE(offset),
-          buffer.readUInt8(offset + 2),
-          buffer.readUInt16LE(offset + 3),
-        ];
-        return new Address(net.join('.'));
-      }
-      case AddressType.group: {
-        const group = [
-          buffer.readUInt16LE(offset),
-          buffer.readUInt8(offset + 2),
-        ];
-        return new Address(group.join('.'));
-      }
-      default:
-        throw new Error(`Invalid address type ${type}`);
-    }
-  }
-
+  /**
+   * Тип адреса
+   */
   public readonly type: AddressType;
-  public readonly domain?: number;
-  public readonly group?: number;
-  public readonly subnet?: number;
-  public readonly device?: number;
-  public readonly mac?: Buffer;
-  public readonly raw: Buffer;
 
+  /**
+   * Идентификатор домена
+   *
+   * @remarks
+   * для типа адреса 1, 2
+   * Диапазон 0..FFFF
+   */
+  public readonly domain?: number;
+
+  /**
+   * Идентификатор группы
+   *
+   * @remarks
+   * для типа адреса 2
+   * Диавпазон 0..FF
+   */
+  public readonly group?: number;
+
+  /**
+   * Идентификатор подсети
+   *
+   * @remarks
+   * для типа адреса 1
+   * Диапазон 0..FF
+   */
+  public readonly subnet?: number;
+
+  /**
+   * Идентификатор устройства
+   *
+   * @remarks
+   * для типа адреса 1
+   * Диапазон 0..FFFF
+   * FFFF - все устройства подсети
+   */
+  public readonly device?: number;
+
+  /**
+   * Физический адрес
+   *
+   * @remarks
+   * для типа адреса 0
+   */
+  public readonly mac?: Buffer;
+
+  /**
+   * Бинарный буфер содержащий адрес
+   */
+  public readonly raw = Buffer.alloc(MAC_LENGTH);
+
+  /**
+   * Конструктор создания или копирования
+   * @param address - представление адреса
+   */
   constructor(address: AddressParam = '') {
     let pos = 0;
     if (typeof address === 'string') {
-      this.raw = Buffer.alloc(MAC_LENGTH);
       switch (address) {
         case '':
           this.type = AddressType.empty;
@@ -97,7 +150,7 @@ export default class Address {
         }
         default:
           if (!/^[0-9A-FX.:]+$/i.test(address)) {
-            throw new Error('Invalid address');
+            throw new Error(`Invalid address: ${address}`);
           }
           if (address.indexOf('.') !== -1) {
             const parts = address.split('.', 4);
@@ -130,13 +183,13 @@ export default class Address {
             // MAC
             const [left, right, rest] = address.split('::', 3);
             if (rest) {
-              throw new Error('Invalid address');
+              throw new Error(`Invalid address: ${address}`);
             }
             const lefts = left ? left.split(':') : [];
             const rights = right ? right.split(':') : [];
             let len = lefts.length + rights.length;
             if (len > MAC_LENGTH) {
-              throw new Error('Invalid address');
+              throw new Error(`Invalid address: ${address}`);
             }
             const mac = lefts.map(parseHex);
             while (len < MAC_LENGTH) {
@@ -158,10 +211,10 @@ export default class Address {
             }
           }
       }
-    } else if ((Array.isArray(address) || address instanceof Uint8Array)
+    } else if ((Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array)
       && address.length === MAC_LENGTH) {
-      this.mac = Buffer.from(address as any[]);
-      this.raw = this.mac!;
+      this.mac = address instanceof Uint8Array ? Buffer.from(address.buffer) : Buffer.from(address);
+      this.raw = this.mac;
       if (isEmpty(address)) {
         this.type = AddressType.empty;
       } else if (isBroadcast(address)) {
@@ -180,7 +233,7 @@ export default class Address {
       this.subnet = address.subnet;
       this.device = address.device;
     } else {
-      throw new Error('Invalid address');
+      throw new Error(`Invalid address ${address.toString()} (${typeof address})`);
     }
     const value = this.raw;
     Object.defineProperty(this, 'raw', {
@@ -190,26 +243,84 @@ export default class Address {
     Object.freeze(this);
   }
 
-  get isEmpty() {
+  /**
+   * Данный адрес является пустым
+   */
+  get isEmpty(): boolean {
     return this.type === AddressType.empty;
   }
 
-  get isBroadcast() {
+  /**
+   * Данный адрес является широковещательным
+   */
+  get isBroadcast(): boolean {
     return this.type === AddressType.broadcast;
   }
 
-  get rawType(): number {
+  /**
+   * Тип адреса
+   */
+  get rawType(): 0 | 1 | 2 {
     switch (this.type) {
       case AddressType.empty:
       case AddressType.broadcast:
         return AddressType.mac;
       default:
-        console.assert(0 <= this.type && this.type <= 2);
+        console.assert(this.type >= 0 && this.type <= 2);
         return this.type;
     }
   }
 
-  public toString() {
+  /**
+   * Конверировать представление адреса в тип [[Address]]
+   * @param address - представление адреса
+   */
+  public static toAddress(address?: AddressParam | null): Address | null | undefined {
+    if (address == null) {
+      return address;
+    }
+    return address instanceof Address ? address! : new Address(address);
+  }
+
+  /**
+   * Считать адрес из буфера
+   * @param type - Тип адреса
+   * @param buffer - Буфер
+   * @param offset - смещение
+   */
+  public static read(type: AddressType, buffer: Buffer, offset = 0): Address {
+    if (buffer.length - offset < MAC_LENGTH) {
+      throw new Error('Invalid buffer length');
+    }
+    switch (type) {
+      case AddressType.mac: {
+        const mac = buffer.slice(offset, offset + MAC_LENGTH);
+        return new Address(mac);
+      }
+      case AddressType.net: {
+        const net = [
+          buffer.readUInt16LE(offset),
+          buffer.readUInt8(offset + 2),
+          buffer.readUInt16LE(offset + 3),
+        ];
+        return new Address(net.join('.'));
+      }
+      case AddressType.group: {
+        const group = [
+          buffer.readUInt16LE(offset),
+          buffer.readUInt8(offset + 2),
+        ];
+        return new Address(group.join('.'));
+      }
+      default:
+        throw new Error(`Invalid address type ${type}`);
+    }
+  }
+
+  /**
+   * Получить строковое преодставление адреса
+   */
+  public toString(): string {
     switch (this.type) {
       case AddressType.empty:
         return '::0';
@@ -223,7 +334,7 @@ export default class Address {
         const mac = this.mac ? [...this.mac] : [];
         const first = mac.findIndex(b => b > 0);
         const str = [...mac.slice(first)]
-          .map(b => `0${b.toString(16)}`.slice(-2))
+          .map(padHex)
           .join(':')
           .toUpperCase();
         return first > 0 ? `::${str}` : str;
@@ -233,11 +344,14 @@ export default class Address {
     }
   }
 
-  public equals(other?: string | number[] | Buffer | Address | null): boolean {
+  /**
+   * Сравнение адереса со значением
+   * @param other - значение
+   */
+  public equals(other?: AddressParam | null): boolean {
     if (other == null) {
       return false;
     }
-    const otherAddress = other instanceof Address ? other : new Address(other);
-    return otherAddress.toString() === this.toString();
+    return Address.toAddress(other)!.toString() === this.toString();
   }
 }

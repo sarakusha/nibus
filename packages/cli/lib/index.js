@@ -1,85 +1,76 @@
 #!/usr/bin/env node
-
-/*
- * @license
- * Copyright (c) 2019. Nata-Info
- * @author Andrei Sarakeev <avs@nata-info.ru>
- *
- * This file is part of the "@nata" project.
- * For the full copyright and license information, please view
- * the EULA file that was distributed with this source code.
- */
-"use strict";
-
-require("source-map-support/register");
-
-var _yargs = _interopRequireDefault(require("yargs"));
-
-var _mib = require("@nibus/core/lib/mib");
-
-var _dump = _interopRequireDefault(require("./cli/commands/dump"));
-
-var _list = _interopRequireDefault(require("./cli/commands/list"));
-
-var _ping = _interopRequireDefault(require("./cli/commands/ping"));
-
-var _read = _interopRequireDefault(require("./cli/commands/read"));
-
-var _start = _interopRequireDefault(require("./cli/commands/start"));
-
-var _stop = _interopRequireDefault(require("./cli/commands/stop"));
-
-var _write = _interopRequireDefault(require("./cli/commands/write"));
-
-var _upload = _interopRequireDefault(require("./cli/commands/upload"));
-
-var _download = _interopRequireDefault(require("./cli/commands/download"));
-
-var _log = _interopRequireDefault(require("./cli/commands/log"));
-
-var _mib2 = _interopRequireDefault(require("./cli/commands/mib"));
-
-var _flash = _interopRequireDefault(require("./cli/commands/flash"));
-
-var _execute = _interopRequireDefault(require("./cli/commands/execute"));
-
-var _parse = _interopRequireDefault(require("./cli/commands/parse"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-// noinspection JSUnusedLocalSymbols
-const argv = _yargs.default.option('m', {
-  alias: 'mac',
-  desc: 'Адрес устройства',
-  type: 'string'
-}).option('raw', {
-  boolean: true,
-  default: false,
-  desc: 'Сырые данные'
-}).option('id', {
-  alias: 'name',
-  description: 'имя или id переменной',
-  array: true
-}).option('mib', {
-  desc: 'mib-файл',
-  choices: (0, _mib.getMibsSync)(),
-  string: true
-}).option('compact', {
-  desc: 'компактная таблица для вывода',
-  boolean: true,
-  default: true
-}).option('q', {
-  desc: 'тихий режим',
-  boolean: true,
-  alias: 'quiet'
-}) // .option('fw', {
-//   desc: 'использовать firmware_version для определения типа устройства',
-//   boolean: true,
-//   default: true,
-// })
-.option('timeout', {
-  desc: 'тймаут в секундах',
-  number: true,
-  default: 1
-}).command(_start.default).command(_stop.default).command(_list.default).command(_ping.default).command(_dump.default).command(_read.default).command(_write.default).command(_upload.default).command(_download.default).command(_log.default).command(_mib2.default).command(_flash.default).command(_execute.default).command(_parse.default).locale('ru').completion('completion').showHelpOnFail(false).strict().help().wrap(Math.min(_yargs.default.terminalWidth(), 100)).epilogue('(c) Nata-Info, 2019').argv;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uL3NyYy9pbmRleC50cyJdLCJuYW1lcyI6WyJhcmd2IiwieWFyZ3MiLCJvcHRpb24iLCJhbGlhcyIsImRlc2MiLCJ0eXBlIiwiYm9vbGVhbiIsImRlZmF1bHQiLCJkZXNjcmlwdGlvbiIsImFycmF5IiwiY2hvaWNlcyIsInN0cmluZyIsIm51bWJlciIsImNvbW1hbmQiLCJzdGFydCIsInN0b3AiLCJsaXN0IiwicGluZyIsImR1bXAiLCJyZWFkIiwid3JpdGUiLCJ1cGxvYWQiLCJkb3dubG9hZCIsImxvZyIsIm1pYiIsImZsYXNoIiwiZXhlY3V0ZSIsInBhcnNlIiwibG9jYWxlIiwiY29tcGxldGlvbiIsInNob3dIZWxwT25GYWlsIiwic3RyaWN0IiwiaGVscCIsIndyYXAiLCJNYXRoIiwibWluIiwidGVybWluYWxXaWR0aCIsImVwaWxvZ3VlIl0sIm1hcHBpbmdzIjoiQUFBQTs7QUFDQTs7Ozs7Ozs7Ozs7OztBQVNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOztBQUNBOzs7O0FBRUE7QUFDQSxNQUFNQSxJQUFJLEdBQUdDLGVBQ1ZDLE1BRFUsQ0FDSCxHQURHLEVBQ0U7QUFDWEMsRUFBQUEsS0FBSyxFQUFFLEtBREk7QUFFWEMsRUFBQUEsSUFBSSxFQUFFLGtCQUZLO0FBR1hDLEVBQUFBLElBQUksRUFBRTtBQUhLLENBREYsRUFNVkgsTUFOVSxDQU1ILEtBTkcsRUFNSTtBQUNiSSxFQUFBQSxPQUFPLEVBQUUsSUFESTtBQUViQyxFQUFBQSxPQUFPLEVBQUUsS0FGSTtBQUdiSCxFQUFBQSxJQUFJLEVBQUU7QUFITyxDQU5KLEVBV1ZGLE1BWFUsQ0FXSCxJQVhHLEVBV0c7QUFDWkMsRUFBQUEsS0FBSyxFQUFFLE1BREs7QUFFWkssRUFBQUEsV0FBVyxFQUFFLHVCQUZEO0FBR1pDLEVBQUFBLEtBQUssRUFBRTtBQUhLLENBWEgsRUFnQlZQLE1BaEJVLENBZ0JILEtBaEJHLEVBZ0JJO0FBQ2JFLEVBQUFBLElBQUksRUFBRSxVQURPO0FBRWJNLEVBQUFBLE9BQU8sRUFBRSx1QkFGSTtBQUdiQyxFQUFBQSxNQUFNLEVBQUU7QUFISyxDQWhCSixFQXFCVlQsTUFyQlUsQ0FxQkgsU0FyQkcsRUFxQlE7QUFDakJFLEVBQUFBLElBQUksRUFBRSwrQkFEVztBQUVqQkUsRUFBQUEsT0FBTyxFQUFFLElBRlE7QUFHakJDLEVBQUFBLE9BQU8sRUFBRTtBQUhRLENBckJSLEVBMEJWTCxNQTFCVSxDQTBCSCxHQTFCRyxFQTBCRTtBQUNYRSxFQUFBQSxJQUFJLEVBQUUsYUFESztBQUVYRSxFQUFBQSxPQUFPLEVBQUUsSUFGRTtBQUdYSCxFQUFBQSxLQUFLLEVBQUU7QUFISSxDQTFCRixFQStCWDtBQUNBO0FBQ0E7QUFDQTtBQUNBO0FBbkNXLENBb0NWRCxNQXBDVSxDQW9DSCxTQXBDRyxFQW9DUTtBQUNqQkUsRUFBQUEsSUFBSSxFQUFFLG1CQURXO0FBRWpCUSxFQUFBQSxNQUFNLEVBQUUsSUFGUztBQUdqQkwsRUFBQUEsT0FBTyxFQUFFO0FBSFEsQ0FwQ1IsRUF5Q1ZNLE9BekNVLENBeUNGQyxjQXpDRSxFQTBDVkQsT0ExQ1UsQ0EwQ0ZFLGFBMUNFLEVBMkNWRixPQTNDVSxDQTJDRkcsYUEzQ0UsRUE0Q1ZILE9BNUNVLENBNENGSSxhQTVDRSxFQTZDVkosT0E3Q1UsQ0E2Q0ZLLGFBN0NFLEVBOENWTCxPQTlDVSxDQThDRk0sYUE5Q0UsRUErQ1ZOLE9BL0NVLENBK0NGTyxjQS9DRSxFQWdEVlAsT0FoRFUsQ0FnREZRLGVBaERFLEVBaURWUixPQWpEVSxDQWlERlMsaUJBakRFLEVBa0RWVCxPQWxEVSxDQWtERlUsWUFsREUsRUFtRFZWLE9BbkRVLENBbURGVyxhQW5ERSxFQW9EVlgsT0FwRFUsQ0FvREZZLGNBcERFLEVBcURWWixPQXJEVSxDQXFERmEsZ0JBckRFLEVBc0RWYixPQXREVSxDQXNERmMsY0F0REUsRUF1RFZDLE1BdkRVLENBdURILElBdkRHLEVBd0RWQyxVQXhEVSxDQXdEQyxZQXhERCxFQXlEVkMsY0F6RFUsQ0F5REssS0F6REwsRUEwRFZDLE1BMURVLEdBMkRWQyxJQTNEVSxHQTREVkMsSUE1RFUsQ0E0RExDLElBQUksQ0FBQ0MsR0FBTCxDQUFTbEMsZUFBTW1DLGFBQU4sRUFBVCxFQUFnQyxHQUFoQyxDQTVESyxFQTZEVkMsUUE3RFUsQ0E2REQscUJBN0RDLEVBOERWckMsSUE5REgiLCJzb3VyY2VzQ29udGVudCI6WyIjIS91c3IvYmluL2VudiBub2RlXG4vKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCAoYykgMjAxOS4gTmF0YS1JbmZvXG4gKiBAYXV0aG9yIEFuZHJlaSBTYXJha2VldiA8YXZzQG5hdGEtaW5mby5ydT5cbiAqXG4gKiBUaGlzIGZpbGUgaXMgcGFydCBvZiB0aGUgXCJAbmF0YVwiIHByb2plY3QuXG4gKiBGb3IgdGhlIGZ1bGwgY29weXJpZ2h0IGFuZCBsaWNlbnNlIGluZm9ybWF0aW9uLCBwbGVhc2Ugdmlld1xuICogdGhlIEVVTEEgZmlsZSB0aGF0IHdhcyBkaXN0cmlidXRlZCB3aXRoIHRoaXMgc291cmNlIGNvZGUuXG4gKi9cbmltcG9ydCB5YXJncyBmcm9tICd5YXJncyc7XG5pbXBvcnQgeyBnZXRNaWJzU3luYyB9IGZyb20gJ0BuaWJ1cy9jb3JlL2xpYi9taWInO1xuaW1wb3J0IGR1bXAgZnJvbSAnLi9jbGkvY29tbWFuZHMvZHVtcCc7XG5pbXBvcnQgbGlzdCBmcm9tICcuL2NsaS9jb21tYW5kcy9saXN0JztcbmltcG9ydCBwaW5nIGZyb20gJy4vY2xpL2NvbW1hbmRzL3BpbmcnO1xuaW1wb3J0IHJlYWQgZnJvbSAnLi9jbGkvY29tbWFuZHMvcmVhZCc7XG5pbXBvcnQgc3RhcnQgZnJvbSAnLi9jbGkvY29tbWFuZHMvc3RhcnQnO1xuaW1wb3J0IHN0b3AgZnJvbSAnLi9jbGkvY29tbWFuZHMvc3RvcCc7XG5pbXBvcnQgd3JpdGUgZnJvbSAnLi9jbGkvY29tbWFuZHMvd3JpdGUnO1xuaW1wb3J0IHVwbG9hZCBmcm9tICcuL2NsaS9jb21tYW5kcy91cGxvYWQnO1xuaW1wb3J0IGRvd25sb2FkIGZyb20gJy4vY2xpL2NvbW1hbmRzL2Rvd25sb2FkJztcbmltcG9ydCBsb2cgZnJvbSAnLi9jbGkvY29tbWFuZHMvbG9nJztcbmltcG9ydCBtaWIgZnJvbSAnLi9jbGkvY29tbWFuZHMvbWliJztcbmltcG9ydCBmbGFzaCBmcm9tICcuL2NsaS9jb21tYW5kcy9mbGFzaCc7XG5pbXBvcnQgZXhlY3V0ZSBmcm9tICcuL2NsaS9jb21tYW5kcy9leGVjdXRlJztcbmltcG9ydCBwYXJzZSBmcm9tICcuL2NsaS9jb21tYW5kcy9wYXJzZSc7XG5cbi8vIG5vaW5zcGVjdGlvbiBKU1VudXNlZExvY2FsU3ltYm9sc1xuY29uc3QgYXJndiA9IHlhcmdzXG4gIC5vcHRpb24oJ20nLCB7XG4gICAgYWxpYXM6ICdtYWMnLFxuICAgIGRlc2M6ICfQkNC00YDQtdGBINGD0YHRgtGA0L7QudGB0YLQstCwJyxcbiAgICB0eXBlOiAnc3RyaW5nJyxcbiAgfSlcbiAgLm9wdGlvbigncmF3Jywge1xuICAgIGJvb2xlYW46IHRydWUsXG4gICAgZGVmYXVsdDogZmFsc2UsXG4gICAgZGVzYzogJ9Ch0YvRgNGL0LUg0LTQsNC90L3Ri9C1JyxcbiAgfSlcbiAgLm9wdGlvbignaWQnLCB7XG4gICAgYWxpYXM6ICduYW1lJyxcbiAgICBkZXNjcmlwdGlvbjogJ9C40LzRjyDQuNC70LggaWQg0L/QtdGA0LXQvNC10L3QvdC+0LknLFxuICAgIGFycmF5OiB0cnVlLFxuICB9KVxuICAub3B0aW9uKCdtaWInLCB7XG4gICAgZGVzYzogJ21pYi3RhNCw0LnQuycsXG4gICAgY2hvaWNlczogZ2V0TWlic1N5bmMoKSxcbiAgICBzdHJpbmc6IHRydWUsXG4gIH0pXG4gIC5vcHRpb24oJ2NvbXBhY3QnLCB7XG4gICAgZGVzYzogJ9C60L7QvNC/0LDQutGC0L3QsNGPINGC0LDQsdC70LjRhtCwINC00LvRjyDQstGL0LLQvtC00LAnLFxuICAgIGJvb2xlYW46IHRydWUsXG4gICAgZGVmYXVsdDogdHJ1ZSxcbiAgfSlcbiAgLm9wdGlvbigncScsIHtcbiAgICBkZXNjOiAn0YLQuNGF0LjQuSDRgNC10LbQuNC8JyxcbiAgICBib29sZWFuOiB0cnVlLFxuICAgIGFsaWFzOiAncXVpZXQnLFxuICB9KVxuICAvLyAub3B0aW9uKCdmdycsIHtcbiAgLy8gICBkZXNjOiAn0LjRgdC/0L7Qu9GM0LfQvtCy0LDRgtGMIGZpcm13YXJlX3ZlcnNpb24g0LTQu9GPINC+0L/RgNC10LTQtdC70LXQvdC40Y8g0YLQuNC/0LAg0YPRgdGC0YDQvtC50YHRgtCy0LAnLFxuICAvLyAgIGJvb2xlYW46IHRydWUsXG4gIC8vICAgZGVmYXVsdDogdHJ1ZSxcbiAgLy8gfSlcbiAgLm9wdGlvbigndGltZW91dCcsIHtcbiAgICBkZXNjOiAn0YLQudC80LDRg9GCINCyINGB0LXQutGD0L3QtNCw0YUnLFxuICAgIG51bWJlcjogdHJ1ZSxcbiAgICBkZWZhdWx0OiAxLFxuICB9KVxuICAuY29tbWFuZChzdGFydClcbiAgLmNvbW1hbmQoc3RvcClcbiAgLmNvbW1hbmQobGlzdClcbiAgLmNvbW1hbmQocGluZyBhcyBhbnkpXG4gIC5jb21tYW5kKGR1bXAgYXMgYW55KVxuICAuY29tbWFuZChyZWFkIGFzIGFueSlcbiAgLmNvbW1hbmQod3JpdGUgYXMgYW55KVxuICAuY29tbWFuZCh1cGxvYWQgYXMgYW55KVxuICAuY29tbWFuZChkb3dubG9hZCBhcyBhbnkpXG4gIC5jb21tYW5kKGxvZyBhcyBhbnkpXG4gIC5jb21tYW5kKG1pYiBhcyBhbnkpXG4gIC5jb21tYW5kKGZsYXNoIGFzIGFueSlcbiAgLmNvbW1hbmQoZXhlY3V0ZSBhcyBhbnkpXG4gIC5jb21tYW5kKHBhcnNlIGFzIGFueSlcbiAgLmxvY2FsZSgncnUnKVxuICAuY29tcGxldGlvbignY29tcGxldGlvbicpXG4gIC5zaG93SGVscE9uRmFpbChmYWxzZSlcbiAgLnN0cmljdCgpXG4gIC5oZWxwKClcbiAgLndyYXAoTWF0aC5taW4oeWFyZ3MudGVybWluYWxXaWR0aCgpLCAxMDApKVxuICAuZXBpbG9ndWUoJyhjKSBOYXRhLUluZm8sIDIwMTknKVxuICAuYXJndjtcbiJdfQ==
+import yargs from 'yargs';
+import { getMibsSync } from '@nibus/core/lib/mib';
+import dump from './cli/commands/dump';
+import list from './cli/commands/list';
+import ping from './cli/commands/ping';
+import read from './cli/commands/read';
+import start from './cli/commands/start';
+import stop from './cli/commands/stop';
+import write from './cli/commands/write';
+import upload from './cli/commands/upload';
+import download from './cli/commands/download';
+import log from './cli/commands/log';
+import mib from './cli/commands/mib';
+import flash from './cli/commands/flash';
+import execute from './cli/commands/execute';
+import parse from './cli/commands/parse';
+const { argv } = yargs
+    .option('mac', {
+    alias: 'm',
+    desc: 'Адрес устройства',
+    type: 'string',
+})
+    .option('raw', {
+    boolean: true,
+    default: false,
+    desc: 'Сырые данные',
+})
+    .option('id', {
+    alias: 'name',
+    description: 'имя или id переменной',
+    array: true,
+})
+    .option('mib', {
+    desc: 'mib-файл',
+    choices: getMibsSync(),
+    string: true,
+})
+    .option('compact', {
+    desc: 'компактная таблица для вывода',
+    boolean: true,
+    default: true,
+})
+    .option('quiet', {
+    desc: 'тихий режим',
+    boolean: true,
+    default: false,
+    alias: 'q',
+})
+    .option('timeout', {
+    desc: 'тймаут в секундах',
+    number: true,
+    default: 1,
+})
+    .command(start)
+    .command(stop)
+    .command(ping)
+    .command(dump)
+    .command(list)
+    .command(read)
+    .command(write)
+    .command(upload)
+    .command(download)
+    .command(log)
+    .command(mib)
+    .command(flash)
+    .command(execute)
+    .command(parse)
+    .locale('ru')
+    .completion('completion')
+    .showHelpOnFail(false)
+    .strict()
+    .help()
+    .wrap(Math.min(yargs.terminalWidth(), 100))
+    .epilogue(`(c) Nata-Info, ${new Date().getFullYear()}`);
+//# sourceMappingURL=index.js.map

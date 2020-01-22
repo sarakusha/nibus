@@ -1,3 +1,5 @@
+/* eslint-disable no-bitwise */
+
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info

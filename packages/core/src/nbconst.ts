@@ -8,12 +8,14 @@
  * the EULA file that was distributed with this source code.
  */
 
+/** @internal */
 export enum States {
   PREAMBLE_WAITING = 0,
   HEADER_READING = 1,
   DATA_READING = 2,
 }
 
+/** @internal */
 export enum Offsets {
   DESTINATION = 1,
   SOURCE = 7,
@@ -23,7 +25,11 @@ export enum Offsets {
   DATA = 16,
 }
 
+/** @internal */
 export const PREAMBLE = 0x7E;
+/** @internal */
 export const SERVICE_INFO_LENGTH = Offsets.DATA;
+/** @internal */
 export const MAX_DATA_LENGTH = 238;
+/** @internal */
 export const NMS_MAX_DATA_LENGTH = 63;

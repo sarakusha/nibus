@@ -35,8 +35,8 @@ declare class IPCServer extends Duplex {
     private clientDataHandler;
     private removeClient;
     _write(chunk: any, encoding: string, callback: (error?: (Error | null)) => void): void;
-    _read(size: number): void;
-    readonly path: string;
+    _read(_size: number): void;
+    get path(): string;
     send(client: Socket, event: string, ...args: any[]): Promise<void>;
     broadcast(event: string, ...args: any[]): Promise<void>;
     close: () => void;

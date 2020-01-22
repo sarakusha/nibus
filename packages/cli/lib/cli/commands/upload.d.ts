@@ -1,7 +1,7 @@
-import { Arguments, CommandModule, Defined } from 'yargs';
-import { IDevice } from '@nibus/core/lib/mib';
-import { CommonOpts } from '../options';
-declare type UploadOpts = Defined<CommonOpts, 'mac' | 'm'> & {
+import { Arguments, CommandModule } from 'yargs';
+import { IDevice } from '@nibus/core';
+import { CommonOpts, MacOptions } from '../options';
+declare type UploadOpts = MacOptions & {
     domain: string;
     offset: number;
     size?: number;

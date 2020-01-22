@@ -2,8 +2,24 @@
   "name": "root",
   "private": true,
   "devDependencies": {
-    "lerna": "^3.11.1",
-    "rimraf": "^2.6.3"
+    "@types/jest": "^24.9.0",
+    "@types/node": "12",
+    "@typescript-eslint/eslint-plugin": "^2.11.0",
+    "@typescript-eslint/parser": "^2.11.0",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-import-resolver-lerna": "^1.1.0",
+    "eslint-import-resolver-typescript": "^2.0.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-react": "^7.17.0",
+    "eslint-plugin-react-hooks": "^2.3.0",
+    "jest": "^24.9.0",
+    "lerna": "^3.19.0",
+    "rimraf": "^3.0.0",
+    "ts-jest": "^24.3.0",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.3"
   },
   "workspaces": [
     "packages/*"
@@ -13,6 +29,7 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "clean": "rimraf packages/*/{lib,build,.next}",
-    "publish": "lerna publish --registry=https://npm.nata-info.ru"
+    "publish": "lerna publish --registry=https://npm.nata-info.ru",
+    "update:version": "lerna version --no-push"
   }
 }

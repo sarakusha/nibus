@@ -10,42 +10,43 @@
 
 import { Socket, SocketConstructorOpts } from 'net';
 import { PathReporter } from 'io-ts/lib/PathReporter';
+import { isLeft } from 'fp-ts/lib/Either';
 import xpipe from 'xpipe';
 
 import debugFactory from 'debug';
-import { EventFromString, IPortArg } from './events';
+import { EventFromString, PortArg } from './events';
 
 const debug = debugFactory('nibus:IPCClient');
 
-export interface IClient {
-  addListener(event: 'ports', listener: (ports: IPortArg[]) => void): this;
-  addListener(event: 'add', listener: (port: IPortArg) => void): this;
-  addListener(event: 'remove', listener: (port: IPortArg) => void): this;
-  on(event: 'ports', listener: (ports: IPortArg[]) => void): this;
-  on(event: 'add', listener: (port: IPortArg) => void): this;
-  on(event: 'remove', listener: (port: IPortArg) => void): this;
-  once(event: 'ports', listener: (ports: IPortArg[]) => void): this;
-  once(event: 'add', listener: (port: IPortArg) => void): this;
-  once(event: 'remove', listener: (port: IPortArg) => void): this;
+export interface Client {
+  addListener(event: 'ports', listener: (ports: PortArg[]) => void): this;
+  addListener(event: 'add', listener: (port: PortArg) => void): this;
+  addListener(event: 'remove', listener: (port: PortArg) => void): this;
+  on(event: 'ports', listener: (ports: PortArg[]) => void): this;
+  on(event: 'add', listener: (port: PortArg) => void): this;
+  on(event: 'remove', listener: (port: PortArg) => void): this;
+  once(event: 'ports', listener: (ports: PortArg[]) => void): this;
+  once(event: 'add', listener: (port: PortArg) => void): this;
+  once(event: 'remove', listener: (port: PortArg) => void): this;
 }
 
-export default class IPCClient extends Socket implements IClient {
+export default class IPCClient extends Socket implements Client {
   protected constructor(options?: SocketConstructorOpts) {
     super(options);
     this.on('data', this.parseEvents);
   }
 
-  parseEvents = (data: Buffer) => {
+  parseEvents = (data: Buffer): void => {
     const result = EventFromString.decode(data.toString());
-    if (result.isLeft()) {
+    if (isLeft(result)) {
       debug('<error>:', PathReporter.report(result));
       return;
     }
-    const { value: { event, args } } = result;
+    const { right: { event, args } } = result;
     this.emit(event, ...args);
   };
 
-  send(event: string, ...args: any[]): Promise<void> {
+  send(event: string, ...args: unknown[]): Promise<void> {
     const data = {
       event,
       args,

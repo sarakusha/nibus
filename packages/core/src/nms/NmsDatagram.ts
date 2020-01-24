@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -10,7 +11,9 @@
 
 import Address from '../Address';
 import { NMS_MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
-import { INibusCommon, INibusDatagramJSON, INibusOptions, NibusDatagram } from '../nibus';
+import NibusDatagram, {
+  INibusCommon, INibusDatagramJSON, INibusOptions,
+} from '../nibus/NibusDatagram';
 import { decodeValue, getSizeOf } from './nms';
 import NmsServiceType from './NmsServiceType';
 import NmsValueType from './NmsValueType';
@@ -41,16 +44,21 @@ export interface INmsDatagramJSON extends INibusDatagramJSON {
 }
 
 export default class NmsDatagram extends NibusDatagram implements INmsOptions {
-  public static isNmsFrame(frame: Buffer) {
+  public static isNmsFrame(frame: Buffer): boolean {
     return frame[0] === PREAMBLE && frame.length > 15 && frame[Offsets.PROTOCOL] === 1
       && frame[Offsets.LENGTH] > 3;
   }
 
   public readonly isResponse: boolean;
+
   public readonly notReply: boolean;
+
   public readonly service: number;
+
   public readonly id: number;
+
   public readonly nms: Buffer;
+
   public readonly timeout?: number;
 
   constructor(frameOrOptions: Buffer | INmsOptions) {
@@ -75,10 +83,11 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
         (options.notReply ? 0x80 : 0) | nmsLength,
         ...options.nms,
       ];
-      const nibusOptions: INibusOptions = Object.assign({
+      const nibusOptions: INibusOptions = {
         data: Buffer.from(nibusData),
         protocol: 1,
-      }, options);
+        ...options,
+      };
       super(nibusOptions);
       if (frameOrOptions.timeout !== undefined) {
         this.timeout = frameOrOptions.timeout;
@@ -96,7 +105,7 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
     this.nms = this.data.slice(3, 3 + nmsLength);
   }
 
-  get valueType() {
+  get valueType(): number | undefined {
     const { nms, service } = this;
     switch (service) {
       case NmsServiceType.Read:
@@ -118,20 +127,22 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
     return undefined;
   }
 
-  get status() {
+  get status(): number | undefined {
     if (this.nms.length === 0 || !this.isResponse) {
       return undefined;
     }
     return this.nms.readInt8(0);
   }
 
-  get value() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  get value(): any {
     const { valueType, nms, service } = this;
     if (valueType === undefined) {
       return undefined;
     }
     const { length } = nms;
-    const safeDecode = (index: number, type = valueType) => (length < index + getSizeOf(type)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const safeDecode = (index: number, type = valueType): any => (length < index + getSizeOf(type)
       ? undefined
       : decodeValue(type, nms, index));
     switch (service) {
@@ -153,10 +164,10 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
     }
   }
 
-  public isResponseFor(req: NmsDatagram) {
+  public isResponseFor(req: NmsDatagram): boolean {
     const { isResponse, service, destination } = this;
     return isResponse && service === req.service && destination.equals(req.source);
-      // && (source.equals(req.destination) || (id === req.id && req.destination.isEmpty));
+    // && (source.equals(req.destination) || (id === req.id && req.destination.isEmpty));
   }
 
   public toJSON(): INmsDatagramJSON {

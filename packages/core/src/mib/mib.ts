@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/camelcase,no-bitwise,no-eval */
 /* tslint:disable:no-eval */
 /*
  * @license
@@ -9,22 +10,25 @@
  * the EULA file that was distributed with this source code.
  */
 
+import * as t from 'io-ts';
 import printf from 'printf';
-import { IMibType } from './devices';
 
-export function validJsName(name: string) {
+export function validJsName(name: string): string {
   return name.replace(/(_\w)/g, (_, s) => s[1].toUpperCase());
 }
 
-export const withValue =
-  (value: any, writable = false, configurable = false): PropertyDescriptor => ({
-    value,
-    writable,
-    configurable,
-    enumerable: true,
-  });
+export const withValue = (
+  value: unknown,
+  writable = false,
+  configurable = false,
+): PropertyDescriptor => ({
+  value,
+  writable,
+  configurable,
+  enumerable: true,
+});
 const hex = /^0X[0-9A-F]+$/i;
-const isHex = (str: string) => hex.test(str)
+const isHex = (str: string): boolean => hex.test(str)
   || parseInt(str, 10).toString(10) !== str.toLowerCase().replace(/^[0 ]+/, '');
 
 export const toInt = (value: string | boolean | number = 0): number => {
@@ -46,24 +50,122 @@ export interface IConverter {
 export function unitConverter(unit: string): IConverter {
   const fromRe = new RegExp(`(\\s*${unit}\\s*)$`, 'i');
   return {
-    from: value => typeof value === 'string' ? value.replace(fromRe, '') : value,
-    to: value => value != null ? `${value}${unit}` : value,
+    from: value => (typeof value === 'string' ? value.replace(fromRe, '') : value),
+    to: value => (value != null ? `${value}${unit}` : value),
   };
 }
 
 export function precisionConverter(precision: string): IConverter {
   const format = `%.${precision}f`;
   return {
-    from: value => typeof value === 'string' ? parseFloat(value) : value,
-    to: value => typeof value === 'number' ? printf(format, value) : value,
+    from: value => (typeof value === 'string' ? parseFloat(value) : value),
+    to: value => (typeof value === 'number' ? printf(format, value) : value),
   };
 }
 
+const MibPropertyAppInfoV = t.intersection([
+  t.type({
+    // eslint-disable-next-line @typescript-eslint/camelcase
+    nms_id: t.union([t.string, t.Int]),
+    access: t.string,
+  }),
+  t.partial({
+    category: t.string,
+  }),
+]);
+const MibPropertyV = t.type({
+  type: t.string,
+  annotation: t.string,
+  appinfo: MibPropertyAppInfoV,
+});
+
+export interface IMibProperty extends t.TypeOf<typeof MibPropertyV> {
+  // appinfo: IMibPropertyAppInfo;
+}
+
+const MibDeviceAppInfoV = t.intersection([
+  t.type({
+    mib_version: t.string,
+  }),
+  t.partial({
+    device_type: t.string,
+    loader_type: t.string,
+    firmware: t.string,
+    min_version: t.string,
+  }),
+]);
+const MibDeviceTypeV = t.type({
+  annotation: t.string,
+  appinfo: MibDeviceAppInfoV,
+  properties: t.record(t.string, MibPropertyV),
+});
+
+export interface IMibDeviceType extends t.TypeOf<typeof MibDeviceTypeV> {}
+
+const MibTypeV = t.intersection([
+  t.type({
+    base: t.string,
+  }),
+  t.partial({
+    appinfo: t.partial({
+      zero: t.string,
+      units: t.string,
+      precision: t.string,
+      representation: t.string,
+      get: t.string,
+      set: t.string,
+    }),
+    minInclusive: t.string,
+    maxInclusive: t.string,
+    enumeration: t.record(t.string, t.type({ annotation: t.string })),
+  }),
+]);
+
+export interface IMibType extends t.TypeOf<typeof MibTypeV> {}
+
+const MibSubroutineV = t.intersection([
+  t.type({
+    annotation: t.string,
+    appinfo: t.intersection([
+      t.type({ nms_id: t.union([t.string, t.Int]) }),
+      t.partial({ response: t.string }),
+    ]),
+  }),
+  t.partial({
+    properties: t.record(t.string, t.type({
+      type: t.string,
+      annotation: t.string,
+    })),
+  }),
+]);
+const SubroutineTypeV = t.type({
+  annotation: t.string,
+  properties: t.type({
+    id: t.type({
+      type: t.literal('xs:unsignedShort'),
+      annotation: t.string,
+    }),
+  }),
+});
+export const MibDeviceV = t.intersection([
+  t.type({
+    device: t.string,
+    types: t.record(t.string, t.union([MibDeviceTypeV, MibTypeV, SubroutineTypeV])),
+  }),
+  t.partial({
+    subroutines: t.record(t.string, MibSubroutineV),
+  }),
+]);
+
+export interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {}
+
 export function enumerationConverter(enumerationValues: IMibType['enumeration']): IConverter {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const from: any = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const to: any = {};
   const keys = Reflect.ownKeys(enumerationValues!) as string[];
-  keys.forEach((key) => {
+  keys.forEach(key => {
     const value = enumerationValues![key];
     const index = toInt(key);
     from[value.annotation] = index;
@@ -71,14 +173,14 @@ export function enumerationConverter(enumerationValues: IMibType['enumeration'])
   });
   // console.log('from %o, to %o', from, to);
   return {
-    from: (value) => {
+    from: value => {
       if (Reflect.has(from, String(value))) {
         return from[String(value)];
       }
       const simple = toInt(value);
       return Number.isNaN(simple) ? value : simple;
     },
-    to: (value) => {
+    to: value => {
       let index: number | string = toInt(value);
       if (Number.isNaN(index)) index = String(value);
       return Reflect.has(to, String(index)) ? to[String(index)] : value;
@@ -89,7 +191,7 @@ export function enumerationConverter(enumerationValues: IMibType['enumeration'])
 const yes = /^\s*(yes|on|true|1|да)\s*$/i;
 const no = /^\s*(no|off|false|0|нет)\s*$/i;
 export const booleanConverter: IConverter = {
-  from: (value) => {
+  from: value => {
     if (typeof value === 'string') {
       if (yes.test(value)) {
         return true;
@@ -100,7 +202,7 @@ export const booleanConverter: IConverter = {
     }
     return value;
   },
-  to: (value) => {
+  to: value => {
     if (typeof value === 'boolean') {
       return value ? 'Да' : 'Нет';
     }
@@ -109,14 +211,14 @@ export const booleanConverter: IConverter = {
 };
 
 export const percentConverter: IConverter = {
-  from: value => typeof value === 'number' ? Math.max(Math.min(
-    Math.round(value * 255 / 100),
+  from: value => (typeof value === 'number' ? Math.max(Math.min(
+    Math.round((value * 255) / 100),
     255,
-  ), 0) : value,
-  to: value => typeof value === 'number' ? Math.max(
-    Math.min(Math.round(value * 100 / 255), 100),
+  ), 0) : value),
+  to: value => (typeof value === 'number' ? Math.max(
+    Math.min(Math.round((value * 100) / 255), 100),
     0,
-  ) : value,
+  ) : value),
 };
 
 export function representationConverter(format: string, size: number): IConverter {
@@ -129,14 +231,14 @@ export function representationConverter(format: string, size: number): IConverte
     case '%b':
     case '%B':
       fmt = `%0${size * 8}s`;
-      from = value => typeof value === 'string' ? parseInt(value, 2) : value;
-      to = value => typeof value === 'number' ? printf(fmt, value.toString(2)) : value;
+      from = value => (typeof value === 'string' ? parseInt(value, 2) : value);
+      to = value => (typeof value === 'number' ? printf(fmt, value.toString(2)) : value);
       break;
     case '%x':
     case '%X':
       fmt = `%0${size}s`;
-      from = value => typeof value === 'string' ? parseInt(value, 16) : value;
-      to = value => typeof value === 'number' ? printf(fmt, value.toString(16)) : value;
+      from = value => (typeof value === 'string' ? parseInt(value, 16) : value);
+      to = value => (typeof value === 'number' ? printf(fmt, value.toString(16)) : value);
       break;
     default:
       from = value => value;
@@ -155,26 +257,26 @@ export function packed8floatConverter(subtype: IMibType): IConverter {
     delta = parseFloat(subtype.appinfo.zero) || 0;
   }
   return {
-    from: (value) => {
+    from: value => {
       const val = typeof value === 'string' ? parseFloat(value) : value;
       return typeof val === 'number' ? Math.floor((val - delta) * 100) & 0xFF : val;
     },
-    to: value => typeof value === 'number' ? value / 100 + delta : value,
+    to: value => (typeof value === 'number' ? value / 100 + delta : value),
   };
 }
 
 export const fixedPointNumber4Converter: IConverter = {
-  from: (value) => {
+  from: value => {
     const val = typeof value === 'string' ? parseFloat(value) : value;
     if (typeof val !== 'number') {
       return val;
     }
     const dec = Math.round(val * 1000) % 1000;
     const hi = ((Math.floor(val) << 4) + Math.floor(dec / 100)) & 0xFF;
-    const low = (dec % 10 + ((Math.floor(dec / 10) % 10) << 4)) & 0xFF;
+    const low = ((dec % 10) + ((Math.floor(dec / 10) % 10) << 4)) & 0xFF;
     return (hi << 8) | low;
   },
-  to: (value) => {
+  to: value => {
     if (typeof value !== 'number') {
       return value;
     }
@@ -189,12 +291,12 @@ export const versionTypeConverter: IConverter = {
   from: () => {
     throw new Error('versionType is readonly property');
   },
-  to: value => typeof value === 'number'
+  to: value => (typeof value === 'number'
     ? `${(value >> 8) & 0xFF}.${value & 0xFF} [0x${(value >>> 16).toString(16)}]`
-    : value,
+    : value),
 };
 
-export function getIntSize(type: string) {
+export function getIntSize(type: string): number {
   switch (type) {
     case 'xs:NMTOKEN':
     case 'xs:unsignedByte':
@@ -209,33 +311,39 @@ export function getIntSize(type: string) {
     case 'xs:long':
     case 'xs:unsignedLong':
       return 8;
+    default:
+      console.warn('Unknown type:', type);
+      return 0;
   }
 }
 
 export function minInclusiveConverter(min: number): IConverter {
   return {
-    from: value => typeof value === 'number' ? Math.max(value, min) : value,
+    from: value => (typeof value === 'number' ? Math.max(value, min) : value),
     to: value => value,
   };
 }
 
 export function maxInclusiveConverter(max: number): IConverter {
   return {
-    from: value => typeof value === 'number' ? Math.min(value, max) : value,
+    from: value => (typeof value === 'number' ? Math.min(value, max) : value),
     to: value => value,
   };
 }
 
-export const evalConverter = (get: string, set: string) => ({
+export const evalConverter = (get: string, set: string): IConverter => ({
   from: eval(set),
   to: eval(get),
 });
 
-export const convertTo = (converters: IConverter[]) => (value: ResultType) =>
-  converters.reduceRight(
-    (result, converter) => result !== undefined && converter.to(result),
-    value,
-  );
+export const convertTo = (
+  converters: IConverter[],
+) => (value: ResultType) => converters.reduceRight(
+  (result, converter) => result !== undefined && converter.to(result),
+  value,
+);
 
-export const convertFrom = (converters: IConverter[]) => (value: PresentType) =>
-  converters.reduce((present, converter) => converter.from(present), value);
+export const convertFrom = (converters: IConverter[]) => (value: PresentType) => converters.reduce((
+  present,
+  converter,
+) => converter.from(present), value);

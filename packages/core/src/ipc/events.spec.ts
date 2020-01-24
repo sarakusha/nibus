@@ -8,23 +8,24 @@
  * the EULA file that was distributed with this source code.
  */
 
+import { isRight } from 'fp-ts/lib/Either';
 import {
   EventFromString,
   PortsEventV,
-  IPortsEvent,
+  PortsEvent,
   PortAddedEventV,
-  IPortAddedEvent,
+  PortAddedEvent,
   PortRemovedEventV,
-  IPortRemovedEvent,
+  PortRemovedEvent,
   EventV,
 } from './events';
 
-const portsEvent = {
+const portsEvent: PortsEvent = {
   event: 'ports',
   args: [[
     {
       portInfo: {
-        comName: 'com1',
+        path: 'com1',
         productId: 1,
         vendorId: 2,
       },
@@ -32,7 +33,7 @@ const portsEvent = {
     },
     {
       portInfo: {
-        comName: 'com2',
+        path: 'com2',
         productId: 1,
         vendorId: 2,
       },
@@ -41,11 +42,11 @@ const portsEvent = {
   ]],
 };
 
-const addEvent = {
+const addEvent: PortAddedEvent = {
   event: 'add',
   args: [{
     portInfo: {
-      comName: 'com3',
+      path: 'com3',
       productId: 1,
       vendorId: 2,
     },
@@ -53,11 +54,11 @@ const addEvent = {
   }],
 };
 
-const removeEvent = {
+const removeEvent: PortRemovedEvent = {
   event: 'remove',
   args: [{
     portInfo: {
-      comName: 'com3',
+      path: 'com3',
       productId: 1,
       vendorId: 2,
     },
@@ -74,9 +75,9 @@ const testEvent = {
 };
 
 const events = [
-  portsEvent as IPortsEvent,
-  addEvent as IPortAddedEvent,
-  removeEvent as IPortRemovedEvent,
+  portsEvent,
+  addEvent,
+  removeEvent,
 ];
 
 describe('event tests', () => {
@@ -107,14 +108,16 @@ describe('event tests', () => {
     expect(EventV.is(testEvent)).toBeFalsy();
   });
   test('stringify', () => {
-    events.forEach((event) => {
+    events.forEach(event => {
       expect(EventFromString.encode(event)).toBe(JSON.stringify(event));
     });
   });
 
   test('parse', () => {
-    events.forEach((event) => {
-      expect(EventFromString.decode(JSON.stringify(event)).getOrElse(undefined)).toEqual(event);
+    events.forEach(event => {
+      const validate = EventFromString.decode(JSON.stringify(event));
+      expect(isRight(validate));
+      expect(isRight(validate) && validate.right).toEqual(event);
     });
   });
 });

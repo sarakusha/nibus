@@ -10,17 +10,32 @@
 /* tslint:disable:variable-name */
 import * as t from 'io-ts';
 
+/**
+ * Валидатор тип поиска устройства
+ */
 export const FindKindV = t.keyof({
   sarp: null,
   version: null,
 }, 'FindKind');
+
+/**
+ * Тип поиска устройства 'sarp' | 'version'
+ *   - 'sarp' - поддерживается поиск SARP;
+ *   - 'version' - чтение с нулевого адреса версии устройства;
+ */
 export type FindKind = t.TypeOf<typeof FindKindV>;
 
+/**
+ * Вылидатор скорости интерфейса
+ */
 export const NibusBaudRateV = t.union(
   [t.literal(115200), t.literal(57600), t.literal(28800)],
   'NibusBaudRate',
 );
 
+/**
+ * Валидатор типа четности последовательного порта
+ */
 export const NibusParityV = t.keyof(
   {
     none: null,
@@ -30,11 +45,27 @@ export const NibusParityV = t.keyof(
   'NibusParity',
 );
 
+/**
+ * Скорость последовательного порта
+ * - 115200
+ * - 57600
+ * - 28800
+ */
 export type NibusBaudRate = t.TypeOf<typeof NibusBaudRateV>;
+/**
+ * Четность последовательного порта
+ * - 'none'
+ * - 'even'
+ * - 'mark'
+ */
 export type NibusParity = t.TypeOf<typeof NibusParityV>;
 
-export const MibDescriptionV: t.Type<IMibDescription> = t.recursion('MibDescriptionV', () =>
-  t.partial({
+/**
+ * Валидатор типа MibDescription
+ */
+export const MibDescriptionV: t.Type<MibDescription> = t.recursion(
+  'MibDescriptionV',
+  () => t.partial({
     type: t.number,
     mib: t.string,
     link: t.boolean,
@@ -48,15 +79,48 @@ export const MibDescriptionV: t.Type<IMibDescription> = t.recursion('MibDescript
   }),
 );
 
-export interface IMibDescription {
+/**
+ * Описание MIB-типа. Используется для определения параметров в файле detection.yml
+ */
+export interface MibDescription {
+  /**
+   * Тип
+   */
   type?: number;
+  /**
+   * название типа
+   */
   mib?: string;
+  /**
+   * Является передающим устройством (siolynx2)
+   */
   link?: boolean;
+  /**
+   * Скорость соединения с последовательным портом
+   */
   baudRate?: NibusBaudRate;
+  /**
+   * Четность последовательного порта
+   */
   parity?: NibusParity;
+  /**
+   * Категория устройства
+   */
   category?: string;
+  /**
+   * Тип поиска устройства
+   */
   find?: FindKind;
+  /**
+   * Не плддерживается пакетное чтение переменных одним запрсом
+   */
   disableBatchReading?: boolean;
-  select?: IMibDescription[];
-  win32?: IMibDescription;
+  /**
+   * Для общих категорий (FTDI) выбор вариантов точных категорий
+   */
+  select?: MibDescription[];
+  /**
+   * Параметры для Win32
+   */
+  win32?: MibDescription;
 }

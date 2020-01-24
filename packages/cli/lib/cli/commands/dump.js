@@ -1,212 +1,172 @@
 "use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-require("source-map-support/register");
-
-var _chalk = _interopRequireDefault(require("chalk"));
-
-var _cliTable = _interopRequireDefault(require("cli-table3"));
-
-var _lodash = _interopRequireDefault(require("lodash"));
-
-var _debug = _interopRequireDefault(require("debug"));
-
-var _core = _interopRequireWildcard(require("@nibus/core"));
-
-var _mib = require("@nibus/core/lib/mib");
-
-var _nibus = require("@nibus/core/lib/nibus");
-
-var _sarp = require("@nibus/core/lib/sarp");
-
-function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; if (obj != null) { var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/*
- * @license
- * Copyright (c) 2019. Nata-Info
- * @author Andrei Sarakeev <avs@nata-info.ru>
- *
- * This file is part of the "@nata" project.
- * For the full copyright and license information, please view
- * the EULA file that was distributed with this source code.
- */
-const debug = (0, _debug.default)('nibus:dump');
-let count = 0;
-
-async function dumpDevice(address, connection, argv, mib) {
-  const raw = argv.raw;
-  const compact = argv.compact;
-  let device;
-
-  if (!mib) {
-    const [version, type] = await connection.getVersion(address);
-    device = _mib.devices.create(address, type, version);
-  } else {
-    device = _mib.devices.create(address, mib);
-  }
-
-  device.connection = connection;
-  let ids = [];
-
-  if (argv.name) {
-    ids = argv.name.map(name => device.getId(name));
-  }
-
-  const result = await device.read(...ids);
-  const rows = Object.keys(result).map(key => {
-    const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
-    return {
-      value,
-      key,
-      displayName: Reflect.getMetadata('displayName', device, key)
-    };
-  });
-  const proto = Reflect.getPrototypeOf(device);
-  device.release();
-
-  const categories = _lodash.default.groupBy(rows, ({
-    key
-  }) => Reflect.getMetadata('category', proto, key) || '');
-
-  console.info(` Устройство ${Reflect.getMetadata('mib', proto)} [${address.toString()}]`);
-  const table = new _cliTable.default({
-    head: ['Название', 'Значение', 'Имя'],
-    style: {
-      compact
-    },
-    wordWrap: true
-  });
-
-  const toRow = ({
-    displayName,
-    value,
-    key
-  }) => {
-    let val;
-
-    if (value && value.error) {
-      val = _chalk.default.red(value.error);
-    } else if (value && value.errcode) {
-      val = _chalk.default.red(`errcode: ${value.errcode}`);
-    } else {
-      val = JSON.stringify(value);
-
-      if (!Reflect.getMetadata('isWritable', proto, key)) {
-        val = _chalk.default.grey(val);
-      }
-    }
-
-    return [displayName, val, key];
-  };
-
-  Object.keys(categories).forEach(category => {
-    const rows = categories[category];
-
-    if (category) {
-      table.push([{
-        colSpan: 3,
-        content: _chalk.default.yellow(category.toUpperCase())
-      }]);
-    }
-
-    table.push(...rows.map(toRow));
-  });
-  console.info(table.toString());
-}
-
-function findDevices(mib, connection, argv) {
-  count += 1;
-  const proto = (0, _mib.getMibPrototype)(mib);
-  const type = Reflect.getMetadata('deviceType', proto);
-  connection.findByType(type).catch(e => debug('error while findByType', e.stack));
-  connection.on('sarp', datagram => {
-    count += 1;
-    if (datagram.queryType !== _sarp.SarpQueryType.ByType || datagram.deviceType !== type) return;
-    const address = new _core.Address(datagram.mac);
-    dumpDevice(address, connection, argv, mib).catch( // () => {},
-    e => console.error('error while dump:', e.message));
-  });
-}
-
-const dumpCommand = {
-  command: 'dump',
-  describe: 'Выдать дампы устройств',
-  builder: argv => argv.check(argv => {
-    if (argv.id && !argv.mac && !argv.mib) {
-      throw `Данный аргумент требует следующий дополнительный аргумент:
- id -> mib или id -> mac`;
-    }
-
-    return true;
-  }),
-  handler: argv => new Promise(async (resolve, reject) => {
-    const close = err => {
-      clearTimeout(timeout);
-
-      _core.default.close();
-
-      if (err) reject(err);else resolve();
-    };
-
-    const mac = argv.mac && new _core.Address(argv.mac);
-    count = await _core.default.start(); // На Windows сложнее метод определения и занимает больше времени
-
-    if (process.platform === 'win32') {
-      count *= 3;
-    } // console.log('RUN DUMP');
-
-
-    _core.default.on('found', async ({
-      address,
-      connection
-    }) => {
-      // console.log('FOUND', connection.description);
-      try {
-        if (connection.description.link) {
-          if (mac) {
-            count += 1;
-            await dumpDevice(mac, connection, argv);
-          } else if (argv.mib) {
-            findDevices(argv.mib, connection, argv);
-          }
-        }
-
-        if ((!mac || mac.equals(address)) && (!argv.mib || argv.mib === connection.description.mib)) {
-          await dumpDevice(address, connection, argv, connection.description.mib);
-        }
-
-        count -= 1;
-
-        if (count === 0) {
-          clearTimeout(timeout);
-          process.nextTick(close);
-        }
-      } catch (e) {
-        close(e.message || e);
-      }
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-
-    const wait = () => {
-      count -= 1;
-
-      if (count > 0) {
-        timeout = setTimeout(wait, (0, _nibus.getNibusTimeout)());
-      } else {
-        close();
-      }
-    };
-
-    let timeout = setTimeout(wait, (0, _nibus.getNibusTimeout)());
-  })
 };
-var _default = dumpCommand;
-exports.default = _default;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NyYy9jbGkvY29tbWFuZHMvZHVtcC50cyJdLCJuYW1lcyI6WyJkZWJ1ZyIsImNvdW50IiwiZHVtcERldmljZSIsImFkZHJlc3MiLCJjb25uZWN0aW9uIiwiYXJndiIsIm1pYiIsInJhdyIsImNvbXBhY3QiLCJkZXZpY2UiLCJ2ZXJzaW9uIiwidHlwZSIsImdldFZlcnNpb24iLCJkZXZpY2VzIiwiY3JlYXRlIiwiaWRzIiwibmFtZSIsIm1hcCIsImdldElkIiwicmVzdWx0IiwicmVhZCIsInJvd3MiLCJPYmplY3QiLCJrZXlzIiwia2V5IiwidmFsdWUiLCJnZXRFcnJvciIsImdldFJhd1ZhbHVlIiwiZGlzcGxheU5hbWUiLCJSZWZsZWN0IiwiZ2V0TWV0YWRhdGEiLCJwcm90byIsImdldFByb3RvdHlwZU9mIiwicmVsZWFzZSIsImNhdGVnb3JpZXMiLCJfIiwiZ3JvdXBCeSIsImNvbnNvbGUiLCJpbmZvIiwidG9TdHJpbmciLCJ0YWJsZSIsIlRhYmxlIiwiaGVhZCIsInN0eWxlIiwid29yZFdyYXAiLCJ0b1JvdyIsInZhbCIsImVycm9yIiwiY2hhbGsiLCJyZWQiLCJlcnJjb2RlIiwiSlNPTiIsInN0cmluZ2lmeSIsImdyZXkiLCJmb3JFYWNoIiwiY2F0ZWdvcnkiLCJwdXNoIiwiY29sU3BhbiIsImNvbnRlbnQiLCJ5ZWxsb3ciLCJ0b1VwcGVyQ2FzZSIsImZpbmREZXZpY2VzIiwiZmluZEJ5VHlwZSIsImNhdGNoIiwiZSIsInN0YWNrIiwib24iLCJkYXRhZ3JhbSIsInF1ZXJ5VHlwZSIsIlNhcnBRdWVyeVR5cGUiLCJCeVR5cGUiLCJkZXZpY2VUeXBlIiwiQWRkcmVzcyIsIm1hYyIsIm1lc3NhZ2UiLCJkdW1wQ29tbWFuZCIsImNvbW1hbmQiLCJkZXNjcmliZSIsImJ1aWxkZXIiLCJjaGVjayIsImlkIiwiaGFuZGxlciIsIlByb21pc2UiLCJyZXNvbHZlIiwicmVqZWN0IiwiY2xvc2UiLCJlcnIiLCJjbGVhclRpbWVvdXQiLCJ0aW1lb3V0Iiwic2Vzc2lvbiIsInN0YXJ0IiwicHJvY2VzcyIsInBsYXRmb3JtIiwiZGVzY3JpcHRpb24iLCJsaW5rIiwiZXF1YWxzIiwibmV4dFRpY2siLCJ3YWl0Iiwic2V0VGltZW91dCJdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7O0FBVUE7O0FBQ0E7O0FBQ0E7O0FBRUE7O0FBRUE7O0FBRUE7O0FBQ0E7O0FBQ0E7Ozs7Ozs7O0FBcEJBOzs7Ozs7Ozs7QUE0QkEsTUFBTUEsS0FBSyxHQUFHLG9CQUFhLFlBQWIsQ0FBZDtBQUNBLElBQUlDLEtBQUssR0FBRyxDQUFaOztBQUVBLGVBQWVDLFVBQWYsQ0FDRUMsT0FERixFQUVFQyxVQUZGLEVBR0VDLElBSEYsRUFJRUMsR0FKRixFQUkrQjtBQUM3QixRQUFNQyxHQUFHLEdBQUdGLElBQUksQ0FBQ0UsR0FBakI7QUFDQSxRQUFNQyxPQUFPLEdBQUdILElBQUksQ0FBQ0csT0FBckI7QUFFQSxNQUFJQyxNQUFKOztBQUNBLE1BQUksQ0FBQ0gsR0FBTCxFQUFVO0FBQ1IsVUFBTSxDQUFDSSxPQUFELEVBQVVDLElBQVYsSUFBa0IsTUFBTVAsVUFBVSxDQUFDUSxVQUFYLENBQXNCVCxPQUF0QixDQUE5QjtBQUNBTSxJQUFBQSxNQUFNLEdBQUdJLGFBQVFDLE1BQVIsQ0FBZVgsT0FBZixFQUF3QlEsSUFBeEIsRUFBK0JELE9BQS9CLENBQVQ7QUFDRCxHQUhELE1BR087QUFDTEQsSUFBQUEsTUFBTSxHQUFHSSxhQUFRQyxNQUFSLENBQWVYLE9BQWYsRUFBd0JHLEdBQXhCLENBQVQ7QUFDRDs7QUFDREcsRUFBQUEsTUFBTSxDQUFDTCxVQUFQLEdBQW9CQSxVQUFwQjtBQUNBLE1BQUlXLEdBQWEsR0FBRyxFQUFwQjs7QUFDQSxNQUFJVixJQUFJLENBQUNXLElBQVQsRUFBZTtBQUNiRCxJQUFBQSxHQUFHLEdBQUdWLElBQUksQ0FBQ1csSUFBTCxDQUFVQyxHQUFWLENBQWNELElBQUksSUFBSVAsTUFBTSxDQUFDUyxLQUFQLENBQWFGLElBQWIsQ0FBdEIsQ0FBTjtBQUNEOztBQUNE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LE1BQU07QUFDakJoRyxNQUFBQSxLQUFLLElBQUksQ0FBVDs7QUFDQSxVQUFJQSxLQUFLLEdBQUcsQ0FBWixFQUFlO0FBQ2J1RixRQUFBQSxPQUFPLEdBQUdVLFVBQVUsQ0FBQ0QsSUFBRCxFQUFPLDZCQUFQLENBQXBCO0FBQ0QsT0FGRCxNQUVPO0FBQ0xaLFFBQUFBLEtBQUs7QUFDTjtBQUNGLEtBUEQ7O0FBU0EsUUFBSUcsT0FBTyxHQUFHVSxVQUFVLENBQUNELElBQUQsRUFBTyw2QkFBUCxDQUF4QjtBQUNELEdBaERnQjtBQVhzQyxDQUF6RDtlQThEZXRCLFciLCJzb3VyY2VzQ29udGVudCI6WyIvKlxuICogQGxpY2Vuc2VcbiAqIENvcHlyaWdodCAoYykgMjAxOS4gTmF0YS1JbmZvXG4gKiBAYXV0aG9yIEFuZHJlaSBTYXJha2VldiA8YXZzQG5hdGEtaW5mby5ydT5cbiAqXG4gKiBUaGlzIGZpbGUgaXMgcGFydCBvZiB0aGUgXCJAbmF0YVwiIHByb2plY3QuXG4gKiBGb3IgdGhlIGZ1bGwgY29weXJpZ2h0IGFuZCBsaWNlbnNlIGluZm9ybWF0aW9uLCBwbGVhc2Ugdmlld1xuICogdGhlIEVVTEEgZmlsZSB0aGF0IHdhcyBkaXN0cmlidXRlZCB3aXRoIHRoaXMgc291cmNlIGNvZGUuXG4gKi9cblxuaW1wb3J0IGNoYWxrIGZyb20gJ2NoYWxrJztcbmltcG9ydCBUYWJsZSwgeyBIb3Jpem9udGFsVGFibGUgfSBmcm9tICdjbGktdGFibGUzJztcbmltcG9ydCBfIGZyb20gJ2xvZGFzaCc7XG5pbXBvcnQgeyBBcmd1bWVudHMsIENvbW1hbmRNb2R1bGUgfSBmcm9tICd5YXJncyc7XG5pbXBvcnQgZGVidWdGYWN0b3J5IGZyb20gJ2RlYnVnJztcblxuaW1wb3J0IHNlc3Npb24sIHsgQWRkcmVzcyB9IGZyb20gJ0BuaWJ1cy9jb3JlJztcbmltcG9ydCB7IENvbW1vbk9wdHMgfSBmcm9tICcuLi9vcHRpb25zJztcbmltcG9ydCB7IGRldmljZXMsIGdldE1pYlByb3RvdHlwZSwgSURldmljZSB9IGZyb20gJ0BuaWJ1cy9jb3JlL2xpYi9taWInO1xuaW1wb3J0IHsgZ2V0TmlidXNUaW1lb3V0LCBOaWJ1c0Nvbm5lY3Rpb24gfSBmcm9tICdAbmlidXMvY29yZS9saWIvbmlidXMnO1xuaW1wb3J0IHsgU2FycFF1ZXJ5VHlwZSB9IGZyb20gJ0BuaWJ1cy9jb3JlL2xpYi9zYXJwJztcblxudHlwZSBSb3dUeXBlID0ge1xuICBkaXNwbGF5TmFtZTogc3RyaW5nLFxuICB2YWx1ZTogYW55LFxuICBrZXk6IHN0cmluZyxcbn07XG5cbmNvbnN0IGRlYnVnID0gZGVidWdGYWN0b3J5KCduaWJ1czpkdW1wJyk7XG5sZXQgY291bnQgPSAwO1xuXG5hc3luYyBmdW5jdGlvbiBkdW1wRGV2aWNlKFxuICBhZGRyZXNzOiBBZGRyZXNzLFxuICBjb25uZWN0aW9uOiBOaWJ1c0Nvbm5lY3Rpb24sXG4gIGFyZ3Y6IEFyZ3VtZW50czxEdW1wT3B0cz4sXG4gIG1pYj86IHN0cmluZyk6IFByb21pc2U8dm9pZD4ge1xuICBjb25zdCByYXcgPSBhcmd2LnJhdztcbiAgY29uc3QgY29tcGFjdCA9IGFyZ3YuY29tcGFjdDtcblxuICBsZXQgZGV2aWNlOiBJRGV2aWNlO1xuICBpZiAoIW1pYikge1xuICAgIGNvbnN0IFt2ZXJzaW9uLCB0eXBlXSA9IGF3YWl0IGNvbm5lY3Rpb24uZ2V0VmVyc2lvbihhZGRyZXNzKTtcbiAgICBkZXZpY2UgPSBkZXZpY2VzLmNyZWF0ZShhZGRyZXNzLCB0eXBlISwgdmVyc2lvbik7XG4gIH0gZWxzZSB7XG4gICAgZGV2aWNlID0gZGV2aWNlcy5jcmVhdGUoYWRkcmVzcywgbWliKTtcbiAgfVxuICBkZXZpY2UuY29ubmVjdGlvbiA9IGNvbm5lY3Rpb247XG4gIGxldCBpZHM6IG51bWJlcltdID0gW107XG4gIGlmIChhcmd2Lm5hbWUpIHtcbiAgICBpZHMgPSBhcmd2Lm5hbWUubWFwKG5hbWUgPT4gZGV2aWNlLmdldElkKG5hbWUpKTtcbiAgfVxuICBjb25zdCByZXN1bHQ6IGFueSA9IGF3YWl0IGRldmljZS5yZWFkKC4uLmlkcyk7XG4gIGNvbnN0IHJvd3M6IFJvd1R5cGVbXSA9IE9iamVjdC5rZXlzKHJlc3VsdClcbiAgICAubWFwKChrZXkpID0+IHtcbiAgICAgIGNvbnN0IHZhbHVlID0gcmF3ID8gZGV2aWNlLmdldEVycm9yKGtleSkgfHwgZGV2aWNlLmdldFJhd1ZhbHVlKGtleSkgOiByZXN1bHRba2V5XTtcbiAgICAgIHJldHVybiB7XG4gICAgICAgIHZhbHVlLFxuICAgICAgICBrZXksXG4gICAgICAgIGRpc3BsYXlOYW1lOiBSZWZsZWN0LmdldE1ldGFkYXRhKCdkaXNwbGF5TmFtZScsIGRldmljZSwga2V5KSxcbiAgICAgIH07XG4gICAgfSk7XG4gIGNvbnN0IHByb3RvID0gUmVmbGVjdC5nZXRQcm90b3R5cGVPZihkZXZpY2UpO1xuICBkZXZpY2UucmVsZWFzZSgpO1xuICBjb25zdCBjYXRlZ29yaWVzID0gXy5ncm91cEJ5KFxuICAgIHJvd3MsXG4gICAgKHsga2V5IH0pID0+IFJlZmxlY3QuZ2V0TWV0YWRhdGEoJ2NhdGVnb3J5JywgcHJvdG8sIGtleSkgfHwgJycsXG4gICk7XG4gIGNvbnNvbGUuaW5mbyhgINCj0YHRgtGA0L7QudGB0YLQstC+ICR7UmVmbGVjdC5nZXRNZXRhZGF0YSgnbWliJywgcHJvdG8pfSBbJHthZGRyZXNzLnRvU3RyaW5nKCl9XWApO1xuICBjb25zdCB0YWJsZSA9IG5ldyBUYWJsZSh7XG4gICAgaGVhZDogWyfQndCw0LfQstCw0L3QuNC1JywgJ9CX0L3QsNGH0LXQvdC40LUnLCAn0JjQvNGPJ10sXG4gICAgc3R5bGU6IHsgY29tcGFjdCB9LFxuICAgIHdvcmRXcmFwOiB0cnVlLFxuICB9KSBhcyBIb3Jpem9udGFsVGFibGU7XG4gIGNvbnN0IHRvUm93ID0gKHsgZGlzcGxheU5hbWUsIHZhbHVlLCBrZXkgfTogUm93VHlwZSkgPT4ge1xuICAgIGxldCB2YWw7XG4gICAgaWYgKHZhbHVlICYmIHZhbHVlLmVycm9yKSB7XG4gICAgICB2YWwgPSBjaGFsay5yZWQodmFsdWUuZXJyb3IpO1xuICAgIH0gZWxzZSBpZiAodmFsdWUgJiYgdmFsdWUuZXJyY29kZSkge1xuICAgICAgdmFsID0gY2hhbGsucmVkKGBlcnJjb2RlOiAke3ZhbHVlLmVycmNvZGV9YCk7XG4gICAgfSBlbHNlIHtcbiAgICAgIHZhbCA9IEpTT04uc3RyaW5naWZ5KHZhbHVlKTtcbiAgICAgIGlmICghUmVmbGVjdC5nZXRNZXRhZGF0YSgnaXNXcml0YWJsZScsIHByb3RvLCBrZXkpKSB7XG4gICAgICAgIHZhbCA9IGNoYWxrLmdyZXkodmFsKTtcbiAgICAgIH1cbiAgICB9XG4gICAgcmV0dXJuIFtkaXNwbGF5TmFtZSwgdmFsLCBrZXldO1xuICB9O1xuICBPYmplY3Qua2V5cyhjYXRlZ29yaWVzKS5mb3JFYWNoKChjYXRlZ29yeSkgPT4ge1xuICAgIGNvbnN0IHJvd3MgPSBjYXRlZ29yaWVzW2NhdGVnb3J5XSBhcyBSb3dUeXBlW107XG4gICAgaWYgKGNhdGVnb3J5KSB7XG4gICAgICB0YWJsZS5wdXNoKFt7XG4gICAgICAgIGNvbFNwYW46IDMsXG4gICAgICAgIGNvbnRlbnQ6IGNoYWxrLnllbGxvdyhjYXRlZ29yeS50b1VwcGVyQ2FzZSgpKSxcbiAgICAgIH1dKTtcbiAgICB9XG4gICAgdGFibGUucHVzaCguLi5yb3dzLm1hcCh0b1JvdykpO1xuICB9KTtcbiAgY29uc29sZS5pbmZvKHRhYmxlLnRvU3RyaW5nKCkpO1xufVxuXG5mdW5jdGlvbiBmaW5kRGV2aWNlcyhtaWI6IHN0cmluZywgY29ubmVjdGlvbjogTmlidXNDb25uZWN0aW9uLCBhcmd2OiBBcmd1bWVudHM8RHVtcE9wdHM+KSB7XG4gIGNvdW50ICs9IDE7XG4gIGNvbnN0IHByb3RvID0gZ2V0TWliUHJvdG90eXBlKG1pYik7XG4gIGNvbnN0IHR5cGUgPSBSZWZsZWN0LmdldE1ldGFkYXRhKCdkZXZpY2VUeXBlJywgcHJvdG8pIGFzIG51bWJlcjtcbiAgY29ubmVjdGlvbi5maW5kQnlUeXBlKHR5cGUpLmNhdGNoKGUgPT4gZGVidWcoJ2Vycm9yIHdoaWxlIGZpbmRCeVR5cGUnLCBlLnN0YWNrKSk7XG4gIGNvbm5lY3Rpb24ub24oJ3NhcnAnLCAoZGF0YWdyYW0pID0+IHtcbiAgICBjb3VudCArPSAxO1xuICAgIGlmIChkYXRhZ3JhbS5xdWVyeVR5cGUgIT09IFNhcnBRdWVyeVR5cGUuQnlUeXBlIHx8IGRhdGFncmFtLmRldmljZVR5cGUgIT09IHR5cGUpIHJldHVybjtcbiAgICBjb25zdCBhZGRyZXNzID0gbmV3IEFkZHJlc3MoZGF0YWdyYW0ubWFjKTtcbiAgICBkdW1wRGV2aWNlKGFkZHJlc3MsIGNvbm5lY3Rpb24sIGFyZ3YsIG1pYikuY2F0Y2goXG4gICAgICAvLyAoKSA9PiB7fSxcbiAgICAgIGUgPT4gY29uc29sZS5lcnJvcignZXJyb3Igd2hpbGUgZHVtcDonLCBlLm1lc3NhZ2UpLFxuICAgICk7XG4gIH0pO1xufVxuXG50eXBlIER1bXBPcHRzID0gQ29tbW9uT3B0cztcblxuY29uc3QgZHVtcENvbW1hbmQ6IENvbW1hbmRNb2R1bGU8Q29tbW9uT3B0cywgRHVtcE9wdHM+ID0ge1xuICBjb21tYW5kOiAnZHVtcCcsXG4gIGRlc2NyaWJlOiAn0JLRi9C00LDRgtGMINC00LDQvNC/0Ysg0YPRgdGC0YDQvtC50YHRgtCyJyxcbiAgYnVpbGRlcjogYXJndiA9PiBhcmd2XG4gICAgLmNoZWNrKChhcmd2KSA9PiB7XG4gICAgICBpZiAoYXJndi5pZCAmJiAoIWFyZ3YubWFjICYmICFhcmd2Lm1pYikpIHtcbiAgICAgICAgdGhyb3cgYNCU0LDQvdC90YvQuSDQsNGA0LPRg9C80LXQvdGCINGC0YDQtdCx0YPQtdGCINGB0LvQtdC00YPRjtGJ0LjQuSDQtNC+0L/QvtC70L3QuNGC0LXQu9GM0L3Ri9C5INCw0YDQs9GD0LzQtdC90YI6XG4gaWQgLT4gbWliINC40LvQuCBpZCAtPiBtYWNgO1xuICAgICAgfVxuICAgICAgcmV0dXJuIHRydWU7XG4gICAgfSksXG4gIGhhbmRsZXI6IGFyZ3YgPT4gbmV3IFByb21pc2UoYXN5bmMgKHJlc29sdmUsIHJlamVjdCkgPT4ge1xuICAgIGNvbnN0IGNsb3NlID0gKGVycj86IHN0cmluZykgPT4ge1xuICAgICAgY2xlYXJUaW1lb3V0KHRpbWVvdXQpO1xuICAgICAgc2Vzc2lvbi5jbG9zZSgpO1xuICAgICAgaWYgKGVycikgcmVqZWN0KGVycik7IGVsc2UgcmVzb2x2ZSgpO1xuICAgIH07XG4gICAgY29uc3QgbWFjID0gYXJndi5tYWMgJiYgbmV3IEFkZHJlc3MoYXJndi5tYWMpO1xuICAgIGNvdW50ID0gYXdhaXQgc2Vzc2lvbi5zdGFydCgpO1xuICAgIC8vINCd0LAgV2luZG93cyDRgdC70L7QttC90LXQtSDQvNC10YLQvtC0INC+0L/RgNC10LTQtdC70LXQvdC40Y8g0Lgg0LfQsNC90LjQvNCw0LXRgiDQsdC+0LvRjNGI0LUg0LLRgNC10LzQtdC90LhcbiAgICBpZiAocHJvY2Vzcy5wbGF0Zm9ybSA9PT0gJ3dpbjMyJykge1xuICAgICAgY291bnQgKj0gMztcbiAgICB9XG4gICAgLy8gY29uc29sZS5sb2coJ1JVTiBEVU1QJyk7XG4gICAgc2Vzc2lvbi5vbignZm91bmQnLCBhc3luYyAoeyBhZGRyZXNzLCBjb25uZWN0aW9uIH0pID0+IHtcbiAgICAgIC8vIGNvbnNvbGUubG9nKCdGT1VORCcsIGNvbm5lY3Rpb24uZGVzY3JpcHRpb24pO1xuICAgICAgdHJ5IHtcbiAgICAgICAgaWYgKGNvbm5lY3Rpb24uZGVzY3JpcHRpb24ubGluaykge1xuICAgICAgICAgIGlmIChtYWMpIHtcbiAgICAgICAgICAgIGNvdW50ICs9IDE7XG4gICAgICAgICAgICBhd2FpdCBkdW1wRGV2aWNlKG1hYywgY29ubmVjdGlvbiwgYXJndik7XG4gICAgICAgICAgfSBlbHNlIGlmIChhcmd2Lm1pYikge1xuICAgICAgICAgICAgZmluZERldmljZXMoYXJndi5taWIhLCBjb25uZWN0aW9uLCBhcmd2KTtcbiAgICAgICAgICB9XG4gICAgICAgIH1cbiAgICAgICAgaWYgKCghbWFjIHx8IG1hYy5lcXVhbHMoYWRkcmVzcykpXG4gICAgICAgICAgJiYgKCFhcmd2Lm1pYiB8fCBhcmd2Lm1pYiA9PT0gY29ubmVjdGlvbi5kZXNjcmlwdGlvbi5taWIpKSB7XG4gICAgICAgICAgYXdhaXQgZHVtcERldmljZShhZGRyZXNzLCBjb25uZWN0aW9uLCBhcmd2LCBjb25uZWN0aW9uLmRlc2NyaXB0aW9uLm1pYik7XG4gICAgICAgIH1cbiAgICAgICAgY291bnQgLT0gMTtcbiAgICAgICAgaWYgKGNvdW50ID09PSAwKSB7XG4gICAgICAgICAgY2xlYXJUaW1lb3V0KHRpbWVvdXQpO1xuICAgICAgICAgIHByb2Nlc3MubmV4dFRpY2soY2xvc2UpO1xuICAgICAgICB9XG4gICAgICB9IGNhdGNoIChlKSB7XG4gICAgICAgIGNsb3NlKGUubWVzc2FnZSB8fCBlKTtcbiAgICAgIH1cbiAgICB9KTtcblxuICAgIGNvbnN0IHdhaXQgPSAoKSA9PiB7XG4gICAgICBjb3VudCAtPSAxO1xuICAgICAgaWYgKGNvdW50ID4gMCkge1xuICAgICAgICB0aW1lb3V0ID0gc2V0VGltZW91dCh3YWl0LCBnZXROaWJ1c1RpbWVvdXQoKSk7XG4gICAgICB9IGVsc2Uge1xuICAgICAgICBjbG9zZSgpO1xuICAgICAgfVxuICAgIH07XG5cbiAgICBsZXQgdGltZW91dCA9IHNldFRpbWVvdXQod2FpdCwgZ2V0TmlidXNUaW1lb3V0KCkpO1xuICB9KSxcbn07XG5cbmV4cG9ydCBkZWZhdWx0IGR1bXBDb21tYW5kO1xuIl19
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const chalk_1 = __importDefault(require("chalk"));
+const cli_table3_1 = __importDefault(require("cli-table3"));
+const lodash_1 = __importDefault(require("lodash"));
+const debug_1 = __importDefault(require("debug"));
+const core_1 = __importStar(require("@nibus/core"));
+const debug = debug_1.default('nibus:dump');
+let count = 0;
+function dumpDevice(address, connection, argv, mib) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { raw, compact } = argv;
+        let device;
+        if (!mib) {
+            const [version, type] = yield connection.getVersion(address);
+            device = core_1.devices.create(address, type, version);
+        }
+        else {
+            device = core_1.devices.create(address, mib);
+        }
+        device.connection = connection;
+        let ids = [];
+        if (argv.id) {
+            ids = argv.id.map(id => device.getId(id));
+        }
+        const result = yield device.read(...ids);
+        const rows = Object.keys(result)
+            .map(key => {
+            const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
+            return {
+                value,
+                key,
+                displayName: Reflect.getMetadata('displayName', device, key),
+            };
+        });
+        const proto = Reflect.getPrototypeOf(device);
+        device.release();
+        const categories = lodash_1.default.groupBy(rows, ({ key }) => Reflect.getMetadata('category', proto, key) || '');
+        console.info(` Устройство ${Reflect.getMetadata('mib', proto)} [${address.toString()}]`);
+        const table = new cli_table3_1.default({
+            head: ['Название', 'Значение', 'Имя'],
+            style: { compact },
+            wordWrap: true,
+        });
+        const toRow = ({ displayName, value, key }) => {
+            let val;
+            if (value && value.error) {
+                val = chalk_1.default.red(value.error);
+            }
+            else if (value && value.errcode) {
+                val = chalk_1.default.red(`errcode: ${value.errcode}`);
+            }
+            else {
+                val = JSON.stringify(value);
+                if (!Reflect.getMetadata('isWritable', proto, key)) {
+                    val = chalk_1.default.grey(val);
+                }
+            }
+            return [displayName, val, key];
+        };
+        Object.keys(categories).forEach(category => {
+            const rowItems = categories[category];
+            if (category) {
+                table.push([{
+                        colSpan: 3,
+                        content: chalk_1.default.yellow(category.toUpperCase()),
+                    }]);
+            }
+            table.push(...rowItems.map(toRow));
+        });
+        console.info(table.toString());
+    });
+}
+function findDevices(mib, connection, argv) {
+    count += 1;
+    const proto = core_1.getMibPrototype(mib);
+    const type = Reflect.getMetadata('deviceType', proto);
+    connection.findByType(type).catch(e => debug('error while findByType', e.stack));
+    connection.on('sarp', datagram => {
+        count += 1;
+        if (datagram.queryType !== core_1.SarpQueryType.ByType || datagram.deviceType !== type)
+            return;
+        const address = new core_1.Address(datagram.mac);
+        dumpDevice(address, connection, argv, mib).catch(e => console.error('error while dump:', e.message));
+    });
+}
+const dumpCommand = {
+    command: 'dump',
+    describe: 'Выдать дампы устройств',
+    builder: argv => argv
+        .check(checkArgv => {
+        if (checkArgv.id && (!checkArgv.mac && !checkArgv.mib)) {
+            throw new Error(`Данный аргумент требует следующий дополнительный аргумент:
+ id -> mib или id -> mac`);
+        }
+        return true;
+    }),
+    handler: argv => new Promise((resolve, reject) => {
+        let timeout;
+        const close = (err) => {
+            clearTimeout(timeout);
+            core_1.default.close();
+            if (err)
+                reject(err);
+            else
+                resolve();
+        };
+        const mac = argv.mac && new core_1.Address(argv.mac);
+        core_1.default.start().then(value => {
+            count = value;
+            if (process.platform === 'win32') {
+                count *= 3;
+            }
+        });
+        core_1.default.on('found', ({ address, connection }) => __awaiter(void 0, void 0, void 0, function* () {
+            try {
+                if (connection.description.link) {
+                    if (mac) {
+                        count += 1;
+                        yield dumpDevice(mac, connection, argv);
+                    }
+                    else if (argv.mib) {
+                        findDevices(argv.mib, connection, argv);
+                    }
+                }
+                if ((!mac || mac.equals(address))
+                    && (!argv.mib || argv.mib === connection.description.mib)) {
+                    yield dumpDevice(address, connection, argv, connection.description.mib);
+                }
+                count -= 1;
+                if (count === 0) {
+                    clearTimeout(timeout);
+                    process.nextTick(close);
+                }
+            }
+            catch (e) {
+                close(e.message || e);
+            }
+        }));
+        const wait = () => {
+            count -= 1;
+            if (count > 0) {
+                timeout = setTimeout(wait, core_1.config.timeout);
+            }
+            else {
+                close();
+            }
+        };
+        timeout = setTimeout(wait, core_1.config.timeout);
+    }),
+};
+exports.default = dumpCommand;
+//# sourceMappingURL=dump.js.map

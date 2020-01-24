@@ -1,3 +1,4 @@
+/* eslint-disable no-multi-assign,@typescript-eslint/no-explicit-any,no-underscore-dangle */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -24,7 +25,7 @@ class Utf8Converter extends Transform {
     }
   }
 
-  // tslint:disable-next-line
+  // eslint-disable-next-line no-underscore-dangle
   public _transform(chunk: any, _encoding: string, callback: TransformCallback): void {
     callback(undefined, decode(chunk, this.encoding));
   }
@@ -35,7 +36,7 @@ function getEncoding(mibpath: string): Promise<string> {
     let encoding: string;
     const saxStream = sax.createStream(true, {});
     saxStream.on('error', err => reject(err));
-    saxStream.on('processinginstruction', (pi) => {
+    saxStream.on('processinginstruction', pi => {
       if (!pi.body) {
         return;
       }
@@ -67,8 +68,8 @@ export function mib2json(mibpath: string): Promise<any> {
     let subroutines: any;
     const trail: any[] = [];
     let state: string;
-    saxStream.on('opentag', (tag) => {
-//      logger.element(util.inspect(tag, {depth: null}));
+    saxStream.on('opentag', tag => {
+      //      logger.element(util.inspect(tag, {depth: null}));
       if (level < 5 || subroutines) {
         switch (tag.local) {
           case 'element':
@@ -116,15 +117,19 @@ export function mib2json(mibpath: string): Promise<any> {
           case 'attribute':
             current.properties = current.properties || {};
             trail.push(current);
-            current = current.properties[tag.attributes.name.value] =
-              { type: tag.attributes.type.value };
+            current = current.properties[tag.attributes.name.value] = {
+              type: tag.attributes.type.value,
+            };
+            break;
+          default:
+            console.warn('Unknown tag', tag.local);
             break;
         }
       }
       level += 1;
     });
 
-    saxStream.on('closetag', (tagName) => {
+    saxStream.on('closetag', tagName => {
       level -= 1;
 
       if (tagName === 'xs:sequence') {
@@ -137,11 +142,11 @@ export function mib2json(mibpath: string): Promise<any> {
       }
     });
 
-    const textHandler: TextHandler = function (text) {
+    const textHandler: TextHandler = function textHandler(text) {
       if (current) {
         if (state === 'appinfo') {
-          const local = this._parser.tag.local;
-          const appinfo = current.appinfo;
+          const { local } = this._parser.tag;
+          const { appinfo } = current;
           if (appinfo[local]) {
             appinfo[local] += `
 ${text}`;
@@ -161,7 +166,7 @@ ${text}`;
     });
 
     getEncoding(mibpath)
-      .then((encoding) => {
+      .then(encoding => {
         let input: Stream = fs.createReadStream(mibpath);
         if (encoding && encodingExists(encoding)) {
           input = input.pipe(new Utf8Converter(encoding));
@@ -180,7 +185,7 @@ export async function convert(mibpath: string, dir?: string): Promise<string> {
   }
   const data = JSON.stringify(json, null, 2);
   return new Promise<string>((resolve, reject) => {
-    fs.writeFile(jsonpath, data, (err) => {
+    fs.writeFile(jsonpath, data, err => {
       if (err) {
         reject(err);
       } else {
@@ -193,27 +198,24 @@ export async function convert(mibpath: string, dir?: string): Promise<string> {
 const xsdMibRe = /^\S+\.mib\.xsd$/i;
 const jsonMibRe = /^(\S+)\.mib\.json$/i;
 
-export function convertDir(dir: string) {
-  return new Promise<void>((resolve, reject) => {
-    fs.readdir(dir, (err, files) => {
-      if (err) {
-        return reject(err);
-      }
-      const promises: Promise<void>[] = files
-        .filter(file => xsdMibRe.test(file))
-        .map(file => convert(path.join(dir, file))
-          .then(() => console.info(`${file}: success`))
-          .catch(error => console.error(`${file}: ${error.message}`)),
-        );
-      resolve(Promise.all(promises).then(() => void 0));
-    });
+export const convertDir = (dir: string): Promise<void> => new Promise((resolve, reject) => {
+  fs.readdir(dir, (err, files) => {
+    if (err) {
+      return reject(err);
+    }
+    const promises: Promise<void>[] = files
+      .filter(file => xsdMibRe.test(file))
+      .map(file => convert(path.join(dir, file))
+        .then(() => console.info(`${file}: success`))
+        .catch(error => console.error(`${file}: ${error.message}`)));
+    return resolve(Promise.all(promises).then(() => {}));
   });
-}
+});
 
 let mibs: string[] = [];
 const mibsDir = path.resolve(__dirname, '../../mibs');
 
-function filesToMibs(files: string[]) {
+function filesToMibs(files: string[]): string[] {
   return files
     .map(file => jsonMibRe.exec(file))
     .filter(matches => matches != null)
@@ -228,7 +230,7 @@ export function getMibs(): Promise<string[]> {
         return reject(err);
       }
       mibs = filesToMibs(files);
-      resolve(mibs);
+      return resolve(mibs);
     });
   });
 }

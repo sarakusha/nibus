@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise,@typescript-eslint/no-explicit-any */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -14,10 +15,10 @@ import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import { chunkArray } from '../nibus/helper';
 import NmsValueType from './NmsValueType';
 
-const packByte = (b: number) => (((b % 100) / 10) * 16) + (b % 10);
-const unpackByte = (byte: number) => (byte & 0x0f) + (((byte >> 4) & 0x0f) * 10);
+const packByte = (b: number): number => (((b % 100) / 10) * 16) + (b % 10);
+const unpackByte = (byte: number): number => (byte & 0x0f) + (((byte >> 4) & 0x0f) * 10);
 
-function getDateTime(buffer: Buffer, offset: number = 0) {
+function getDateTime(buffer: Buffer, offset = 0): Date {
   const day = unpackByte(buffer.readUInt8(offset));
   const month = unpackByte(buffer.readUInt8(1 + offset));
   const year = unpackByte(buffer.readUInt8(3 + offset))
@@ -53,16 +54,17 @@ export function getSizeOf(valueType?: NmsValueType, value?: string): number {
       return 10;
     case NmsValueType.String:
       return value ? (value.length + 1) : 0;
+    default:
   }
 
-  if ((valueType & NmsValueType.Array) === 0) {
+  if ((valueType! & NmsValueType.Array) === 0) {
     throw new MibError('Invalid ValueType');
   }
 
-  const arrayType = valueType & (NmsValueType.Array - 1);
+  const arrayType = valueType! & (NmsValueType.Array - 1);
   const itemSize = getSizeOf(arrayType) || 0;
 
-  return value ? value.length * itemSize : itemSize;
+  return value ? value!.length * itemSize : itemSize;
 }
 
 export function decodeValue(valueType: NmsValueType, buffer: Buffer, offset = 0): any {
@@ -128,7 +130,8 @@ export function writeValue(
   valueType: NmsValueType,
   value: any,
   buffer: Buffer,
-  offset = 0): number {
+  offset = 0,
+): number {
   let pos = offset;
   switch (valueType) {
     case NmsValueType.Boolean:
@@ -215,6 +218,7 @@ export function writeValue(
     // TODO: Проверить запись массивов
     const arrayType = valueType & (NmsValueType.Array - 1);
 
+    // eslint-disable-next-line no-restricted-syntax
     for (const item of value) {
       pos = writeValue(arrayType, item, buffer, pos);
     }
@@ -223,14 +227,14 @@ export function writeValue(
   return pos;
 }
 
-export function encodeValue(valueType: NmsValueType, value: any) {
+export function encodeValue(valueType: NmsValueType, value: any): Buffer {
   const buffer = Buffer.alloc(1 + getSizeOf(valueType, value));
   buffer[0] = valueType & 0xFF;
   writeValue(valueType, value, buffer, 1);
   return buffer;
 }
 
-export function getNmsType(simpleType: string) {
+export function getNmsType(simpleType: string): number {
   switch (simpleType) {
     case 'xs:boolean':
       return NmsValueType.Boolean;

@@ -1,19 +1,25 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
+import { isLeft } from 'fp-ts/lib/Either';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import { CommandModule } from 'yargs';
 import path from 'path';
+import fs from 'fs';
 import { convert, MibDeviceV } from '@nibus/core/lib/mib';
+import { CommonOpts } from '../options';
 
-const mibCommand: CommandModule = {
+type MibOpts = CommonOpts & {
+  mibfile: string;
+}
+const mibCommand: CommandModule<CommonOpts, MibOpts> = {
   command: 'mib <mibfile>',
   describe: 'добавить mib-файл',
   builder: argv => argv
@@ -24,11 +30,11 @@ const mibCommand: CommandModule = {
     .demandOption('mibfile'),
   handler: async ({ mibfile }) => {
     const dest = path.resolve(__dirname, '../../../../core/mibs');
-    const jsonpath = await convert(mibfile as string, dest);
-    const validation = MibDeviceV.decode(require(jsonpath));
-    if (validation.isLeft()) {
+    const jsonPath = await convert(mibfile as string, dest);
+    const validation = MibDeviceV.decode(fs.readFileSync(jsonPath));
+    if (isLeft(validation)) {
       throw new Error(`Invalid mib file: ${mibfile}
-      ${PathReporter.report(validation)}`);
+      ${PathReporter.report(validation).join('\n')}`);
     }
   },
 };

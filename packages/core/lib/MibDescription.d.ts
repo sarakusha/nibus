@@ -12,8 +12,8 @@ export declare const NibusParityV: t.KeyofC<{
 }>;
 export declare type NibusBaudRate = t.TypeOf<typeof NibusBaudRateV>;
 export declare type NibusParity = t.TypeOf<typeof NibusParityV>;
-export declare const MibDescriptionV: t.Type<IMibDescription>;
-export interface IMibDescription {
+export declare const MibDescriptionV: t.Type<MibDescription>;
+export interface MibDescription {
     type?: number;
     mib?: string;
     link?: boolean;
@@ -22,7 +22,7 @@ export interface IMibDescription {
     category?: string;
     find?: FindKind;
     disableBatchReading?: boolean;
-    select?: IMibDescription[];
-    win32?: IMibDescription;
+    select?: MibDescription[];
+    win32?: MibDescription;
 }
 //# sourceMappingURL=MibDescription.d.ts.map

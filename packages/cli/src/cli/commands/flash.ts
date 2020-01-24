@@ -1,14 +1,15 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
-import { Arguments, CommandModule, Defined } from 'yargs';
+/* eslint-disable no-bitwise */
+import { Arguments, CommandModule } from 'yargs';
 import { crc16ccitt } from 'crc';
 import fs from 'fs';
 import _ from 'lodash';
@@ -17,8 +18,8 @@ import xmlParser from 'fast-xml-parser';
 import path from 'path';
 
 import { IDevice } from '@nibus/core/lib/mib';
-import { makeAddressHandler } from '../handlers';
-import { CommonOpts } from '../options';
+import makeAddressHandler from '../handlers';
+import { CommonOpts, MacOptions } from '../options';
 import { action as writeAction } from './write';
 
 // const domain = 'RFLASH';
@@ -28,28 +29,28 @@ type Kind = 'rbf' | 'tca' | 'tcc' | 'ttc' | 'ctrl' | 'mcu' | 'fpga';
 type Domains = 'RFLASH' | 'MCU' | 'FPGA';
 type Routines = 'reloadHost' | 'updateHost' | 'reloadModule' | 'updateModule';
 type KindOpts = {
-  offset: number,
-  begin?: number,
-  size?: number[],
-  converter: (buffer: Buffer, size?: number, delta?: number) => Buffer,
-  exec?: Routines,
-  domain: Domains,
+  offset: number;
+  begin?: number;
+  size?: number[];
+  converter: (buffer: Buffer, size?: number, delta?: number) => Buffer;
+  exec?: Routines;
+  domain: Domains;
   // kind?: 'rbf' | 'tca' | 'tcc',
 };
 type KindMeta = Record<Kind, KindOpts>;
 
-const ident = (buf: Buffer) => buf;
+const ident = (buf: Buffer): Buffer => buf;
 
-type FlashOpts = Defined<CommonOpts, 'm' | 'mac'> & {
-  kind?: string,
-  source: string,
-  src?: string,
-  execute?: string,
+type FlashOpts = MacOptions & {
+  kind?: string;
+  source: string;
+  src?: string;
+  execute?: string;
   // hex?: boolean,
   // dec?: boolean,
 };
 
-const createHeader = (kind: string, option: number, data: Buffer) => {
+const createHeader = (kind: string, option: number, data: Buffer): Buffer => {
   const buffer = Buffer.alloc(20);
   buffer.write(kind.padEnd(4, '\0'));
   buffer.writeUInt32LE(data.length, 4);
@@ -59,16 +60,15 @@ const createHeader = (kind: string, option: number, data: Buffer) => {
   return buffer;
 };
 
-const hexToBuf = (hex: string) => Buffer.from(hex.replace(/[\s:-=]/g, ''), 'hex');
+const hexToBuf = (hex: string): Buffer => Buffer.from(hex.replace(/[\s:-=]/g, ''), 'hex');
 const txtConvert: KindOpts['converter'] = (buffer, size = 32768, begin = 0): Buffer => {
   const lines = buffer.toString('ascii').split(/\r?\n/g);
   const result = Buffer.alloc(size, 0xFF);
   let offset = 0;
-  lines.forEach((line) => {
+  lines.forEach(line => {
     if (line[0] === '@') {
       offset = parseInt(line.slice(1), 16) - begin;
-    } else if (line === 'q') {
-    } else {
+    } else if (line !== 'q') {
       const buf = hexToBuf(line);
       // console.log(offset, buf);
       if (offset < 0) {
@@ -81,12 +81,12 @@ const txtConvert: KindOpts['converter'] = (buffer, size = 32768, begin = 0): Buf
   return result;
 };
 
-const decConvert = (data: Buffer) => {
+const decConvert = (data: Buffer): Buffer => {
   const lines = data.toString().split(/\r?\n/g);
   const raw = _.flatten(lines
     .map(line => line.trim())
     .filter(line => !!line)
-    .map(line => line.split(/\s+/g).map((b) => {
+    .map(line => line.split(/\s+/g).map(b => {
       const i = parseInt(b, 10);
       if (Number.isNaN(i)) console.error('Invalid Number', b);
       return i;
@@ -95,7 +95,7 @@ const decConvert = (data: Buffer) => {
   return Buffer.from(_.flatten(raw.map(word => [word & 0xFF, (word >> 8) & 0xFF])));
 };
 
-const xmlConvert = (data: Buffer) => {
+const xmlConvert = (data: Buffer): Buffer => {
   const xml = data.toString();
   const valid = xmlParser.validate(xml);
   if (valid !== true) {
@@ -105,14 +105,14 @@ const xmlConvert = (data: Buffer) => {
   if (!Configuration) throw new Error('Invalid xml config');
   const buffer = Buffer.alloc(140, 0);
   let offset = 0;
-  ['RedLedMeasurement', 'GreenLedMeasurement', 'BlueLedMeasurement'].forEach((name) => {
-    const { Xy: { X, Y }, Yb }: { Xy: { X: number, Y: number }, Yb: number } = Configuration[name];
+  ['RedLedMeasurement', 'GreenLedMeasurement', 'BlueLedMeasurement'].forEach(name => {
+    const { Xy: { X, Y }, Yb }: { Xy: { X: number; Y: number }; Yb: number } = Configuration[name];
     offset = buffer.writeFloatLE(X, offset);
     offset = buffer.writeFloatLE(Y, offset);
     offset = buffer.writeFloatLE(Yb, offset);
   });
-  ['RedLedTermCompFactors', 'GreenLedTermCompFactors', 'BlueLedTermCompFactors'].forEach((name) => {
-    const { A, B, C }: { A: number, B: number, C: number } = Configuration[name];
+  ['RedLedTermCompFactors', 'GreenLedTermCompFactors', 'BlueLedTermCompFactors'].forEach(name => {
+    const { A, B, C }: { A: number; B: number; C: number } = Configuration[name];
     offset = buffer.writeFloatLE(A, offset);
     offset = buffer.writeFloatLE(B, offset);
     offset = buffer.writeFloatLE(C, offset);
@@ -136,7 +136,7 @@ const xmlConvert = (data: Buffer) => {
     'BlueVertexXBase',
     'BlueVertexYBase',
     'BlueVertexStep',
-  ].forEach((prop) => {
+  ].forEach(prop => {
     const value = _.get(Configuration, prop, 0);
     offset = buffer.writeFloatLE(value, offset);
     if (value > 0) last = offset;
@@ -198,7 +198,7 @@ const meta: KindMeta = {
   },
 };
 
-async function action(device: IDevice, args: Arguments<FlashOpts>) {
+async function action(device: IDevice, args: Arguments<FlashOpts>): Promise<void> {
   const isModule = (await writeAction(device, args)).includes('moduleSelect');
   let kind: Kind = args.kind as Kind;
   if (!kind) {
@@ -226,9 +226,12 @@ async function action(device: IDevice, args: Arguments<FlashOpts>) {
     throw new Error('Conflict kind of source and destination');
   }
   const opts = meta[kind];
-  process.env['NODE_NO_WARNINGS'] = '1';
-  let buffer =
-    opts.converter(await fs.promises.readFile(args.source), opts.size && opts.size[0], opts.begin);
+  process.env.NODE_NO_WARNINGS = '1';
+  let buffer = opts.converter(
+    await fs.promises.readFile(args.source),
+    opts.size && opts.size[0],
+    opts.begin,
+  );
   if (opts.size && !opts.size.includes(buffer.length)) {
     throw new Error(`Invalid data length. Expected ${opts.size.join(',')} got ${buffer.length}`);
   }
@@ -331,7 +334,7 @@ const flashCommand: CommandModule<CommonOpts, FlashOpts> = {
       `Прошивка процессора хоста
 \t(если расширение .txt, [-k ctrl] - можно не указывать)`,
     )
-    .demandOption(['mac', 'm', 'source']),
+    .demandOption(['mac', 'source']),
   handler: makeAddressHandler(action),
 };
 

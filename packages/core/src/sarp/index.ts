@@ -16,10 +16,12 @@ export { SarpQueryType };
 export { SarpDatagram, ISarpOptions };
 
 export function createSarp(
-  queryType: SarpQueryType, queryParam: Buffer | Uint8Array | number[] = Buffer.alloc(5)) {
+  queryType: SarpQueryType, queryParam: Buffer | Uint8Array | number[] = Buffer.alloc(5),
+): SarpDatagram {
   const param: Buffer = Buffer.isBuffer(queryParam)
     ? queryParam
-    : Buffer.from(<number[]>(queryParam));
+    : Array.isArray(queryParam)
+      ? Buffer.from(queryParam as number[]) : Buffer.from(queryParam.buffer);
   return new SarpDatagram({
     queryType,
     destination: Address.broadcast,

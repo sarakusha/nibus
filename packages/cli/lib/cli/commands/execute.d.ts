@@ -1,6 +1,6 @@
-import { CommandModule, Defined } from 'yargs';
-import { CommonOpts } from '../options';
-declare type ExecuteOpts = Defined<CommonOpts, 'm' | 'mac'> & {
+import { CommandModule } from 'yargs';
+import { CommonOpts, MacOptions } from '../options';
+declare type ExecuteOpts = MacOptions & {
     program: string;
 };
 declare const executeCommand: CommandModule<CommonOpts, ExecuteOpts>;

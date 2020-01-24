@@ -13,6 +13,7 @@ import * as t from 'io-ts';
 // import { NibusBaudRate, NibusBaudRateV } from '../nibus';
 
 export type HexOrNumber = string | number;
+/** @internal */
 export const CategoryV = t.union([
   t.keyof({
     siolynx: null,
@@ -21,14 +22,27 @@ export const CategoryV = t.union([
     c22: null,
     relay: null,
     ftdi: null,
-    undefined: null,
+    sensor: null,
+    // undefined: null,
   }),
   t.undefined,
 ]);
+/**
+ * Кутегория устройства
+ * - siolynx
+ * - minihost
+ * - fancontrol
+ * - c22
+ * - relay
+ * - ftdi
+ * - sensor
+ * - undefined
+ */
 export type Category = t.TypeOf<typeof CategoryV>;
+/** @internal */
 export const KnownPortV = t.intersection([
   t.type({
-    comName: t.string,
+    path: t.string,
     productId: t.number,
     vendorId: t.number,
   }),
@@ -43,45 +57,5 @@ export const KnownPortV = t.intersection([
   }),
 ]);
 
-export interface IKnownPort extends t.TypeOf<typeof KnownPortV> {}
-
-// export const FindKindV = t.keyof({
-//   sarp: null,
-//   version: null,
-// }, 'FindKind');
-// export type FindKind = t.TypeOf<typeof FindKindV>;
-//
-// export const NibusBaudRateV = t.union(
-//   [t.literal(115200), t.literal(57600), t.literal(28800)],
-//   'NibusBaudRate',
-// );
-//
-// export const NibusParityV = t.keyof(
-//   {
-//     none: null,
-//     even: null,
-//     mark: null,
-//   },
-//   'NibusParity',
-// );
-
-// export type NibusBaudRate = t.TypeOf<typeof NibusBaudRateV>;
-// export type NibusParity = t.TypeOf<typeof NibusParityV>;
-//
-// export const MibDescriptionV = t.partial({
-//   type: t.number,
-//   mib: t.string,
-//   link: t.boolean,
-//   baudRate: NibusBaudRateV,
-//   parity: NibusParityV,
-//   category: t.string,
-//   find: FindKindV,
-//   disableBatchReading: t.boolean,
-//   select: t.array(t.string),
-// });
-//
-// export interface IMibDescription extends t.TypeOf<typeof MibDescriptionV> {
-//   baudRate?: NibusBaudRate;
-//   parity?: NibusParity;
-//   find?: FindKind;
-// }
+export interface IKnownPort extends t.TypeOf<typeof KnownPortV> {
+}

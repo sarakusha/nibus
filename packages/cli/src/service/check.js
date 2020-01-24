@@ -1,21 +1,21 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
 const usbDetect = require('usb-detection');
 
-usbDetect.on('add', (device) => {
-  console.log('changed', device);
+usbDetect.on('add', device => {
+  console.info('changed', device);
 });
 
 usbDetect.startMonitoring();
 process.on('SIGINT', () => {
   usbDetect.stopMonitoring();
-  console.log('stop');
+  console.info('stop');
 });

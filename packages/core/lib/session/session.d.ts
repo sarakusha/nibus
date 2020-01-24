@@ -4,7 +4,7 @@ import Address, { AddressParam } from '../Address';
 import { IDevice } from '../mib';
 import { NibusConnection } from '../nibus';
 import { Category } from './KnownPorts';
-export declare const delay: (seconds: number) => Promise<unknown>;
+export declare const delay: (seconds: number) => Promise<void>;
 export declare type FoundListener = (arg: {
     connection: NibusConnection;
     category: Category;
@@ -38,17 +38,17 @@ declare class NibusSession extends EventEmitter {
     private readonly connections;
     private isStarted;
     private socket?;
+    get ports(): number;
+    start(): Promise<number>;
+    connectDevice(device: IDevice, connection: NibusConnection): void;
+    close(): void;
+    pingDevice(device: IDevice): Promise<number>;
+    ping(address: AddressParam): Promise<number>;
     private reloadHandler;
     private addHandler;
     private closeConnection;
     private removeHandler;
     private find;
-    start(): Promise<number>;
-    _connectDevice(device: IDevice, connection: NibusConnection): void;
-    close(): void;
-    pingDevice(device: IDevice): Promise<number>;
-    ping(address: AddressParam): Promise<number>;
-    readonly ports: number;
 }
 declare const session: NibusSession;
 export default session;

@@ -8,12 +8,12 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* tslint:disable:variable-name */
+/* eslint-disable max-classes-per-file,@typescript-eslint/no-explicit-any */
 import { crc16ccitt } from 'crc';
 import debugFactory from 'debug';
 import { EventEmitter } from 'events';
+import { isLeft } from 'fp-ts/lib/Either';
 import fs from 'fs';
-import * as t from 'io-ts';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import _ from 'lodash';
 import path from 'path';
@@ -47,11 +47,17 @@ import {
   booleanConverter,
   convertFrom,
   convertTo,
-  enumerationConverter, evalConverter,
+  enumerationConverter,
+  evalConverter,
   fixedPointNumber4Converter,
   getIntSize,
   IConverter,
+  IMibDevice,
+  IMibDeviceType,
+  IMibProperty,
+  IMibType,
   maxInclusiveConverter,
+  MibDeviceV,
   minInclusiveConverter,
   packed8floatConverter,
   percentConverter,
@@ -74,7 +80,7 @@ const $values = Symbol('values');
 const $errors = Symbol('errors');
 const $dirties = Symbol('dirties');
 
-function safeNumber(val: any) {
+function safeNumber(val: any): any {
   const num = parseFloat(val);
   return (Number.isNaN(num) || `${num}` !== val) ? val : num;
 }
@@ -87,127 +93,29 @@ const deviceMap: { [address: string]: IDevice[] } = {};
 
 const mibTypesCache: { [mibname: string]: Function } = {};
 
-const MibPropertyAppInfoV = t.intersection([
-  t.type({
-    nms_id: t.union([t.string, t.Int]),
-    access: t.string,
-  }),
-  t.partial({
-    category: t.string,
-  }),
-]);
-
 // interface IMibPropertyAppInfo extends t.TypeOf<typeof MibPropertyAppInfoV> {}
 
-const MibPropertyV = t.type({
-  type: t.string,
-  annotation: t.string,
-  appinfo: MibPropertyAppInfoV,
-});
-
-interface IMibProperty extends t.TypeOf<typeof MibPropertyV> {
-  // appinfo: IMibPropertyAppInfo;
-}
-
-const MibDeviceAppInfoV = t.intersection([
-  t.type({
-    mib_version: t.string,
-  }),
-  t.partial({
-    device_type: t.string,
-    loader_type: t.string,
-    firmware: t.string,
-    min_version: t.string,
-  }),
-]);
-
-const MibDeviceTypeV = t.type({
-  annotation: t.string,
-  appinfo: MibDeviceAppInfoV,
-  properties: t.record(t.string, MibPropertyV),
-});
-
-export interface IMibDeviceType extends t.TypeOf<typeof MibDeviceTypeV> {}
-
-const MibTypeV = t.intersection([
-  t.type({
-    base: t.string,
-  }),
-  t.partial({
-    appinfo: t.partial({
-      zero: t.string,
-      units: t.string,
-      precision: t.string,
-      representation: t.string,
-      get: t.string,
-      set: t.string,
-    }),
-    minInclusive: t.string,
-    maxInclusive: t.string,
-    enumeration: t.record(t.string, t.type({ annotation: t.string })),
-  }),
-]);
-
-export interface IMibType extends t.TypeOf<typeof MibTypeV> {}
-
-const MibSubroutineV = t.intersection([
-  t.type({
-    annotation: t.string,
-    appinfo: t.intersection([
-      t.type({ nms_id: t.union([t.string, t.Int]) }),
-      t.partial({ response: t.string }),
-    ]),
-  }),
-  t.partial({
-    properties: t.record(t.string, t.type({
-      type: t.string,
-      annotation: t.string,
-    })),
-  }),
-]);
-
-const SubroutineTypeV = t.type({
-  annotation: t.string,
-  properties: t.type({
-    id: t.type({
-      type: t.literal('xs:unsignedShort'),
-      annotation: t.string,
-    }),
-  }),
-});
-
-export const MibDeviceV = t.intersection([
-  t.type({
-    device: t.string,
-    types: t.record(t.string, t.union([MibDeviceTypeV, MibTypeV, SubroutineTypeV])),
-  }),
-  t.partial({
-    subroutines: t.record(t.string, MibSubroutineV),
-  }),
-]);
-
-interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {}
-
 type Listener<T> = (arg: T) => void;
-type ChangeArg = { id: number, names: string[] };
+type ChangeArg = { id: number; names: string[] };
 export type ChangeListener = Listener<ChangeArg>;
-type UploadStartArg = { domain: string, domainSize: number, offset: number, size: number };
+type UploadStartArg = { domain: string; domainSize: number; offset: number; size: number };
 export type UploadStartListener = Listener<UploadStartArg>;
-type UploadDataArg = { domain: string, data: Buffer, pos: number };
+type UploadDataArg = { domain: string; data: Buffer; pos: number };
 export type UploadDataListener = Listener<UploadDataArg>;
-type UploadFinishArg = { domain: string, offset: number, data: Buffer };
+type UploadFinishArg = { domain: string; offset: number; data: Buffer };
 export type UploadFinishListener = Listener<UploadFinishArg>;
-type DownloadStartArg = { domain: string, domainSize: number, offset: number, size: number };
+type DownloadStartArg = { domain: string; domainSize: number; offset: number; size: number };
 export type DownloadStartListener = Listener<DownloadStartArg>;
-type DownloadDataArg = { domain: string, length: number };
+type DownloadDataArg = { domain: string; length: number };
 export type DownloadDataListener = Listener<DownloadDataArg>;
-type DownloadFinishArg = { domain: string; offset: number, size: number };
+type DownloadFinishArg = { domain: string; offset: number; size: number };
 export type DownloadFinishListener = Listener<DownloadFinishArg>;
 export type DeviceId = string & { __brand: 'DeviceId' };
 
 export interface IDevice {
   readonly id: DeviceId;
   readonly address: Address;
+  connection?: NibusConnection;
   drain(): Promise<number[]>;
   write(...ids: number[]): Promise<number[]>;
   read(...ids: number[]): Promise<{ [name: string]: any }>;
@@ -216,7 +124,6 @@ export interface IDevice {
   execute(
     program: string,
     args?: Record<string, any>): Promise<NmsDatagram | NmsDatagram[] | undefined>;
-  connection?: NibusConnection;
   release(): number;
   getId(idOrName: string | number): number;
   getName(idOrName: string | number): string;
@@ -291,7 +198,7 @@ interface ISubroutineDesc {
   // name: string;
   description: string;
   notReply?: boolean;
-  args?: { name: string, type: NmsValueType, desc?: string }[];
+  args?: { name: string; type: NmsValueType; desc?: string }[];
 }
 
 interface IPropertyDescriptor<Owner> {
@@ -307,8 +214,10 @@ interface IPropertyDescriptor<Owner> {
 
 function getBaseType(types: IMibDevice['types'], type: string): string {
   let base = type;
-  for (let superType: IMibType = types[base] as IMibType; superType != null;
-       superType = types[superType.base] as IMibType) {
+  for (
+    let superType = types[base] as IMibType;
+    superType != null;
+    superType = types[superType.base] as IMibType) {
     base = superType.base;
   }
   return base;
@@ -318,7 +227,8 @@ function defineMibProperty(
   target: DevicePrototype,
   key: string,
   types: IMibDevice['types'],
-  prop: IMibProperty): [number, string] {
+  prop: IMibProperty,
+): [number, string] {
   const propertyKey = validJsName(key);
   const { appinfo } = prop;
   const id = toInt(appinfo.nms_id);
@@ -356,6 +266,8 @@ function defineMibProperty(
       min = 0;
       max = 4294967295;
       break;
+    default:
+      break;
   }
   switch (simpleType) {
     case 'packed8Float':
@@ -373,7 +285,8 @@ function defineMibProperty(
     Reflect.defineMetadata('unit', '%', target, propertyKey);
     Reflect.defineMetadata('min', 0, target, propertyKey);
     Reflect.defineMetadata('max', 100, target, propertyKey);
-    min = max = undefined;
+    min = undefined;
+    max = undefined;
   } else if (isWritable) {
     if (type != null) {
       const { minInclusive, maxInclusive } = type;
@@ -398,7 +311,9 @@ function defineMibProperty(
   if (type != null) {
     const { appinfo: info = {} } = type;
     enumeration = type.enumeration;
-    const { units, precision, representation, get, set } = info;
+    const {
+      units, precision, representation, get, set,
+    } = info;
     const size = getIntSize(simpleType);
     if (units) {
       converters.push(unitConverter(units));
@@ -416,19 +331,19 @@ function defineMibProperty(
     if (enumeration) {
       converters.push(enumerationConverter(enumeration));
       Reflect.defineMetadata('enum', Object.entries(enumeration)
-        .map(([key, val]) => [
+        .map(([enumKey, val]) => [
           val!.annotation,
-          toInt(key),
+          toInt(enumKey),
         ]), target, propertyKey);
     }
-    if (representation) {
-      debug('REPR', representation, size, propertyKey);
-    }
+    // if (representation) {
+    //   debug('REPR', representation, size, propertyKey);
+    // }
     representation && size && converters.push(representationConverter(representation, size));
     if (get && set) {
       const conv = evalConverter(get, set);
       converters.push(conv);
-      const [a, b] = [conv.to(min), conv.to(max)];
+      const [a, b] = [Number(conv.to(min)), Number(conv.to(max))];
       const minEval = parseFloat(precisionConv.to(Math.min(a, b)) as string);
       const maxEval = parseFloat(precisionConv.to(Math.max(a, b)) as string);
       Reflect.defineMetadata('min', minEval, target, propertyKey);
@@ -455,7 +370,7 @@ function defineMibProperty(
   Reflect.defineMetadata('simpleType', simpleType, target, propertyKey);
   Reflect.defineMetadata(
     'displayName',
-    prop.annotation ? prop.annotation : name,
+    prop.annotation ? prop.annotation : key,
     target,
     propertyKey,
   );
@@ -468,7 +383,7 @@ function defineMibProperty(
   const from = convertFrom(converters);
   Reflect.defineMetadata('convertTo', to, target, propertyKey);
   Reflect.defineMetadata('convertFrom', from, target, propertyKey);
-  attributes.get = function () {
+  attributes.get = function get() {
     console.assert(Reflect.get(this, '$countRef') > 0, 'Device was released');
     let value;
     if (!this.getError(id)) {
@@ -477,7 +392,7 @@ function defineMibProperty(
     return value;
   };
   if (isWritable) {
-    attributes.set = function (newValue: any) {
+    attributes.set = function set(newValue: any) {
       console.assert(Reflect.get(this, '$countRef') > 0, 'Device was released');
       const value = from(newValue);
       if (value === undefined || Number.isNaN(value as number)) {
@@ -490,7 +405,7 @@ function defineMibProperty(
   return [id, propertyKey];
 }
 
-export function getMibFile(mibname: string) {
+export function getMibFile(mibname: string): string {
   return path.resolve(__dirname, '../../mibs/', `${mibname}.mib.json`);
 }
 
@@ -504,10 +419,10 @@ class DevicePrototype extends EventEmitter implements IDevice {
     super();
     const mibfile = getMibFile(mibname);
     const mibValidation = MibDeviceV.decode(JSON.parse(fs.readFileSync(mibfile).toString()));
-    if (mibValidation.isLeft()) {
-      throw new Error(`Invalid mib file ${mibfile} ${PathReporter.report(mibValidation)}`);
+    if (isLeft(mibValidation)) {
+      throw new Error(`Invalid mib file ${mibfile} ${PathReporter.report(mibValidation).join('\n')}`);
     }
-    const mib = mibValidation.value;
+    const mib = mibValidation.right;
     const { types, subroutines } = mib;
     const device = types[mib.device] as IMibDeviceType;
     Reflect.defineMetadata('mib', mibname, this);
@@ -515,34 +430,43 @@ class DevicePrototype extends EventEmitter implements IDevice {
     Reflect.defineMetadata('annotation', device.annotation, this);
     Reflect.defineMetadata('mibVersion', device.appinfo.mib_version, this);
     Reflect.defineMetadata('deviceType', toInt(device.appinfo.device_type), this);
-    device.appinfo.loader_type && Reflect.defineMetadata('loaderType',
-      toInt(device.appinfo.loader_type), this,
+    device.appinfo.loader_type && Reflect.defineMetadata(
+      'loaderType',
+      toInt(device.appinfo.loader_type),
+      this,
     );
-    device.appinfo.firmware && Reflect.defineMetadata('firmware',
-      device.appinfo.firmware, this,
+    device.appinfo.firmware && Reflect.defineMetadata(
+      'firmware',
+      device.appinfo.firmware,
+      this,
     );
-    device.appinfo.min_version && Reflect.defineMetadata('min_version',
-      device.appinfo.min_version, this,
+    device.appinfo.min_version && Reflect.defineMetadata(
+      'min_version',
+      device.appinfo.min_version,
+      this,
     );
     types.errorType && Reflect.defineMetadata(
-      'errorType', (types.errorType as IMibType).enumeration, this);
+      'errorType',
+      (types.errorType as IMibType).enumeration,
+      this,
+    );
 
     if (subroutines) {
       const metasubs = _.transform(
         subroutines,
-        (result, sub, name) => {
-          result[name] = {
+        (result, sub, name) => ({
+          ...result,
+          [name]: {
             id: toInt(sub.appinfo.nms_id),
             description: sub.annotation,
             args: sub.properties && Object.entries(sub.properties)
-              .map(([name, prop]) => ({
-                name,
+              .map(([propName, prop]) => ({
+                name: propName,
                 type: getNmsType(prop.type),
                 desc: prop.annotation,
               })),
-          };
-          return result;
-        },
+          },
+        }),
         {} as Record<string, ISubroutineDesc>,
       );
       Reflect.defineMetadata('subroutines', metasubs, this);
@@ -580,15 +504,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     const prev = values[PrivateProps.connection];
     if (prev === value) return;
     values[PrivateProps.connection] = value;
-    /**
-     * Device connected event
-     * @event IDevice#connected
-     * @event IDevice#disconnected
-     */
     this.emit(value != null ? 'connected' : 'disconnected');
-    // if (value) {
-    //   this.drain().catch(() => {});
-    // }
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -597,7 +513,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
       mib: Reflect.getMetadata('mib', this),
     };
     const keys: string[] = Reflect.getMetadata('mibProperties', this);
-    keys.forEach((key) => {
+    keys.forEach(key => {
       if (this[key] !== undefined) json[key] = this[key];
     });
     json.address = this.address.toString();
@@ -644,7 +560,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     return values[id];
   }
 
-  public setRawValue(idOrName: number | string, value: any, isDirty = true) {
+  public setRawValue(idOrName: number | string, value: any, isDirty = true): void {
     // debug(`setRawValue(${idOrName}, ${JSON.stringify(safeNumber(value))})`);
     const id = this.getId(idOrName);
     const { [$values]: values, [$errors]: errors } = this;
@@ -662,7 +578,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     return errors[id];
   }
 
-  public setError(idOrName: number | string, error?: Error) {
+  public setError(idOrName: number | string, error?: Error): void {
     const id = this.getId(idOrName);
     const { [$errors]: errors } = this;
     if (error != null) {
@@ -678,7 +594,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     return !!dirties[id];
   }
 
-  public setDirty(idOrName: string | number, isDirty = true) {
+  public setDirty(idOrName: string | number, isDirty = true): void {
     const id = this.getId(idOrName);
     const map: { [id: number]: string[] } = Reflect.getMetadata('map', this);
     const { [$dirties]: dirties } = this;
@@ -689,10 +605,6 @@ class DevicePrototype extends EventEmitter implements IDevice {
     } else {
       delete dirties[id];
     }
-    /**
-     * @event IDevice#changed
-     * @event IDevice#changing
-     */
     const names = map[id] || [];
     this.emit(
       isDirty ? 'changing' : 'changed',
@@ -707,17 +619,18 @@ class DevicePrototype extends EventEmitter implements IDevice {
       const prevAddress = this.address;
       const address = Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex');
       Reflect.defineProperty(this, 'address', withValue(new Address(address), false, true));
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       devices.emit('serno', prevAddress, this.address);
     }
   }
 
-  public addref() {
+  public addref(): number {
     this.$countRef += 1;
     debug('addref', new Error('addref').stack);
     return this.$countRef;
   }
 
-  public release() {
+  public release(): number {
     this.$countRef -= 1;
     if (this.$countRef <= 0) {
       const key = this.address.toString();
@@ -725,9 +638,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
       if (deviceMap[key].length === 0) {
         delete deviceMap[key];
       }
-      /**
-       * @event Devices#delete
-       */
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
       devices.emit('delete', this);
     }
     return this.$countRef;
@@ -740,19 +651,9 @@ class DevicePrototype extends EventEmitter implements IDevice {
     return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
   }
 
-  private writeAll() {
-    const { [$values]: values } = this;
-    const map = Reflect.getMetadata('map', this);
-    const ids = Object.entries(values)
-      .filter(([, value]) => value != null)
-      .map(([id]) => Number(id))
-      .filter((id => Reflect.getMetadata('isWritable', this, map[id][0])));
-    return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
-  }
-
   public write(...ids: number[]): Promise<number[]> {
     const { connection } = this;
-    if (!connection) return Promise.reject(`${this.address} is disconnected`);
+    if (!connection) return Promise.reject(new Error(`${this.address} is disconnected`));
     if (ids.length === 0) {
       return this.writeAll();
     }
@@ -781,22 +682,24 @@ class DevicePrototype extends EventEmitter implements IDevice {
       },
       [],
     );
-    return Promise.all(
-      requests
-        .map(datagram => connection.sendDatagram(datagram)
-          .then((response) => {
-            const { status } = response as NmsDatagram;
-            if (status === 0) {
-              this.setDirty(datagram.id, false);
-              return datagram.id;
-            }
-            this.setError(datagram.id, new NibusError(status!, this));
-            return -datagram.id;
-          }, (reason) => {
-            this.setError(datagram.id, reason);
-            return -datagram.id;
-          })))
-      .then(ids => ids.concat(invalidNms));
+    return Promise
+      .all(
+        requests
+          .map(datagram => connection.sendDatagram(datagram)
+            .then(response => {
+              const { status } = response as NmsDatagram;
+              if (status === 0) {
+                this.setDirty(datagram.id, false);
+                return datagram.id;
+              }
+              this.setError(datagram.id, new NibusError(status!, this));
+              return -datagram.id;
+            }, reason => {
+              this.setError(datagram.id, reason);
+              return -datagram.id;
+            })),
+      )
+      .then(idss => idss.concat(invalidNms));
   }
 
   public writeValues(source: object, strong = true): Promise<number[]> {
@@ -805,7 +708,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
       if (ids.length === 0) return Promise.reject(new TypeError('value is empty'));
       Object.assign(this, source);
       return this.write(...ids)
-        .then((written) => {
+        .then(written => {
           if (written.length === 0 || (strong && written.length !== ids.length)) {
             throw this.getError(ids[0]);
           }
@@ -816,21 +719,9 @@ class DevicePrototype extends EventEmitter implements IDevice {
     }
   }
 
-  private readAll(): Promise<any> {
-    if (this.$read) return this.$read;
-    const map: { [id: string]: string[] } = Reflect.getMetadata('map', this);
-    const ids = Object.entries(map)
-      .filter(([, names]) => Reflect.getMetadata('isReadable', this, names[0]))
-      .map(([id]) => Number(id))
-      .sort();
-    this.$read = ids.length > 0 ? this.read(...ids) : Promise.resolve([]);
-    const clear = () => delete this.$read;
-    return this.$read.finally(clear);
-  }
-
   public async read(...ids: number[]): Promise<{ [name: string]: any }> {
     const { connection } = this;
-    if (!connection) return Promise.reject('disconnected');
+    if (!connection) return Promise.reject(new Error('disconnected'));
     if (ids.length === 0) return this.readAll();
     // debug(`read ${ids.join()} from [${this.address}]`);
     const disableBatchReading = Reflect.getMetadata('disableBatchReading', this);
@@ -853,7 +744,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
           }
           const names = map[id];
           console.assert(names && names.length > 0, `Invalid id ${id}`);
-          names.forEach((propName) => {
+          names.forEach(propName => {
             result[propName] = status === 0
               ? this[propName]
               : { error: (this.getError(id) || {}).message || 'error' };
@@ -870,8 +761,9 @@ class DevicePrototype extends EventEmitter implements IDevice {
     try {
       if (!connection) throw new Error('disconnected');
       const reqUpload = createNmsRequestDomainUpload(this.address, domain.padEnd(8, '\0'));
-      const { id, value: domainSize, status } =
-        await connection.sendDatagram(reqUpload) as NmsDatagram;
+      const {
+        id, value: domainSize, status,
+      } = await connection.sendDatagram(reqUpload) as NmsDatagram;
       if (status !== 0) {
         // debug('<error>', status);
         throw new NibusError(status!, this, 'Request upload domain error');
@@ -897,8 +789,10 @@ class DevicePrototype extends EventEmitter implements IDevice {
       while (rest > 0) {
         const length = Math.min(255, rest);
         const uploadSegment = createNmsUploadSegment(this.address, id, pos, length);
-        const { status: uploadStatus, value: result } =
-          await connection.sendDatagram(uploadSegment) as NmsDatagram;
+        const {
+          status: uploadStatus, value: result,
+          // eslint-disable-next-line no-await-in-loop
+        } = await connection.sendDatagram(uploadSegment) as NmsDatagram;
         if (uploadStatus !== 0) {
           throw new NibusError(uploadStatus!, this, 'Upload segment error');
         }
@@ -933,7 +827,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     }
   }
 
-  async download(domain: string, buffer: Buffer, offset = 0, noTerm = false) {
+  async download(domain: string, buffer: Buffer, offset = 0, noTerm = false): Promise<void> {
     const { connection } = this;
     if (!connection) throw new Error('disconnected');
     const reqDownload = createNmsRequestDomainDownload(this.address, domain.padEnd(8, '\0'));
@@ -942,7 +836,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
       // debug('<error>', status);
       throw new NibusError(status!, this, 'Request download domain error');
     }
-    const terminate = async (err?: Error) => {
+    const terminate = async (err?: Error): Promise<void> => {
       let termStat = 0;
       if (!noTerm) {
         const req = createNmsTerminateDownloadSequence(this.address, id);
@@ -981,10 +875,10 @@ class DevicePrototype extends EventEmitter implements IDevice {
     await chunks.reduce(async (prev, chunk: Buffer, i) => {
       await prev;
       const pos = i * chunkSize + offset;
-      const segmentDownload =
-        createNmsDownloadSegment(this.address, id!, pos, chunk);
-      const { status: downloadStat } =
-        await connection.sendDatagram(segmentDownload) as NmsDatagram;
+      const segmentDownload = createNmsDownloadSegment(this.address, id!, pos, chunk);
+      const {
+        status: downloadStat,
+      } = await connection.sendDatagram(segmentDownload) as NmsDatagram;
       if (downloadStat !== 0) {
         await terminate(new NibusError(downloadStat!, this, 'Download segment error'));
       }
@@ -1012,7 +906,9 @@ class DevicePrototype extends EventEmitter implements IDevice {
     );
   }
 
-  async execute(program: string, args?: Record<string, any>) {
+  async execute(
+    program: string, args?: Record<string, any>,
+  ): Promise<NmsDatagram | NmsDatagram[] | undefined> {
     const { connection } = this;
     if (!connection) throw new Error('disconnected');
     const subroutines = Reflect.getMetadata('subroutines', this) as Record<string, ISubroutineDesc>;
@@ -1036,30 +932,52 @@ class DevicePrototype extends EventEmitter implements IDevice {
     );
     return connection.sendDatagram(req);
   }
+
+  private writeAll(): Promise<number[]> {
+    const { [$values]: values } = this;
+    const map = Reflect.getMetadata('map', this);
+    const ids = Object.entries(values)
+      .filter(([, value]) => value != null)
+      .map(([id]) => Number(id))
+      .filter((id => Reflect.getMetadata('isWritable', this, map[id][0])));
+    return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
+  }
+
+  private readAll(): Promise<any> {
+    if (this.$read) return this.$read;
+    const map: { [id: string]: string[] } = Reflect.getMetadata('map', this);
+    const ids = Object.entries(map)
+      .filter(([, names]) => Reflect.getMetadata('isReadable', this, names[0]))
+      .map(([id]) => Number(id))
+      .sort();
+    this.$read = ids.length > 0 ? this.read(...ids) : Promise.resolve([]);
+    const clear = (): void => { delete this.$read; };
+    return this.$read.finally(clear);
+  }
 }
 
 // tslint:disable-next-line
 interface DevicePrototype {
   readonly id: DeviceId;
   readonly address: Address;
-  [mibProperty: string]: any;
   $countRef: number;
   $read?: Promise<any>;
   [$values]: { [id: number]: any };
   [$errors]: { [id: number]: Error };
   [$dirties]: { [id: number]: boolean };
+  [mibProperty: string]: any;
 }
 
 export const getMibTypes = (): Config['mibTypes'] => {
   const conf = path.resolve(configDir || '/tmp', 'configstore', pkgName);
   if (!fs.existsSync(`${conf}.json`)) return {};
   const validate = ConfigV.decode(JSON.parse(fs.readFileSync(`${conf}.json`).toString()));
-//   const validate = ConfigV.decode(require(conf));
-  if (validate.isLeft()) {
+  //   const validate = ConfigV.decode(require(conf));
+  if (isLeft(validate)) {
     throw new Error(`Invalid config file ${conf}
-  ${PathReporter.report(validate)}`);
+  ${PathReporter.report(validate).join('\n')}`);
   }
-  const { mibTypes } = validate.value;
+  const { mibTypes } = validate.right;
   return mibTypes;
 };
 
@@ -1073,6 +991,7 @@ export function findMibByType(type: number, version?: number): string | undefine
     }
     return mibType.mib;
   }
+  return undefined;
   // const cacheMibs = Object.keys(mibTypesCache);
   // const cached = cacheMibs.find(mib =>
   //   Reflect.getMetadata('deviceType', mibTypesCache[mib].prototype) === type);
@@ -1089,17 +1008,17 @@ export function findMibByType(type: number, version?: number): string | undefine
 
 export declare interface Devices {
   on(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
-  once(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
-  addListener(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
   on(event: 'serno', listener: (prevAddress: Address, newAddress: Address) => void): this;
+  once(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
   once(event: 'serno', listener: (prevAddress: Address, newAddress: Address) => void): this;
+  addListener(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
   addListener(event: 'serno', listener: (prevAddress: Address, newAddress: Address) => void): this;
 }
 
 function getConstructor(mib: string): Function {
   let constructor = mibTypesCache[mib];
   if (!constructor) {
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     function Device(this: DevicePrototype, address: Address) {
       EventEmitter.apply(this);
       this[$values] = {};
@@ -1120,8 +1039,13 @@ function getConstructor(mib: string): Function {
   return constructor;
 }
 
-export function getMibPrototype(mib: string): Object {
+export function getMibPrototype(mib: string): Record<string, any> {
   return getConstructor(mib).prototype;
+}
+
+export interface CreateDevice {
+  (address: AddressParam, mib: string): IDevice;
+  (address: AddressParam, type: number, version?: number): IDevice;
 }
 
 export class Devices extends EventEmitter {
@@ -1132,9 +1056,11 @@ export class Devices extends EventEmitter {
     return deviceMap[targetAddress.toString()];
   };
 
-  create(address: AddressParam, mib: string): IDevice;
-  create(address: AddressParam, type: number, version?: number): IDevice;
-  create(address: AddressParam, mibOrType: any, version?: number): IDevice {
+  // create(address: AddressParam, mib: string): IDevice;
+
+  // create(address: AddressParam, type: number, version?: number): IDevice;
+
+  create: CreateDevice = (address: AddressParam, mibOrType: any, version?: number): IDevice => {
     let mib: string | undefined;
     if (typeof mibOrType === 'number') {
       mib = findMibByType(mibOrType, version);

@@ -1,20 +1,20 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
-import { Arguments, CommandModule, Defined } from 'yargs';
+import { Arguments, CommandModule } from 'yargs';
 
 import { IDevice } from '@nibus/core/lib/mib';
-import { makeAddressHandler } from '../handlers';
-import { CommonOpts } from '../options';
+import makeAddressHandler from '../handlers';
+import { CommonOpts, MacOptions } from '../options';
 
-type WriteOpts = Defined<CommonOpts, 'mac' | 'm'>;
+type WriteOpts = MacOptions;
 
 type NameIdValue = [string, number, string];
 
@@ -30,11 +30,11 @@ export async function action(device: IDevice, args: Arguments<WriteOpts>): Promi
   if (vars.length === 0) {
     return [];
   }
-  args.quiet || console.log(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
-  return device.write(...vars.map(([, id]) => id)).then((ids) => {
+  args.quiet || console.info(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
+  return device.write(...vars.map(([, id]) => id)).then(ids => {
     const names = ids.map(id => device.getName(id));
     if (!args.quiet) {
-      names.forEach(name => console.log(` - ${name} = ${JSON.stringify(device[name])}`));
+      names.forEach(name => console.info(` - ${name} = ${JSON.stringify(device[name])}`));
     }
     return names;
   });
@@ -44,7 +44,7 @@ const writeCommand: CommandModule<CommonOpts, WriteOpts> = {
   command: 'write',
   describe: 'запись переменных в устройство',
   builder: argv => argv
-    .demandOption(['mac', 'm'])
+    .demandOption(['mac'])
     .example(
       '$0 write -m ::ab:cd hofs=100 vofs=300 brightness=34',
       `записать в переменные: hofs<-100, vofs<-300, brightness<-34 на устройстве с адресом ::ab:cd

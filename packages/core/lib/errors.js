@@ -1,52 +1,30 @@
 "use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.TimeoutError = exports.NibusError = exports.MibError = void 0;
-
-require("source-map-support/register");
-
-var _Address = _interopRequireDefault(require("./Address"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/*
- * @license
- * Copyright (c) 2019. OOO Nata-Info
- * @author Andrei Sarakeev <avs@nata-info.ru>
- *
- * This file is part of the "@nata" project.
- * For the full copyright and license information, please view
- * the EULA file that was distributed with this source code.
- */
-class MibError extends Error {}
-
-exports.MibError = MibError;
-
-const getErrMsg = (errcode, prototype) => {
-  const errEnum = Reflect.getMetadata('errorType', prototype);
-  return errEnum && errEnum[errcode] && errEnum[errcode].annotation || `NiBUS error ${errcode}`;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-
+Object.defineProperty(exports, "__esModule", { value: true });
+const Address_1 = __importDefault(require("./Address"));
+class MibError extends Error {
+}
+exports.MibError = MibError;
+const getErrMsg = (errcode, prototype) => {
+    var _a, _b;
+    const errEnum = Reflect.getMetadata('errorType', prototype);
+    return _b = (errEnum && ((_a = errEnum[errcode]) === null || _a === void 0 ? void 0 : _a.annotation)), (_b !== null && _b !== void 0 ? _b : `NiBUS error ${errcode}`);
+};
 class NibusError extends Error {
-  constructor(errcode, prototype, msg) {
-    super(`${msg ? `${msg}: ` : ''}${getErrMsg(errcode, prototype)}`);
-    this.errcode = errcode;
-  }
-
+    constructor(errcode, prototype, msg) {
+        super(`${msg ? `${msg}: ` : ''}${getErrMsg(errcode, prototype)}`);
+        this.errcode = errcode;
+    }
 }
-
 exports.NibusError = NibusError;
-
 class TimeoutError extends Error {
-  constructor(param) {
-    const defaultMsg = 'Timeout error';
-    const msg = param instanceof _Address.default ? `${defaultMsg} on ${param}` : param || defaultMsg;
-    super(msg);
-  }
-
+    constructor(param) {
+        const defaultMsg = 'Timeout error';
+        const msg = param instanceof Address_1.default ? `${defaultMsg} on ${param}` : (param !== null && param !== void 0 ? param : defaultMsg);
+        super(msg);
+    }
 }
-
 exports.TimeoutError = TimeoutError;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uL3NyYy9lcnJvcnMudHMiXSwibmFtZXMiOlsiTWliRXJyb3IiLCJFcnJvciIsImdldEVyck1zZyIsImVycmNvZGUiLCJwcm90b3R5cGUiLCJlcnJFbnVtIiwiUmVmbGVjdCIsImdldE1ldGFkYXRhIiwiYW5ub3RhdGlvbiIsIk5pYnVzRXJyb3IiLCJjb25zdHJ1Y3RvciIsIm1zZyIsIlRpbWVvdXRFcnJvciIsInBhcmFtIiwiZGVmYXVsdE1zZyIsIkFkZHJlc3MiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7OztBQVVBOzs7O0FBVkE7Ozs7Ozs7OztBQVlPLE1BQU1BLFFBQU4sU0FBdUJDLEtBQXZCLENBQTZCOzs7O0FBR3BDLE1BQU1DLFNBQVMsR0FBRyxDQUFDQyxPQUFELEVBQWtCQyxTQUFsQixLQUF3QztBQUN4RCxRQUFNQyxPQUFPLEdBQUdDLE9BQU8sQ0FBQ0MsV0FBUixDQUFvQixXQUFwQixFQUFpQ0gsU0FBakMsQ0FBaEI7QUFDQSxTQUFPQyxPQUFPLElBQUlBLE9BQU8sQ0FBQ0YsT0FBRCxDQUFsQixJQUErQkUsT0FBTyxDQUFDRixPQUFELENBQVAsQ0FBaUJLLFVBQWhELElBQStELGVBQWNMLE9BQVEsRUFBNUY7QUFDRCxDQUhEOztBQUtPLE1BQU1NLFVBQU4sU0FBeUJSLEtBQXpCLENBQStCO0FBQ3BDUyxFQUFBQSxXQUFXLENBQVFQLE9BQVIsRUFBeUJDLFNBQXpCLEVBQTRDTyxHQUE1QyxFQUEwRDtBQUNuRSxVQUFPLEdBQUVBLEdBQUcsR0FBSSxHQUFFQSxHQUFJLElBQVYsR0FBZ0IsRUFBRyxHQUFFVCxTQUFTLENBQUNDLE9BQUQsRUFBVUMsU0FBVixDQUFxQixFQUEvRDtBQURtRSxTQUFsREQsT0FBa0QsR0FBbERBLE9BQWtEO0FBRXBFOztBQUhtQzs7OztBQU0vQixNQUFNUyxZQUFOLFNBQTJCWCxLQUEzQixDQUFpQztBQUd0Q1MsRUFBQUEsV0FBVyxDQUFDRyxLQUFELEVBQWE7QUFDdEIsVUFBTUMsVUFBVSxHQUFHLGVBQW5CO0FBQ0EsVUFBTUgsR0FBRyxHQUFHRSxLQUFLLFlBQVlFLGdCQUFqQixHQUE0QixHQUFFRCxVQUFXLE9BQU1ELEtBQU0sRUFBckQsR0FBeURBLEtBQUssSUFBSUMsVUFBOUU7QUFDQSxVQUFNSCxHQUFOO0FBQ0Q7O0FBUHFDIiwic291cmNlc0NvbnRlbnQiOlsiLypcbiAqIEBsaWNlbnNlXG4gKiBDb3B5cmlnaHQgKGMpIDIwMTkuIE9PTyBOYXRhLUluZm9cbiAqIEBhdXRob3IgQW5kcmVpIFNhcmFrZWV2IDxhdnNAbmF0YS1pbmZvLnJ1PlxuICpcbiAqIFRoaXMgZmlsZSBpcyBwYXJ0IG9mIHRoZSBcIkBuYXRhXCIgcHJvamVjdC5cbiAqIEZvciB0aGUgZnVsbCBjb3B5cmlnaHQgYW5kIGxpY2Vuc2UgaW5mb3JtYXRpb24sIHBsZWFzZSB2aWV3XG4gKiB0aGUgRVVMQSBmaWxlIHRoYXQgd2FzIGRpc3RyaWJ1dGVkIHdpdGggdGhpcyBzb3VyY2UgY29kZS5cbiAqL1xuXG5pbXBvcnQgQWRkcmVzcyBmcm9tICcuL0FkZHJlc3MnO1xuXG5leHBvcnQgY2xhc3MgTWliRXJyb3IgZXh0ZW5kcyBFcnJvciB7XG59XG5cbmNvbnN0IGdldEVyck1zZyA9IChlcnJjb2RlOiBudW1iZXIsIHByb3RvdHlwZTogb2JqZWN0KSA9PiB7XG4gIGNvbnN0IGVyckVudW0gPSBSZWZsZWN0LmdldE1ldGFkYXRhKCdlcnJvclR5cGUnLCBwcm90b3R5cGUpO1xuICByZXR1cm4gZXJyRW51bSAmJiBlcnJFbnVtW2VycmNvZGVdICYmIGVyckVudW1bZXJyY29kZV0uYW5ub3RhdGlvbiB8fCBgTmlCVVMgZXJyb3IgJHtlcnJjb2RlfWA7XG59O1xuXG5leHBvcnQgY2xhc3MgTmlidXNFcnJvciBleHRlbmRzIEVycm9yIHtcbiAgY29uc3RydWN0b3IocHVibGljIGVycmNvZGU6IG51bWJlciwgcHJvdG90eXBlOiBvYmplY3QsIG1zZz86IHN0cmluZykge1xuICAgIHN1cGVyKGAke21zZyA/IGAke21zZ306IGAgOiAnJ30ke2dldEVyck1zZyhlcnJjb2RlLCBwcm90b3R5cGUpfWApO1xuICB9XG59XG5cbmV4cG9ydCBjbGFzcyBUaW1lb3V0RXJyb3IgZXh0ZW5kcyBFcnJvciB7XG4gIGNvbnN0cnVjdG9yKGFkZHJlc3M6IEFkZHJlc3MpO1xuICBjb25zdHJ1Y3Rvcihtc2c/OiBzdHJpbmcpO1xuICBjb25zdHJ1Y3RvcihwYXJhbTogYW55KSB7XG4gICAgY29uc3QgZGVmYXVsdE1zZyA9ICdUaW1lb3V0IGVycm9yJztcbiAgICBjb25zdCBtc2cgPSBwYXJhbSBpbnN0YW5jZW9mIEFkZHJlc3MgPyBgJHtkZWZhdWx0TXNnfSBvbiAke3BhcmFtfWAgOiBwYXJhbSB8fCBkZWZhdWx0TXNnO1xuICAgIHN1cGVyKG1zZyk7XG4gIH1cbn1cbiJdfQ==
+//# sourceMappingURL=errors.js.map

@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -14,16 +14,17 @@ import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
 import debugFactory from 'debug';
 
-import session, { Address } from '@nibus/core';
+import session, {
+  Address, devices, IDevice, NibusConnection, SarpQueryType, config, getMibPrototype,
+} from '@nibus/core';
+
 import { CommonOpts } from '../options';
-import { devices, getMibPrototype, IDevice } from '@nibus/core/lib/mib';
-import { getNibusTimeout, NibusConnection } from '@nibus/core/lib/nibus';
-import { SarpQueryType } from '@nibus/core/lib/sarp';
 
 type RowType = {
-  displayName: string,
-  value: any,
-  key: string,
+  displayName: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
+  key: string;
 };
 
 const debug = debugFactory('nibus:dump');
@@ -33,9 +34,9 @@ async function dumpDevice(
   address: Address,
   connection: NibusConnection,
   argv: Arguments<DumpOpts>,
-  mib?: string): Promise<void> {
-  const raw = argv.raw;
-  const compact = argv.compact;
+  mib?: string,
+): Promise<void> {
+  const { raw, compact } = argv;
 
   let device: IDevice;
   if (!mib) {
@@ -46,12 +47,12 @@ async function dumpDevice(
   }
   device.connection = connection;
   let ids: number[] = [];
-  if (argv.name) {
-    ids = argv.name.map(name => device.getId(name));
+  if (argv.id) {
+    ids = argv.id.map(id => device.getId(id));
   }
-  const result: any = await device.read(...ids);
+  const result = await device.read(...ids);
   const rows: RowType[] = Object.keys(result)
-    .map((key) => {
+    .map(key => {
       const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
       return {
         value,
@@ -71,7 +72,7 @@ async function dumpDevice(
     style: { compact },
     wordWrap: true,
   }) as HorizontalTable;
-  const toRow = ({ displayName, value, key }: RowType) => {
+  const toRow = ({ displayName, value, key }: RowType): [string, string, string] => {
     let val;
     if (value && value.error) {
       val = chalk.red(value.error);
@@ -85,25 +86,25 @@ async function dumpDevice(
     }
     return [displayName, val, key];
   };
-  Object.keys(categories).forEach((category) => {
-    const rows = categories[category] as RowType[];
+  Object.keys(categories).forEach(category => {
+    const rowItems = categories[category] as RowType[];
     if (category) {
       table.push([{
         colSpan: 3,
         content: chalk.yellow(category.toUpperCase()),
       }]);
     }
-    table.push(...rows.map(toRow));
+    table.push(...rowItems.map(toRow));
   });
   console.info(table.toString());
 }
 
-function findDevices(mib: string, connection: NibusConnection, argv: Arguments<DumpOpts>) {
+function findDevices(mib: string, connection: NibusConnection, argv: Arguments<DumpOpts>): void {
   count += 1;
   const proto = getMibPrototype(mib);
   const type = Reflect.getMetadata('deviceType', proto) as number;
   connection.findByType(type).catch(e => debug('error while findByType', e.stack));
-  connection.on('sarp', (datagram) => {
+  connection.on('sarp', datagram => {
     count += 1;
     if (datagram.queryType !== SarpQueryType.ByType || datagram.deviceType !== type) return;
     const address = new Address(datagram.mac);
@@ -120,25 +121,28 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
   command: 'dump',
   describe: 'Выдать дампы устройств',
   builder: argv => argv
-    .check((argv) => {
-      if (argv.id && (!argv.mac && !argv.mib)) {
-        throw `Данный аргумент требует следующий дополнительный аргумент:
- id -> mib или id -> mac`;
+    .check(checkArgv => {
+      if (checkArgv.id && (!checkArgv.mac && !checkArgv.mib)) {
+        throw new Error(`Данный аргумент требует следующий дополнительный аргумент:
+ id -> mib или id -> mac`);
       }
       return true;
     }),
-  handler: argv => new Promise(async (resolve, reject) => {
-    const close = (err?: string) => {
+  handler: argv => new Promise((resolve, reject) => {
+    let timeout: NodeJS.Timeout;
+    const close = (err?: string): void => {
       clearTimeout(timeout);
       session.close();
       if (err) reject(err); else resolve();
     };
     const mac = argv.mac && new Address(argv.mac);
-    count = await session.start();
-    // На Windows сложнее метод определения и занимает больше времени
-    if (process.platform === 'win32') {
-      count *= 3;
-    }
+    session.start().then(value => {
+      count = value;
+      // На Windows сложнее метод определения и занимает больше времени
+      if (process.platform === 'win32') {
+        count *= 3;
+      }
+    });
     // console.log('RUN DUMP');
     session.on('found', async ({ address, connection }) => {
       // console.log('FOUND', connection.description);
@@ -165,16 +169,16 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
       }
     });
 
-    const wait = () => {
+    const wait = (): void => {
       count -= 1;
       if (count > 0) {
-        timeout = setTimeout(wait, getNibusTimeout());
+        timeout = setTimeout(wait, config.timeout);
       } else {
         close();
       }
     };
 
-    let timeout = setTimeout(wait, getNibusTimeout());
+    timeout = setTimeout(wait, config.timeout);
   }),
 };
 

@@ -1,77 +1,77 @@
 "use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-require("source-map-support/register");
-
-var _lodash = _interopRequireDefault(require("lodash"));
-
-var _core = _interopRequireDefault(require("@nibus/core"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-const delay = timeout => new Promise(resolve => setTimeout(resolve, timeout * 1000));
-
-const round = val => Math.round(val * 10) / 10;
-
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const lodash_1 = __importDefault(require("lodash"));
+const core_1 = __importStar(require("@nibus/core"));
+const delay = (timeout) => new Promise(resolve => setTimeout(resolve, timeout * 1000));
+const round = (val) => Math.round(val * 10) / 10;
 const pingCommand = {
-  command: 'ping',
-  describe: 'пропинговать устройство',
-  builder: argv => argv.option('c', {
-    alias: 'count',
-    describe: 'остановиться после отправки указанного количества ответов',
-    number: true
-  }).option('t', {
-    alias: 'timeout',
-    describe: 'задать таймаут в секундах',
-    default: 1,
-    number: true
-  }).demandOption(['m', 'mac']),
-  handler: async ({
-    count = -1,
-    timeout = 1,
-    mac,
-    quiet,
-    raw
-  }) => {
-    await _core.default.start();
-    const stat = [];
-    let transmitted = 0;
-    process.on('exit', () => {
-      const loss = 100 - round(stat.length / transmitted * 100);
-
-      const min = _lodash.default.min(stat);
-
-      const max = _lodash.default.max(stat);
-
-      const avg = round(_lodash.default.mean(stat));
-      quiet || raw || console.info(`
+    command: 'ping',
+    describe: 'пропинговать устройство',
+    builder: argv => argv
+        .option('count', {
+        alias: 'c',
+        describe: 'остановиться после отправки указанного количества ответов',
+        number: true,
+    })
+        .option('timeout', {
+        alias: 't',
+        describe: 'задать таймаут в секундах',
+        default: 1,
+        number: true,
+    })
+        .demandOption(['mac']),
+    handler: ({ count = -1, timeout = 1, mac, quiet, raw, }) => __awaiter(void 0, void 0, void 0, function* () {
+        yield core_1.default.start();
+        const stat = [];
+        let transmitted = 0;
+        process.on('exit', () => {
+            const loss = 100 - round((stat.length / transmitted) * 100);
+            const min = lodash_1.default.min(stat);
+            const max = lodash_1.default.max(stat);
+            const avg = round(lodash_1.default.mean(stat));
+            quiet || raw || console.info(`
 ${transmitted} пакет(ов) отправлено, ${stat.length} пакет(ов) получено, ${loss}% пакетов потеряно
 min/avg/max = ${min || '-'}/${Number.isNaN(avg) ? '-' : avg}/${max || '-'}`);
-    });
-    let exit = false;
-    process.on('SIGINT', () => {
-      exit = true;
-    });
-
-    while (count - transmitted !== 0 && !exit) {
-      const ping = await _core.default.ping(mac);
-      if (ping !== -1) stat.push(ping);
-      transmitted += 1;
-      quiet || raw || console.info(`${mac} ${ping !== -1 ? `${ping} ms` : '*'}`);
-      if (count - transmitted === 0) break;
-      await delay(timeout);
-    }
-
-    _core.default.close();
-
-    if (raw) console.info(stat.length);
-    if (stat.length === 0) return Promise.reject();
-  }
+        });
+        let exit = false;
+        process.on('SIGINT', () => {
+            exit = true;
+        });
+        while (count - transmitted !== 0 && !exit) {
+            const ping = yield core_1.default.ping(mac);
+            if (ping !== -1)
+                stat.push(ping);
+            transmitted += 1;
+            quiet || raw || console.info(`${mac} ${ping !== -1 ? `${ping} ms` : '*'}`);
+            if (count - transmitted === 0)
+                break;
+            yield delay(timeout);
+        }
+        core_1.default.close();
+        if (raw)
+            console.info(stat.length);
+        if (stat.length === 0)
+            throw new core_1.TimeoutError();
+    }),
 };
-var _default = pingCommand;
-exports.default = _default;
-//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJzb3VyY2VzIjpbIi4uLy4uLy4uL3NyYy9jbGkvY29tbWFuZHMvcGluZy50cyJdLCJuYW1lcyI6WyJkZWxheSIsInRpbWVvdXQiLCJQcm9taXNlIiwicmVzb2x2ZSIsInNldFRpbWVvdXQiLCJyb3VuZCIsInZhbCIsIk1hdGgiLCJwaW5nQ29tbWFuZCIsImNvbW1hbmQiLCJkZXNjcmliZSIsImJ1aWxkZXIiLCJhcmd2Iiwib3B0aW9uIiwiYWxpYXMiLCJudW1iZXIiLCJkZWZhdWx0IiwiZGVtYW5kT3B0aW9uIiwiaGFuZGxlciIsImNvdW50IiwibWFjIiwicXVpZXQiLCJyYXciLCJzZXNzaW9uIiwic3RhcnQiLCJzdGF0IiwidHJhbnNtaXR0ZWQiLCJwcm9jZXNzIiwib24iLCJsb3NzIiwibGVuZ3RoIiwibWluIiwiXyIsIm1heCIsImF2ZyIsIm1lYW4iLCJjb25zb2xlIiwiaW5mbyIsIk51bWJlciIsImlzTmFOIiwiZXhpdCIsInBpbmciLCJwdXNoIiwiY2xvc2UiLCJyZWplY3QiXSwibWFwcGluZ3MiOiI7Ozs7Ozs7OztBQVdBOztBQUNBOzs7O0FBVUEsTUFBTUEsS0FBSyxHQUFJQyxPQUFELElBQXFCLElBQUlDLE9BQUosQ0FBWUMsT0FBTyxJQUFJQyxVQUFVLENBQUNELE9BQUQsRUFBVUYsT0FBTyxHQUFHLElBQXBCLENBQWpDLENBQW5DOztBQUNBLE1BQU1JLEtBQUssR0FBSUMsR0FBRCxJQUFpQkMsSUFBSSxDQUFDRixLQUFMLENBQVdDLEdBQUcsR0FBRyxFQUFqQixJQUF1QixFQUF0RDs7QUFFQSxNQUFNRSxXQUFnRCxHQUFHO0FBQ3ZEQyxFQUFBQSxPQUFPLEVBQUUsTUFEOEM7QUFFdkRDLEVBQUFBLFFBQVEsRUFBRSx5QkFGNkM7QUFHdkRDLEVBQUFBLE9BQU8sRUFBRUMsSUFBSSxJQUFJQSxJQUFJLENBQ2xCQyxNQURjLENBQ1AsR0FETyxFQUNGO0FBQ1hDLElBQUFBLEtBQUssRUFBRSxPQURJO0FBRVhKLElBQUFBLFFBQVEsRUFBRSwyREFGQztBQUdYSyxJQUFB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biAqIEBhdXRob3IgQW5kcmVpIFNhcmFrZWV2IDxhdnNAbmF0YS1pbmZvLnJ1PlxuICpcbiAqIFRoaXMgZmlsZSBpcyBwYXJ0IG9mIHRoZSBcIkBuYXRhXCIgcHJvamVjdC5cbiAqIEZvciB0aGUgZnVsbCBjb3B5cmlnaHQgYW5kIGxpY2Vuc2UgaW5mb3JtYXRpb24sIHBsZWFzZSB2aWV3XG4gKiB0aGUgRVVMQSBmaWxlIHRoYXQgd2FzIGRpc3RyaWJ1dGVkIHdpdGggdGhpcyBzb3VyY2UgY29kZS5cbiAqL1xuXG5pbXBvcnQgeyBDb21tYW5kTW9kdWxlLCBEZWZpbmVkIH0gZnJvbSAneWFyZ3MnO1xuaW1wb3J0IF8gZnJvbSAnbG9kYXNoJztcbmltcG9ydCBzZXNzaW9uIGZyb20gJ0BuaWJ1cy9jb3JlJztcbmltcG9ydCB7IENvbW1vbk9wdHMgfSBmcm9tICcuLi9vcHRpb25zJztcblxudHlwZSBQaW5nT3B0cyA9IERlZmluZWQ8Q29tbW9uT3B0cywgJ20nIHwgJ21hYyc+ICYge1xuICBjPzogbnVtYmVyLFxuICBjb3VudD86IG51bWJlcixcbiAgdDogbnVtYmVyLFxuICB0aW1lb3V0PzogbnVtYmVyLFxufTtcblxuY29uc3QgZGVsYXkgPSAodGltZW91dDogbnVtYmVyKSA9PiBuZXcgUHJvbWlzZShyZXNvbHZlID0+IHNldFRpbWVvdXQocmVzb2x2ZSwgdGltZW91dCAqIDEwMDApKTtcbmNvbnN0IHJvdW5kID0gKHZhbDogbnVtYmVyKSA9PiBNYXRoLnJvdW5kKHZhbCAqIDEwKSAvIDEwO1xuXG5jb25zdCBwaW5nQ29tbWFuZDogQ29tbWFuZE1vZHVsZTxDb21tb25PcHRzLCBQaW5nT3B0cz4gPSB7XG4gIGNvbW1hbmQ6ICdwaW5nJyxcbiAgZGVzY3JpYmU6ICfQv9GA0L7Qv9C40L3Qs9C+0LLQsNGC0Ywg0YPRgdGC0YDQvtC50YHRgtCy0L4nLFxuICBidWlsZGVyOiBhcmd2ID0+IGFyZ3ZcbiAgICAub3B0aW9uKCdjJywge1xuICAgICAgYWxpYXM6ICdjb3VudCcsXG4gICAgICBkZXNjcmliZTogJ9C+0YHRgtCw0L3QvtCy0LjRgtGM0YHRjyDQv9C+0YHQu9C1INC+0YLQv9GA0LDQstC60Lgg0YPQutCw0LfQsNC90L3QvtCz0L4g0LrQvtC70LjRh9C10YHRgtCy0LAg0L7RgtCy0LXRgtC+0LInLFxuICAgICAgbnVtYmVyOiB0cnVlLFxuICAgIH0pXG4gICAgLm9wdGlvbigndCcsIHtcbiAgICAgIGFsaWFzOiAndGltZW91dCcsXG4gICAgICBkZXNjcmliZTogJ9C30LDQtNCw0YLRjCDRgtCw0LnQvNCw0YPRgiDQsiDRgdC10LrRg9C90LTQsNGFJyxcbiAgICAgIGRlZmF1bHQ6IDEsXG4gICAgICBudW1iZXI6IHRydWUsXG4gICAgfSlcbiAgICAuZGVtYW5kT3B0aW9uKFsnbScsICdtYWMnXSksXG4gIGhhbmRsZXI6IGFzeW5jICh7IGNvdW50ID0gLTEsIHRpbWVvdXQgPSAxLCBtYWMsIHF1aWV0LCByYXcgfSkgPT4ge1xuICAgIGF3YWl0IHNlc3Npb24uc3RhcnQoKTtcbiAgICBjb25zdCBzdGF0OiBudW1iZXJbXSA9IFtdO1xuICAgIGxldCB0cmFuc21pdHRlZCA9IDA7XG4gICAgcHJvY2Vzcy5vbignZXhpdCcsICgpID0+IHtcbiAgICAgIGNvbnN0IGxvc3MgPSAxMDAgLSByb3VuZChzdGF0Lmxlbmd0aCAvIHRyYW5zbWl0dGVkICogMTAwKTtcbiAgICAgIGNvbnN0IG1pbiA9IF8ubWluKHN0YXQpO1xuICAgICAgY29uc3QgbWF4ID0gXy5tYXgoc3RhdCk7XG4gICAgICBjb25zdCBhdmcgPSByb3VuZChfLm1lYW4oc3RhdCkpO1xuICAgICAgcXVpZXQgfHwgcmF3IHx8IGNvbnNvbGUuaW5mbyhgXG4ke3RyYW5zbWl0dGVkfSDQv9Cw0LrQtdGCKNC+0LIpINC+0YLQv9GA0LDQstC70LXQvdC+LCAke3N0YXQubGVuZ3RofSDQv9Cw0LrQtdGCKNC+0LIpINC/0L7Qu9GD0YfQtdC90L4sICR7bG9zc30lINC/0LDQutC10YLQvtCyINC/0L7RgtC10YDRj9C90L5cbm1pbi9hdmcvbWF4ID0gJHttaW4gfHwgJy0nfS8ke051bWJlci5pc05hTihhdmcpID8gJy0nIDogYXZnfS8ke21heCB8fCAnLSd9YCk7XG4gICAgfSk7XG4gICAgbGV0IGV4aXQgPSBmYWxzZTtcbiAgICBwcm9jZXNzLm9uKCdTSUdJTlQnLCAoKSA9PiB7XG4gICAgICBleGl0ID0gdHJ1ZTtcbiAgICB9KTtcbiAgICB3aGlsZSAoY291bnQgLSB0cmFuc21pdHRlZCAhPT0gMCAmJiAhZXhpdCkge1xuICAgICAgY29uc3QgcGluZyA9IGF3YWl0IHNlc3Npb24ucGluZyhtYWMpO1xuICAgICAgaWYgKHBpbmcgIT09IC0xKSBzdGF0LnB1c2gocGluZyk7XG4gICAgICB0cmFuc21pdHRlZCArPSAxO1xuICAgICAgcXVpZXQgfHwgcmF3IHx8IGNvbnNvbGUuaW5mbyhgJHttYWN9ICR7cGluZyAhPT0gLTEgPyBgJHtwaW5nfSBtc2AgOiAnKid9YCk7XG4gICAgICBpZiAoY291bnQgLSB0cmFuc21pdHRlZCA9PT0gMCkgYnJlYWs7XG4gICAgICBhd2FpdCBkZWxheSh0aW1lb3V0KTtcbiAgICB9XG4gICAgc2Vzc2lvbi5jbG9zZSgpO1xuICAgIGlmIChyYXcpIGNvbnNvbGUuaW5mbyhzdGF0Lmxlbmd0aCk7XG4gICAgaWYgKHN0YXQubGVuZ3RoID09PSAwKSByZXR1cm4gUHJvbWlzZS5yZWplY3QoKTtcbiAgfSxcbn07XG5cbmV4cG9ydCBkZWZhdWx0IHBpbmdDb21tYW5kO1xuIl19
+exports.default = pingCommand;
+//# sourceMappingURL=ping.js.map

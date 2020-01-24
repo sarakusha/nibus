@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -12,28 +12,33 @@ import { CommandModule } from 'yargs';
 import _ from 'lodash';
 // @ts-ignore
 import Table from 'table-layout';
-import { PATH } from '@nibus/core';
-import { Client, IPortArg } from '@nibus/core/lib/ipc';
+import { PATH, Client, PortArg } from '@nibus/core';
+import { CommonOpts } from '../options';
 
-const listCommand: CommandModule = {
+type ListOpts = CommonOpts;
+const listCommand: CommandModule<CommonOpts, ListOpts> = {
   command: 'list',
   describe: 'Показать список доступных устройств',
   builder: {},
   handler: async () => new Promise((resolve, reject) => {
     const socket = Client.connect(PATH);
     let resolved = false;
-    let error: any;
+    let error: Error;
     socket.once('close', () => {
       resolved ? resolve() : reject(error && error.message);
     });
-    socket.on('ports', (ports: IPortArg[]) => {
+    socket.on('ports', (ports: PortArg[]) => {
       // debug('ports', ports);
       const rows = _.sortBy(ports, [_.property('description.category')])
-        .map(({ portInfo: { manufacturer, category, device, comName } }) => ({
+        .map(({
+          portInfo: {
+            manufacturer, category, device, path,
+          },
+        }) => ({
           manufacturer,
           category,
           device,
-          comName,
+          path,
         }));
       const table = new Table(rows, {
         maxWidth: 80,
@@ -42,9 +47,10 @@ const listCommand: CommandModule = {
       resolved = true;
       socket.destroy();
     });
-    socket.on('error', (err) => {
-      if ((err as any).code === 'ENOENT') {
-        error = { message: 'Сервис не запущен' };
+    socket.on('error', err => {
+      // @ts-ignore
+      if (err?.code === 'ENOENT') {
+        error = new Error('Сервис не запущен');
       } else {
         error = err;
       }

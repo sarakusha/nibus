@@ -51,7 +51,7 @@ export default class SerialTee extends EventEmitter {
 
   constructor(public readonly portInfo: IKnownPort, public readonly description: MibDescription) {
     super();
-    const { comName: path } = portInfo;
+    const { path } = portInfo;
     const win32 = (process.platform === 'win32' && description.win32) || {};
     this.serial = new SerialPort(
       path,
@@ -63,7 +63,8 @@ export default class SerialTee extends EventEmitter {
     );
     this.serial.on('close', this.close);
     this.server = new Server(getSocketPath(path), true);
-    this.server.pipe(this.serial);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.server.pipe(this.serial as any);
     this.serial.pipe(this.server);
     debug(`new connection on ${path} baud: ${this.serial.baudRate} (${description.category})`);
   }
@@ -81,7 +82,7 @@ export default class SerialTee extends EventEmitter {
     }
     server.close();
     this.closed = true;
-    this.emit('close', this.portInfo.comName);
+    this.emit('close', this.portInfo.path);
   };
 
   public setLogger(logger: SerialLogger | null): void {

@@ -22,7 +22,7 @@ exports.CategoryV = t.union([
 ]);
 exports.KnownPortV = t.intersection([
     t.type({
-        comName: t.string,
+        path: t.string,
         productId: t.number,
         vendorId: t.number,
     }),

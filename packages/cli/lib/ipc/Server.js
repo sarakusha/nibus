@@ -1,16 +1,28 @@
-import net, { Server } from 'net';
-import { Duplex } from 'stream';
-import debugFactory from 'debug';
-import fs from 'fs';
-import xpipe from 'xpipe';
-const debug = debugFactory('nibus:IPCServer');
+"use strict";
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const net_1 = __importStar(require("net"));
+const stream_1 = require("stream");
+const debug_1 = __importDefault(require("debug"));
+const fs_1 = __importDefault(require("fs"));
+const xpipe_1 = __importDefault(require("xpipe"));
+const debug = debug_1.default('nibus:IPCServer');
 const noop = () => { };
-export var Direction;
+var Direction;
 (function (Direction) {
     Direction[Direction["in"] = 0] = "in";
     Direction[Direction["out"] = 1] = "out";
-})(Direction || (Direction = {}));
-class IPCServer extends Duplex {
+})(Direction = exports.Direction || (exports.Direction = {}));
+class IPCServer extends stream_1.Duplex {
     constructor(path, raw = false) {
         super();
         this.raw = raw;
@@ -27,14 +39,14 @@ class IPCServer extends Duplex {
         };
         this.errorHandler = (err) => {
             if (err.code === 'EADDRINUSE') {
-                const check = net.connect(xpipe.eq(this.path), () => {
+                const check = net_1.default.connect(xpipe_1.default.eq(this.path), () => {
                     debug('Server running, giving up...');
                     process.exit();
                 });
                 check.once('error', e => {
                     if (e.code === 'ECONNREFUSED') {
-                        fs.unlinkSync(xpipe.eq(this.path));
-                        this.server.listen(xpipe.eq(this.path), () => {
+                        fs_1.default.unlinkSync(xpipe_1.default.eq(this.path));
+                        this.server.listen(xpipe_1.default.eq(this.path), () => {
                             debug('restart', this.server.address());
                         });
                     }
@@ -56,12 +68,12 @@ class IPCServer extends Duplex {
             debug(`${path} closed`);
         };
         this.clients = [];
-        this.server = new Server();
-        this.server = net
+        this.server = new net_1.Server();
+        this.server = net_1.default
             .createServer(this.connectionHandler)
             .on('error', this.errorHandler)
             .on('close', this.close)
-            .listen(xpipe.eq(path), () => {
+            .listen(xpipe_1.default.eq(path), () => {
             debug('listening on', this.server.address());
         });
         process.on('SIGINT', () => this.close());
@@ -118,5 +130,5 @@ class IPCServer extends Duplex {
             .then(() => { });
     }
 }
-export default IPCServer;
+exports.default = IPCServer;
 //# sourceMappingURL=Server.js.map

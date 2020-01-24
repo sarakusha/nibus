@@ -31,8 +31,8 @@ class NibusSession extends events_1.EventEmitter {
         this.reloadHandler = (ports) => {
             const prev = this.connections.splice(0, this.connections.length);
             ports.forEach(port => {
-                const { portInfo: { comName } } = port;
-                const index = lodash_1.default.findIndex(prev, { path: comName });
+                const { portInfo: { path } } = port;
+                const index = lodash_1.default.findIndex(prev, { path });
                 if (index !== -1) {
                     this.connections.push(prev.splice(index, 1)[0]);
                 }
@@ -42,9 +42,9 @@ class NibusSession extends events_1.EventEmitter {
             });
             prev.forEach(connection => this.closeConnection(connection));
         };
-        this.addHandler = async ({ portInfo: { comName }, description }) => {
+        this.addHandler = async ({ portInfo: { path }, description }) => {
             debug('add');
-            const connection = new nibus_1.NibusConnection(comName, description);
+            const connection = new nibus_1.NibusConnection(path, description);
             this.connections.push(connection);
             this.emit('add', connection);
             if (process.platform === 'win32')
@@ -65,8 +65,8 @@ class NibusSession extends events_1.EventEmitter {
             }, Promise.resolve())
                 .catch(noop);
         };
-        this.removeHandler = ({ portInfo: { comName } }) => {
-            const index = this.connections.findIndex(({ path }) => comName === path);
+        this.removeHandler = ({ portInfo: { path: port } }) => {
+            const index = this.connections.findIndex(({ path }) => port === path);
             if (index !== -1) {
                 const [connection] = this.connections.splice(index, 1);
                 this.closeConnection(connection);

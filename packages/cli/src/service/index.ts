@@ -198,7 +198,7 @@ class NibusService {
     }
     detector.removeListener('add', this.addHandler);
     detector.removeListener('remove', this.removeHandler);
-    // detector.stop();
+    detector.stop();
     this.isStarted = false;
     debug('stopped');
   }
@@ -229,7 +229,7 @@ class NibusService {
     const mibCategory = detector.getDetection()!.mibCategories[category!];
     if (mibCategory) {
       const connection = new SerialTee(portInfo, mibCategory);
-      connection.on('close', (comName: string) => this.removeHandler({ comName }));
+      connection.on('close', (path: string) => this.removeHandler({ path }));
       this.connections.push(connection);
       this.server.broadcast('add', connection.toJSON()).catch(noop);
       this.updateLogger(connection);
@@ -237,8 +237,8 @@ class NibusService {
     }
   };
 
-  private removeHandler = ({ comName }: { comName: string }): void => {
-    const index = this.connections.findIndex(({ portInfo: { comName: port } }) => port === comName);
+  private removeHandler = ({ path }: { path: string }): void => {
+    const index = this.connections.findIndex(({ portInfo: { path: port } }) => port === path);
     if (index !== -1) {
       const [connection] = this.connections.splice(index, 1);
       // debug(`nibus-connection was closed ${connection.description.category}`);

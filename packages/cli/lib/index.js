@@ -1,21 +1,26 @@
 #!/usr/bin/env node
-import yargs from 'yargs';
-import { getMibsSync } from '@nibus/core/lib/mib';
-import dump from './cli/commands/dump';
-import list from './cli/commands/list';
-import ping from './cli/commands/ping';
-import read from './cli/commands/read';
-import start from './cli/commands/start';
-import stop from './cli/commands/stop';
-import write from './cli/commands/write';
-import upload from './cli/commands/upload';
-import download from './cli/commands/download';
-import log from './cli/commands/log';
-import mib from './cli/commands/mib';
-import flash from './cli/commands/flash';
-import execute from './cli/commands/execute';
-import parse from './cli/commands/parse';
-const { argv } = yargs
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const yargs_1 = __importDefault(require("yargs"));
+const mib_1 = require("@nibus/core/lib/mib");
+const dump_1 = __importDefault(require("./cli/commands/dump"));
+const list_1 = __importDefault(require("./cli/commands/list"));
+const ping_1 = __importDefault(require("./cli/commands/ping"));
+const read_1 = __importDefault(require("./cli/commands/read"));
+const start_1 = __importDefault(require("./cli/commands/start"));
+const stop_1 = __importDefault(require("./cli/commands/stop"));
+const write_1 = __importDefault(require("./cli/commands/write"));
+const upload_1 = __importDefault(require("./cli/commands/upload"));
+const download_1 = __importDefault(require("./cli/commands/download"));
+const log_1 = __importDefault(require("./cli/commands/log"));
+const mib_2 = __importDefault(require("./cli/commands/mib"));
+const flash_1 = __importDefault(require("./cli/commands/flash"));
+const execute_1 = __importDefault(require("./cli/commands/execute"));
+const parse_1 = __importDefault(require("./cli/commands/parse"));
+const { argv } = yargs_1.default
     .option('mac', {
     alias: 'm',
     desc: 'Адрес устройства',
@@ -33,7 +38,7 @@ const { argv } = yargs
 })
     .option('mib', {
     desc: 'mib-файл',
-    choices: getMibsSync(),
+    choices: mib_1.getMibsSync(),
     string: true,
 })
     .option('compact', {
@@ -52,25 +57,25 @@ const { argv } = yargs
     number: true,
     default: 1,
 })
-    .command(start)
-    .command(stop)
-    .command(ping)
-    .command(dump)
-    .command(list)
-    .command(read)
-    .command(write)
-    .command(upload)
-    .command(download)
-    .command(log)
-    .command(mib)
-    .command(flash)
-    .command(execute)
-    .command(parse)
+    .command(start_1.default)
+    .command(stop_1.default)
+    .command(ping_1.default)
+    .command(dump_1.default)
+    .command(list_1.default)
+    .command(read_1.default)
+    .command(write_1.default)
+    .command(upload_1.default)
+    .command(download_1.default)
+    .command(log_1.default)
+    .command(mib_2.default)
+    .command(flash_1.default)
+    .command(execute_1.default)
+    .command(parse_1.default)
     .locale('ru')
     .completion('completion')
     .showHelpOnFail(false)
     .strict()
     .help()
-    .wrap(Math.min(yargs.terminalWidth(), 100))
+    .wrap(Math.min(yargs_1.default.terminalWidth(), 100))
     .epilogue(`(c) Nata-Info, ${new Date().getFullYear()}`);
 //# sourceMappingURL=index.js.map

@@ -213,7 +213,8 @@ export default class Address {
       }
     } else if ((Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array)
       && address.length === MAC_LENGTH) {
-      this.mac = address instanceof Uint8Array ? Buffer.from(address.buffer) : Buffer.from(address);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.mac = Buffer.from(address as any);
       this.raw = this.mac;
       if (isEmpty(address)) {
         this.type = AddressType.empty;

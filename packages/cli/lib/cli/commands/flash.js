@@ -1,11 +1,25 @@
-import { crc16ccitt } from 'crc';
-import fs from 'fs';
-import _ from 'lodash';
-import Progress from 'progress';
-import xmlParser from 'fast-xml-parser';
-import path from 'path';
-import makeAddressHandler from '../handlers';
-import { action as writeAction } from './write';
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const crc_1 = require("crc");
+const fs_1 = __importDefault(require("fs"));
+const lodash_1 = __importDefault(require("lodash"));
+const progress_1 = __importDefault(require("progress"));
+const fast_xml_parser_1 = __importDefault(require("fast-xml-parser"));
+const path_1 = __importDefault(require("path"));
+const handlers_1 = __importDefault(require("../handlers"));
+const write_1 = require("./write");
 const crcPrev = 0xAA55;
 const ident = (buf) => buf;
 const createHeader = (kind, option, data) => {
@@ -14,7 +28,7 @@ const createHeader = (kind, option, data) => {
     buffer.writeUInt32LE(data.length, 4);
     buffer.writeUInt32LE(Math.round(Date.now() / 1000), 8);
     buffer.writeUInt16LE(option, 16);
-    buffer.writeUInt16LE(crc16ccitt(buffer.slice(0, 18), crcPrev), 18);
+    buffer.writeUInt16LE(crc_1.crc16ccitt(buffer.slice(0, 18), crcPrev), 18);
     return buffer;
 };
 const hexToBuf = (hex) => Buffer.from(hex.replace(/[\s:-=]/g, ''), 'hex');
@@ -40,7 +54,7 @@ const txtConvert = (buffer, size = 32768, begin = 0) => {
 };
 const decConvert = (data) => {
     const lines = data.toString().split(/\r?\n/g);
-    const raw = _.flatten(lines
+    const raw = lodash_1.default.flatten(lines
         .map(line => line.trim())
         .filter(line => !!line)
         .map(line => line.split(/\s+/g).map(b => {
@@ -49,17 +63,17 @@ const decConvert = (data) => {
             console.error('Invalid Number', b);
         return i;
     })));
-    if (_.some(raw, b => Number.isNaN(b)))
+    if (lodash_1.default.some(raw, b => Number.isNaN(b)))
         throw new Error('Invalid number');
-    return Buffer.from(_.flatten(raw.map(word => [word & 0xFF, (word >> 8) & 0xFF])));
+    return Buffer.from(lodash_1.default.flatten(raw.map(word => [word & 0xFF, (word >> 8) & 0xFF])));
 };
 const xmlConvert = (data) => {
     const xml = data.toString();
-    const valid = xmlParser.validate(xml);
+    const valid = fast_xml_parser_1.default.validate(xml);
     if (valid !== true) {
         throw new Error(valid.err.msg);
     }
-    const { Configuration = null } = xmlParser.parse(xml);
+    const { Configuration = null } = fast_xml_parser_1.default.parse(xml);
     if (!Configuration)
         throw new Error('Invalid xml config');
     const buffer = Buffer.alloc(140, 0);
@@ -96,7 +110,7 @@ const xmlConvert = (data) => {
         'BlueVertexYBase',
         'BlueVertexStep',
     ].forEach(prop => {
-        const value = _.get(Configuration, prop, 0);
+        const value = lodash_1.default.get(Configuration, prop, 0);
         offset = buffer.writeFloatLE(value, offset);
         if (value > 0)
             last = offset;
@@ -156,75 +170,77 @@ const meta = {
         domain: 'MCU',
     },
 };
-async function action(device, args) {
-    const isModule = (await writeAction(device, args)).includes('moduleSelect');
-    let kind = args.kind;
-    if (!kind) {
-        switch (path.extname(args.source)) {
-            case '.rbf':
-                kind = isModule ? 'rbf' : 'fpga';
-                break;
-            case '.tcc':
-                kind = 'tcc';
-                break;
-            case '.tca':
-                kind = 'tca';
-                break;
-            case '.xml':
-                kind = 'ttc';
-                break;
-            case '.txt':
-                kind = isModule ? 'ctrl' : 'mcu';
-                break;
-            default:
-                throw new Error('Unknown kind of source');
+function action(device, args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const isModule = (yield write_1.action(device, args)).includes('moduleSelect');
+        let kind = args.kind;
+        if (!kind) {
+            switch (path_1.default.extname(args.source)) {
+                case '.rbf':
+                    kind = isModule ? 'rbf' : 'fpga';
+                    break;
+                case '.tcc':
+                    kind = 'tcc';
+                    break;
+                case '.tca':
+                    kind = 'tca';
+                    break;
+                case '.xml':
+                    kind = 'ttc';
+                    break;
+                case '.txt':
+                    kind = isModule ? 'ctrl' : 'mcu';
+                    break;
+                default:
+                    throw new Error('Unknown kind of source');
+            }
         }
-    }
-    if (!isModule && kind !== 'mcu' && kind !== 'fpga') {
-        throw new Error('Conflict kind of source and destination');
-    }
-    const opts = meta[kind];
-    process.env.NODE_NO_WARNINGS = '1';
-    let buffer = opts.converter(await fs.promises.readFile(args.source), opts.size && opts.size[0], opts.begin);
-    if (opts.size && !opts.size.includes(buffer.length)) {
-        throw new Error(`Invalid data length. Expected ${opts.size.join(',')} got ${buffer.length}`);
-    }
-    if (kind !== 'ctrl' && kind !== 'mcu') {
-        const header = createHeader(kind, 0, buffer);
-        buffer = Buffer.concat([header, buffer, header]);
-    }
-    else {
-        const crc = Buffer.alloc(2);
-        crc.writeUInt16LE(crc16ccitt(buffer, 0x55AA), 0);
-        buffer = Buffer.concat([buffer, crc]);
-    }
-    const dest = opts.offset.toString(16).padStart(5, '0');
-    const bar = new Progress(`  flashing [:bar] to ${dest}h :rate/bps :percent :current/:total :etas`, {
-        total: buffer.length,
-        width: 30,
+        if (!isModule && kind !== 'mcu' && kind !== 'fpga') {
+            throw new Error('Conflict kind of source and destination');
+        }
+        const opts = meta[kind];
+        process.env.NODE_NO_WARNINGS = '1';
+        let buffer = opts.converter(yield fs_1.default.promises.readFile(args.source), opts.size && opts.size[0], opts.begin);
+        if (opts.size && !opts.size.includes(buffer.length)) {
+            throw new Error(`Invalid data length. Expected ${opts.size.join(',')} got ${buffer.length}`);
+        }
+        if (kind !== 'ctrl' && kind !== 'mcu') {
+            const header = createHeader(kind, 0, buffer);
+            buffer = Buffer.concat([header, buffer, header]);
+        }
+        else {
+            const crc = Buffer.alloc(2);
+            crc.writeUInt16LE(crc_1.crc16ccitt(buffer, 0x55AA), 0);
+            buffer = Buffer.concat([buffer, crc]);
+        }
+        const dest = opts.offset.toString(16).padStart(5, '0');
+        const bar = new progress_1.default(`  flashing [:bar] to ${dest}h :rate/bps :percent :current/:total :etas`, {
+            total: buffer.length,
+            width: 30,
+        });
+        device.on('downloadData', ({ domain: downloadDomain, length }) => {
+            if (opts.domain === downloadDomain)
+                bar.tick(length);
+        });
+        yield device.download(opts.domain, buffer, opts.offset);
+        if (isModule) {
+            device.selector = 0;
+            yield device.write(device.getId('selector'));
+            const data = yield device.upload('MODUL', 0, 6);
+            if (data[3] & 0b100) {
+                console.error('Ошибка контрольной суммы в кадре');
+            }
+            if (data[3] & 0b1000) {
+                console.error('Таймаут ожидания валидности страницы');
+            }
+            if (data[3] & 0b10000) {
+                console.error('Ошибка в работе флеш памяти');
+            }
+        }
+        if (opts.exec) {
+            yield device.execute(opts.exec);
+        }
     });
-    device.on('downloadData', ({ domain: downloadDomain, length }) => {
-        if (opts.domain === downloadDomain)
-            bar.tick(length);
-    });
-    await device.download(opts.domain, buffer, opts.offset);
-    if (isModule) {
-        device.selector = 0;
-        await device.write(device.getId('selector'));
-        const data = await device.upload('MODUL', 0, 6);
-        if (data[3] & 0b100) {
-            console.error('Ошибка контрольной суммы в кадре');
-        }
-        if (data[3] & 0b1000) {
-            console.error('Таймаут ожидания валидности страницы');
-        }
-        if (data[3] & 0b10000) {
-            console.error('Ошибка в работе флеш памяти');
-        }
-    }
-    if (opts.exec) {
-        await device.execute(opts.exec);
-    }
 }
 const flashCommand = {
     command: 'flash',
@@ -249,7 +265,7 @@ const flashCommand = {
         .example('$0 flash -m ::1 --src NataInfo_4.0.1.1.txt', `Прошивка процессора хоста
 \t(если расширение .txt, [-k ctrl] - можно не указывать)`)
         .demandOption(['mac', 'source']),
-    handler: makeAddressHandler(action),
+    handler: handlers_1.default(action),
 };
-export default flashCommand;
+exports.default = flashCommand;
 //# sourceMappingURL=flash.js.map

@@ -1,7 +1,21 @@
-import fs from 'fs';
-import Progress from 'progress';
-import makeAddressHandler from '../handlers';
-import { action as writeAction } from './write';
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs_1 = __importDefault(require("fs"));
+const progress_1 = __importDefault(require("progress"));
+const handlers_1 = __importDefault(require("../handlers"));
+const write_1 = require("./write");
 function readAllFromStdin() {
     const buffers = [];
     const onData = (buffer) => {
@@ -18,7 +32,7 @@ function readAllFromStdin() {
             .once('error', reject);
     }));
 }
-export const convert = (buffer) => {
+exports.convert = (buffer) => {
     const lines = buffer.toString('ascii')
         .split(/\r?\n/g)
         .map(line => line.replace(/[\s:-=]/g, ''));
@@ -37,35 +51,38 @@ export const convert = (buffer) => {
         throw new Error(`Invalid hex in lines ${invalidLines.join(',')}`);
     return [Buffer.from(lines.join('')), offset];
 };
-export async function action(device, args) {
-    const { domain, offset, source, hex, } = args;
-    await writeAction(device, args);
-    let buffer;
-    let ofs = 0;
-    let tick = (_size) => { };
-    if (source) {
-        buffer = await fs.promises.readFile(source);
-        if (hex)
-            [buffer, ofs] = convert(buffer);
-        const dest = (offset || ofs).toString(16).padStart(4, '0');
-        const bar = new Progress(`  downloading [:bar] to ${dest} :rate/bps :percent :current/:total :etas`, {
-            total: buffer.length,
-            width: 20,
-        });
-        tick = bar.tick.bind(bar);
-    }
-    else {
-        buffer = await readAllFromStdin();
-        if (hex) {
-            [buffer, ofs] = convert(buffer);
+function action(device, args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const { domain, offset, source, hex, } = args;
+        yield write_1.action(device, args);
+        let buffer;
+        let ofs = 0;
+        let tick = (_size) => { };
+        if (source) {
+            buffer = yield fs_1.default.promises.readFile(source);
+            if (hex)
+                [buffer, ofs] = exports.convert(buffer);
+            const dest = (offset || ofs).toString(16).padStart(4, '0');
+            const bar = new progress_1.default(`  downloading [:bar] to ${dest} :rate/bps :percent :current/:total :etas`, {
+                total: buffer.length,
+                width: 20,
+            });
+            tick = bar.tick.bind(bar);
         }
-    }
-    device.on('downloadData', ({ domain: dataDomain, length }) => {
-        if (dataDomain === domain)
-            tick(length);
+        else {
+            buffer = yield readAllFromStdin();
+            if (hex) {
+                [buffer, ofs] = exports.convert(buffer);
+            }
+        }
+        device.on('downloadData', ({ domain: dataDomain, length }) => {
+            if (dataDomain === domain)
+                tick(length);
+        });
+        yield device.download(domain, buffer, offset || ofs, !args.terminate);
     });
-    await device.download(domain, buffer, offset || ofs, !args.terminate);
 }
+exports.action = action;
 const downloadCommand = {
     command: 'download',
     describe: 'загрузить домен в устройство',
@@ -107,7 +124,7 @@ const downloadCommand = {
         default: true,
     })
         .demandOption(['mac']),
-    handler: makeAddressHandler(action, true),
+    handler: handlers_1.default(action, true),
 };
-export default downloadCommand;
+exports.default = downloadCommand;
 //# sourceMappingURL=download.js.map

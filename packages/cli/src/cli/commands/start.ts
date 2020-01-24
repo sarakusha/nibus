@@ -27,7 +27,8 @@ export const startOptions: StartOptions = {
   // eslint-disable-next-line @typescript-eslint/camelcase
   max_restarts: 3,
   env: {
-    DEBUG: 'nibus:*,-nibus:decoder',
+    // DEBUG: 'nibus:*,-nibus:decoder',
+    DEBUG: 'nibus:*,nibus-serial:*',
     DEBUG_COLORS: '1',
   },
 };
@@ -85,7 +86,7 @@ const startCommand: CommandModule<CommonOpts, StartOpts> = {
           console.error('error while start nibus.service', e);
           process.exit(2);
         }
-        console.info('nibus.service запущен');
+        console.info(`nibus.service запущен. modules: ${process.versions.modules}, node: ${process.versions.node}`);
       }));
     });
   },

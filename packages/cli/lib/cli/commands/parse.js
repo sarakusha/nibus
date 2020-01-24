@@ -1,8 +1,13 @@
-import { NibusDecoder } from '@nibus/core/lib/nibus';
-import fs from 'fs';
-import path from 'path';
-import { Transform } from 'stream';
-const hexTransform = new Transform({
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const nibus_1 = require("@nibus/core/lib/nibus");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const stream_1 = require("stream");
+const hexTransform = new stream_1.Transform({
     transform(chunk, encoding, callback) {
         const data = chunk.toString().replace(/-/g, '').replace(/\n/g, '');
         const buffer = Buffer.from(data, 'hex');
@@ -10,7 +15,7 @@ const hexTransform = new Transform({
     },
 });
 const makeNibusDecoder = (pick, omit) => {
-    const decoder = new NibusDecoder();
+    const decoder = new nibus_1.NibusDecoder();
     decoder.on('data', (datagram) => {
         console.info(datagram.toString({
             pick,
@@ -44,12 +49,12 @@ const parseCommand = {
         desc: 'входной файл в формате hex',
     }),
     handler: (({ _level, pick, omit, input, hex, }) => new Promise((resolve, reject) => {
-        const inputPath = path.resolve(process.cwd(), input);
-        if (!fs.existsSync(inputPath)) {
+        const inputPath = path_1.default.resolve(process.cwd(), input);
+        if (!fs_1.default.existsSync(inputPath)) {
             reject(Error(`File ${inputPath} not found`));
             return;
         }
-        const stream = fs.createReadStream(inputPath);
+        const stream = fs_1.default.createReadStream(inputPath);
         stream.on('finish', () => resolve());
         stream.on('error', reject);
         const decoder = makeNibusDecoder(pick, omit);
@@ -61,5 +66,5 @@ const parseCommand = {
         }
     })),
 };
-export default parseCommand;
+exports.default = parseCommand;
 //# sourceMappingURL=parse.js.map

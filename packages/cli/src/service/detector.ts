@@ -10,6 +10,7 @@
 
 /* tslint:disable:variable-name */
 import debugFactory from 'debug';
+import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Either, getOrElse, isLeft } from 'fp-ts/lib/Either';
 import fs, { Stats } from 'fs';
@@ -28,15 +29,22 @@ import {
   KnownPortV,
 } from '@nibus/core';
 
+import staticDetecton from './static';
+
+log.transports.file.level = 'info';
+log.transports.console.level = false;
 
 function getOrUndefined<E, A>(e: Either<E, A>): A | undefined {
   return getOrElse<E, A | undefined>(() => undefined)(e);
 }
 
 // let usbDetection: typeof UsbDetection;
-const debug = debugFactory('nibus:detector');
+// const debug = debugFactory('nibus:detector');
+const debug = log.info.bind(log);
 const detectionPath = path.resolve(__dirname, '../../detection.yml');
 let knownPorts: Promise<IKnownPort[]> = Promise.resolve([]);
+
+log.info('DETECTOR', detectionPath);
 
 interface IDetectorItem {
   device: string;
@@ -54,23 +62,28 @@ interface IDetection {
   knownDevices: IDetectorItem[];
 }
 
-const loadDetection = (): IDetection | undefined => {
+const getRawDetection = (): IDetection => {
   try {
     const data = fs.readFileSync(detectionPath, 'utf8');
-    const result = yaml.safeLoad(data) as IDetection;
-    Object.keys(result.mibCategories).forEach(category => {
-      const desc = result.mibCategories[category];
-      desc.category = category;
-      if (Array.isArray(desc.select)) {
-        desc.select = (desc.select as unknown as string[])
-          .map(cat => result.mibCategories[cat] || cat);
-      }
-    });
-    return result;
+    return yaml.safeLoad(data) as IDetection;
   } catch (err) {
-    debug(`Error: failed to read file ${detectionPath} (${err.message})`);
-    return undefined;
+    debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return staticDetecton as any;
   }
+};
+
+const loadDetection = (): IDetection | undefined => {
+  const result = getRawDetection();
+  Object.keys(result.mibCategories).forEach(category => {
+    const desc = result.mibCategories[category];
+    desc.category = category;
+    if (Array.isArray(desc.select)) {
+      desc.select = (desc.select as unknown as string[])
+        .map(cat => result.mibCategories[cat] || cat);
+    }
+  });
+  return result;
 };
 
 let detection = loadDetection();
@@ -214,7 +227,7 @@ async function reloadDevicesAsync(
 
     await externalPorts.reduce(async (promise, port) => {
       const nextPorts = await promise;
-      const prev = _.findIndex(prevPorts, { comName: port.comName });
+      const prev = _.findIndex(prevPorts, { path: port.path });
       let device: IKnownPort;
       if (prev !== -1) {
         [device] = prevPorts.splice(prev, 1);
@@ -232,7 +245,7 @@ async function reloadDevicesAsync(
         // console.log('PORT', JSON.stringify(port));
         if (device.category) {
           debug(`new device ${device.device || device.vendorId}/\
-${device.category} was plugged to ${device.comName}`);
+${device.category} was plugged to ${device.path}`);
           detector.emit('add', device);
         } else {
           debug('unknown device %o was plugged', device);
@@ -249,12 +262,12 @@ ${device.category} was plugged to ${device.comName}`);
     prevPorts.forEach(port => {
       detector.emit('unplug', port);
       debug(`device ${port.device || port.vendorId}/\
-${port.category || port.productId} was unplugged from ${port.comName}`);
+${port.category || port.productId} was unplugged from ${port.path}`);
       port.category && detector.emit('remove', port);
     });
     return ports;
   } catch (err) {
-    debug(`Error: reload devices was failed (${err.message || err})`);
+    debug(`Error: reload devices was failed (${err.stack || err})`);
     return ports;
   }
 }

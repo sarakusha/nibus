@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "1.6.3",
+  "version": "2.0.0",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -32,7 +32,7 @@
     "type-check": "tsc --noEmit",
     "rebuild": "yarn clean && yarn build",
     "build": "cross-env BABEL_ENV=production tsc",
-    "clean": "rimraf -rf lib tsconfig.tsbuildinfo",
+    "clean": "shx rm -rf lib tsconfig.tsbuildinfo",
     "lint:dev": "eslint --ext .js,.ts,.tsx src/",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
@@ -45,7 +45,6 @@
     "@types/crc": "^3.4.0",
     "@types/debug": "^4.1.3",
     "@types/lodash": "^4.14.123",
-    "@types/node": "^13.1.8",
     "@types/xdg-basedir": "^4.0.2",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-tsdoc": "^0.2.0",

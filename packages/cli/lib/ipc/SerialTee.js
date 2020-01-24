@@ -1,16 +1,21 @@
-import SerialPort from 'serialport';
-import debugFactory from 'debug';
-import { EventEmitter } from 'events';
-import { getSocketPath } from '@nibus/core';
-import Server from './Server';
-const debug = debugFactory('nibus:serial-tee');
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const serialport_1 = __importDefault(require("serialport"));
+const debug_1 = __importDefault(require("debug"));
+const events_1 = require("events");
+const core_1 = require("@nibus/core");
+const Server_1 = __importDefault(require("./Server"));
+const debug = debug_1.default('nibus:serial-tee');
 const portOptions = {
     baudRate: 115200,
     dataBits: 8,
     parity: 'none',
     stopBits: 1,
 };
-export default class SerialTee extends EventEmitter {
+class SerialTee extends events_1.EventEmitter {
     constructor(portInfo, description) {
         super();
         this.portInfo = portInfo;
@@ -27,17 +32,13 @@ export default class SerialTee extends EventEmitter {
             }
             server.close();
             this.closed = true;
-            this.emit('close', this.portInfo.comName);
+            this.emit('close', this.portInfo.path);
         };
-        const { comName: path } = portInfo;
+        const { path } = portInfo;
         const win32 = (process.platform === 'win32' && description.win32) || {};
-        this.serial = new SerialPort(path, {
-            ...portOptions,
-            baudRate: description.baudRate || 115200,
-            parity: win32.parity || description.parity || portOptions.parity,
-        });
+        this.serial = new serialport_1.default(path, Object.assign(Object.assign({}, portOptions), { baudRate: description.baudRate || 115200, parity: win32.parity || description.parity || portOptions.parity }));
         this.serial.on('close', this.close);
-        this.server = new Server(getSocketPath(path), true);
+        this.server = new Server_1.default(core_1.getSocketPath(path), true);
         this.server.pipe(this.serial);
         this.serial.pipe(this.server);
         debug(`new connection on ${path} baud: ${this.serial.baudRate} (${description.category})`);
@@ -62,4 +63,5 @@ export default class SerialTee extends EventEmitter {
         };
     }
 }
+exports.default = SerialTee;
 //# sourceMappingURL=SerialTee.js.map

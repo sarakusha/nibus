@@ -8,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+import { isRight } from 'fp-ts/lib/Either';
 import {
   EventFromString,
   PortsEventV,
@@ -24,7 +25,7 @@ const portsEvent: PortsEvent = {
   args: [[
     {
       portInfo: {
-        comName: 'com1',
+        path: 'com1',
         productId: 1,
         vendorId: 2,
       },
@@ -32,7 +33,7 @@ const portsEvent: PortsEvent = {
     },
     {
       portInfo: {
-        comName: 'com2',
+        path: 'com2',
         productId: 1,
         vendorId: 2,
       },
@@ -45,7 +46,7 @@ const addEvent: PortAddedEvent = {
   event: 'add',
   args: [{
     portInfo: {
-      comName: 'com3',
+      path: 'com3',
       productId: 1,
       vendorId: 2,
     },
@@ -57,7 +58,7 @@ const removeEvent: PortRemovedEvent = {
   event: 'remove',
   args: [{
     portInfo: {
-      comName: 'com3',
+      path: 'com3',
       productId: 1,
       vendorId: 2,
     },
@@ -114,7 +115,9 @@ describe('event tests', () => {
 
   test('parse', () => {
     events.forEach(event => {
-      expect(EventFromString.decode(JSON.stringify(event)).value).toEqual(event);
+      const validate = EventFromString.decode(JSON.stringify(event));
+      expect(isRight(validate));
+      expect(isRight(validate) && validate.right).toEqual(event);
     });
   });
 });

@@ -32,13 +32,13 @@ const listCommand: CommandModule<CommonOpts, ListOpts> = {
       const rows = _.sortBy(ports, [_.property('description.category')])
         .map(({
           portInfo: {
-            manufacturer, category, device, comName,
+            manufacturer, category, device, path,
           },
         }) => ({
           manufacturer,
           category,
           device,
-          comName,
+          path,
         }));
       const table = new Table(rows, {
         maxWidth: 80,

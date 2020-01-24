@@ -42,7 +42,7 @@ export type Category = t.TypeOf<typeof CategoryV>;
 /** @internal */
 export const KnownPortV = t.intersection([
   t.type({
-    comName: t.string,
+    path: t.string,
     productId: t.number,
     vendorId: t.number,
   }),

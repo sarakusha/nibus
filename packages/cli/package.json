@@ -1,7 +1,8 @@
 {
   "name": "@nibus/cli",
-  "version": "1.6.9",
+  "version": "2.0.0",
   "description": "Nata-Info NiBUS",
+  "private": true,
   "keywords": [
     "nata-info",
     "nibus",
@@ -12,8 +13,8 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "service": "cross-env NODE_ENV=production DEBUG=nibus:*,-nibus:decoder pm2 --name=nibus.service start lib/service/daemon.js",
-    "build": "cross-env BABEL_ENV=production yarn clean && tsc",
-    "clean": "rimraf -rf lib tsconfig.tsbuildinfo",
+    "build": "cross-env BABEL_ENV=production yarn clean && tsc && shx chmod a+x lib/index.js",
+    "clean": "shx rm -rf lib tsconfig.tsbuildinfo",
     "lint:dev": "eslint --ext .js,.ts,.tsx src/",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/"
@@ -53,17 +54,19 @@
     "@types/tail": "^2.0.0",
     "@types/xdg-basedir": "^4.0.2",
     "@types/yargs": "^15.0.0",
+    "babel-plugin-transform-imports": "^2.0.0",
     "cross-env": "^6.0.3",
-    "jest": "^24.1.0",
     "supports-color": "^7.0.0"
   },
   "dependencies": {
-    "@nibus/core": "^1.6.0",
+    "@nibus/core": "^2",
+    "@serialport/bindings": "^8.0.6",
     "chalk": "^3.0.0",
     "cli-table3": "^0.5.1",
     "configstore": "^5.0.0",
     "crc": "^3.5.0",
     "debug": "^4.1.0",
+    "electron-log": "^4.0.4",
     "fast-xml-parser": "^3.12.16",
     "fp-ts": "^2.4.1",
     "io-ts": "^2.0.5",
@@ -98,6 +101,12 @@
     "testMatch": [
       "**/__tests__/*.+(ts|tsx|js)",
       "**/src/**/*.spec.+(ts|tsx|js)"
+    ]
+  },
+  "workspaces": {
+    "nohoist": [
+      "usb-detection",
+      "@serialport/bindings"
     ]
   },
   "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"

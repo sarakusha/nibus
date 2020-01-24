@@ -106,7 +106,7 @@ class Address {
         }
         else if ((Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array)
             && address.length === exports.MAC_LENGTH) {
-            this.mac = address instanceof Uint8Array ? Buffer.from(address.buffer) : Buffer.from(address);
+            this.mac = Buffer.from(address);
             this.raw = this.mac;
             if (isEmpty(address)) {
                 this.type = AddressType.empty;

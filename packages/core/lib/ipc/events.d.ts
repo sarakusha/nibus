@@ -3,7 +3,7 @@ import { MibDescription } from '../MibDescription';
 import { IKnownPort } from '../session/KnownPorts';
 export declare const PortArgV: t.TypeC<{
     portInfo: t.IntersectionC<[t.TypeC<{
-        comName: t.StringC;
+        path: t.StringC;
         productId: t.NumberC;
         vendorId: t.NumberC;
     }>, t.PartialC<{
@@ -33,7 +33,7 @@ export declare const PortsEventV: t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.ArrayC<t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -56,7 +56,7 @@ export declare const PortsEventV: t.TypeC<{
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>>, t.Mixed]> | t.TupleC<[t.ArrayC<t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -85,7 +85,7 @@ export declare const PortAddedEventV: t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -108,7 +108,7 @@ export declare const PortAddedEventV: t.TypeC<{
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>, t.Mixed]> | t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -137,7 +137,7 @@ export declare const PortRemovedEventV: t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -160,7 +160,7 @@ export declare const PortRemovedEventV: t.TypeC<{
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>, t.Mixed]> | t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -189,7 +189,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.ArrayC<t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -212,7 +212,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>>, t.Mixed]> | t.TupleC<[t.ArrayC<t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -238,7 +238,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -261,7 +261,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>, t.Mixed]> | t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -287,7 +287,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{
@@ -310,7 +310,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>, t.Mixed]> | t.TupleC<[t.TypeC<{
         portInfo: t.IntersectionC<[t.TypeC<{
-            comName: t.StringC;
+            path: t.StringC;
             productId: t.NumberC;
             vendorId: t.NumberC;
         }>, t.PartialC<{

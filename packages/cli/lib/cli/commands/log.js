@@ -1,9 +1,23 @@
-import debugFactory from 'debug';
-import { Tail } from 'tail';
-import path from 'path';
-import { homedir } from 'os';
-import { PATH, Client } from '@nibus/core';
-const debug = debugFactory('nibus:log');
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const debug_1 = __importDefault(require("debug"));
+const tail_1 = require("tail");
+const path_1 = __importDefault(require("path"));
+const os_1 = require("os");
+const core_1 = require("@nibus/core");
+const debug = debug_1.default('nibus:log');
 const logCommand = {
     command: 'log',
     describe: 'задать уровень логгирования',
@@ -27,7 +41,7 @@ const logCommand = {
         boolean: true,
     }),
     handler: ({ level, pick, omit, begin, }) => new Promise((resolve, reject) => {
-        const socket = Client.connect(PATH);
+        const socket = core_1.Client.connect(core_1.PATH);
         let resolved = false;
         socket.once('close', () => {
             resolved ? resolve() : reject();
@@ -35,20 +49,20 @@ const logCommand = {
         socket.on('error', err => {
             debug('<error>', err);
         });
-        socket.on('connect', async () => {
+        socket.on('connect', () => __awaiter(void 0, void 0, void 0, function* () {
             try {
-                await socket.send('setLogLevel', level, pick, omit);
+                yield socket.send('setLogLevel', level, pick, omit);
                 resolved = true;
             }
             finally {
                 socket.destroy();
             }
-        });
-        const log = new Tail(path.resolve(homedir(), '.pm2', 'logs', 'nibus.service-error.log'), { fromBeginning: !!begin });
+        }));
+        const log = new tail_1.Tail(path_1.default.resolve(os_1.homedir(), '.pm2', 'logs', 'nibus.service-error.log'), { fromBeginning: !!begin });
         process.on('SIGINT', () => log.unwatch());
         log.watch();
         log.on('line', console.info.bind(console));
     }),
 };
-export default logCommand;
+exports.default = logCommand;
 //# sourceMappingURL=log.js.map

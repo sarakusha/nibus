@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2016",
     "outDir": "lib",                          /* Redirect output structure to the directory. */
     "rootDir": "src",
     "strict": true,                           /* Enable all strict type-checking options. */
@@ -9,8 +11,7 @@
     "paths": {
       "usb-detection": ["@types/usb-detection"],
       "sax": ["@types/sax"],
-      "xpipe": ["@types/xpipe"],
-      "serialport": ["@types/serialport"]
+      "xpipe": ["@types/xpipe"]
     }
   },
   "include": [

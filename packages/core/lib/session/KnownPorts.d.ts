@@ -11,7 +11,7 @@ export declare const CategoryV: t.UnionC<[t.KeyofC<{
 }>, t.UndefinedC]>;
 export declare type Category = t.TypeOf<typeof CategoryV>;
 export declare const KnownPortV: t.IntersectionC<[t.TypeC<{
-    comName: t.StringC;
+    path: t.StringC;
     productId: t.NumberC;
     vendorId: t.NumberC;
 }>, t.PartialC<{

@@ -40,25 +40,26 @@ describe('Device', () => {
     expect(device1.isDirty('version')).toBe(false);
     expect(device2).toHaveProperty('brightness', 50);
   });
-  test('equal devices', () => {
-    const address = 'FF:FE:12:34:56:78';
-    const device1 = devices.create(address, 'mcdvi');
-    const device2 = devices.create(address, 'mcdvi');
-    device1.brightness = 56;
-    expect(device2).toHaveProperty('brightness', 56);
-    expect(device1).toBe(device2);
-  });
-  test('countRef', () => {
-    const address = 'FF:FE:00:34:56:78';
-    const count = Object.keys(devices.get()).length;
-    const device1 = devices.create(address, 'mcdvi');
-    const device2 = devices.create(address, 'mcdvi');
-    expect(devices.get().length).toBe(count + 1);
-    device2.release();
-    expect(devices.get().length).toBe(count + 1);
-    device1.release();
-    expect(devices.get().length).toBe(count);
-  });
+  /** Разные порты, но одинаковые адреса **/
+  // test('equal devices', () => {
+  //   const address = 'FF:FE:12:34:56:78';
+  //   const device1 = devices.create(address, 'mcdvi');
+  //   const device2 = devices.create(address, 'mcdvi');
+  //   device1.brightness = 56;
+  //   expect(device2).toHaveProperty('brightness', 56);
+  //   expect(device1).toBe(device2);
+  // });
+  // test('countRef', () => {
+  //   const address = 'FF:FE:00:34:56:78';
+  //   const count = Object.keys(devices.get()).length;
+  //   const device1 = devices.create(address, 'mcdvi');
+  //   const device2 = devices.create(address, 'mcdvi');
+  //   expect(devices.get().length).toBe(count + 1);
+  //   device2.release();
+  //   expect(devices.get().length).toBe(count + 1);
+  //   device1.release();
+  //   expect(devices.get().length).toBe(count);
+  // });
   test('mibs', async () => {
     const mibs = await getMibs();
     expect(mibs.length).toBeGreaterThanOrEqual(43);

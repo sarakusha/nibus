@@ -1,6 +1,6 @@
-import { CommandModule, Defined } from 'yargs';
-import { CommonOpts } from '../options';
-declare type FlashOpts = Defined<CommonOpts, 'm' | 'mac'> & {
+import { CommandModule } from 'yargs';
+import { CommonOpts, MacOptions } from '../options';
+declare type FlashOpts = MacOptions & {
     kind?: string;
     source: string;
     src?: string;

@@ -10,19 +10,26 @@
 
 /* tslint:disable:variable-name */
 import * as t from 'io-ts';
+
+/**
+ * Путь к сокету для обмена данными IPC
+ */
 export const PATH = '/tmp/nibus.service.sock';
 
+/** @internal */
 const LogLevelV = t.keyof({
   none: null,
   hex: null,
   nibus: null,
 });
 
+/** @internal */
 const MibTypeV = t.array(t.intersection([
   t.type({ mib: t.string }),
   t.partial({ minVersion: t.number }),
 ]));
 
+/** @internal */
 export const ConfigV = t.partial({
   logLevel: LogLevelV,
   omit: t.union([t.array(t.string), t.null]),
@@ -32,6 +39,9 @@ export const ConfigV = t.partial({
 });
 
 // type MibType = t.TypeOf<typeof MibTypeV>;
+/**
+ * Конфигурация сервиса NiBUS
+ */
 export type Config = t.TypeOf<typeof ConfigV>;
 
 export type LogLevel = t.TypeOf<typeof LogLevelV>;

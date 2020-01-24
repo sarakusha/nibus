@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -33,7 +34,7 @@ export interface INibusOptions extends INibusCommon {
   data: Buffer;
 }
 
-const leadZero = (value: number) => `0${value}`.slice(-2);
+const leadZero = (value: number): string => value.toString().padStart(2, '0');
 
 export interface INibusDatagramJSON {
   priority: number;
@@ -44,13 +45,30 @@ export interface INibusDatagramJSON {
   data?: Buffer;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const replaceBuffers = (obj: any): any => Object.entries(obj).reduce(
+  (result, [name, value]) => ({
+    ...result,
+    [name]:
+      Buffer.isBuffer(value) ? printBuffer(value) : _.isPlainObject(value)
+        ? replaceBuffers(value)
+        : value,
+  }),
+  {},
+);
+
 // @timeStamp
 export default class NibusDatagram implements INibusOptions {
   public static defaultSource: AddressParam = Address.empty;
+
   public readonly priority: number;
+
   public readonly protocol: number;
+
   public readonly destination: Address;
+
   public readonly source: Address;
+
   public readonly data: Buffer;
 
   // @noenum
@@ -81,7 +99,10 @@ export default class NibusDatagram implements INibusOptions {
         PREAMBLE,
         ...destination.raw,
         ...source.raw,
-        0xC0 | (options.priority & 3) << 4 | (destination.rawType & 3) << 2 | (source.rawType & 3),
+        0xC0
+        | ((options.priority & 3) << 4)
+        | ((destination.rawType & 3) << 2)
+        | (source.rawType & 3),
         options.data.length + 1,
         options.protocol,
         ...options.data,
@@ -117,8 +138,8 @@ ${leadZero(ts.getSeconds())}.${ts.getMilliseconds()}`,
     };
   }
 
-  toString(opts?: { pick?: string[], omit?: string[] }) {
-    let self: any = replaceBuffers(this.toJSON());
+  toString(opts?: { pick?: string[]; omit?: string[] }): string {
+    let self = replaceBuffers(this.toJSON());
     if (opts) {
       if (opts.pick) {
         self = _.pick(self, opts.pick);
@@ -129,15 +150,4 @@ ${leadZero(ts.getSeconds())}.${ts.getMilliseconds()}`,
     }
     return JSON.stringify(self);
   }
-}
-
-const replaceBuffers = (obj: any) => {
-  Object.entries(obj).forEach(([name, value]) => {
-    if (Buffer.isBuffer(value)) {
-      obj[name] = printBuffer(value);
-    } else if (_.isPlainObject(value)) {
-      obj[name] = replaceBuffers(value);
-    }
-  });
-  return obj;
 }

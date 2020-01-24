@@ -1,9 +1,9 @@
 import { Arguments, Defined } from 'yargs';
-import { IDevice } from '@nibus/core/lib/mib';
+import { IDevice } from '@nibus/core';
 import { CommonOpts } from './options';
 interface ActionFunc<O> {
-    (device: IDevice, args: Arguments<O>): Promise<any>;
+    (device: IDevice, args: Arguments<O>): Promise<unknown>;
 }
-declare const makeAddressHandler: <O extends Defined<CommonOpts, "m" | "mac">>(action: ActionFunc<O>, breakout?: boolean) => (args: Arguments<O>) => Promise<unknown>;
-export { makeAddressHandler };
+export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>(action: ActionFunc<O>, breakout?: boolean): (args: Arguments<O>) => Promise<unknown>;
+export {};
 //# sourceMappingURL=handlers.d.ts.map

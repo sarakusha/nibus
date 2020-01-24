@@ -68,6 +68,7 @@ knownDevices:
     vid: '0403'
     pid: '6015' # 24597
     manufacturer: 'Nata-Info'
+    category: minihost
   - device: HostControlMini
     vid: '0403'
     pid: '6001' # 24577

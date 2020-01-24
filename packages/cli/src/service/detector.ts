@@ -1,16 +1,18 @@
 /*
  * @license
- * Copyright (c) 2019. Nata-Info
+ * Copyright (c) 2020. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
 /* tslint:disable:variable-name */
 import debugFactory from 'debug';
+import log from 'electron-log';
 import { EventEmitter } from 'events';
+import { Either, getOrElse, isLeft } from 'fp-ts/lib/Either';
 import fs, { Stats } from 'fs';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import yaml from 'js-yaml';
@@ -18,19 +20,31 @@ import _ from 'lodash';
 import path from 'path';
 import SerialPort from 'serialport';
 import usbDetection from 'usb-detection';
-import { IMibDescription } from '@nibus/core/lib/MibDescription';
 import {
+  MibDescription,
   Category,
   CategoryV,
   HexOrNumber,
   IKnownPort,
   KnownPortV,
-} from '@nibus/core/lib/session/KnownPorts';
+} from '@nibus/core';
+
+import staticDetecton from './static';
+
+log.transports.file.level = 'info';
+log.transports.console.level = false;
+
+function getOrUndefined<E, A>(e: Either<E, A>): A | undefined {
+  return getOrElse<E, A | undefined>(() => undefined)(e);
+}
 
 // let usbDetection: typeof UsbDetection;
-const debug = debugFactory('nibus:detector');
+// const debug = debugFactory('nibus:detector');
+const debug = log.info.bind(log);
 const detectionPath = path.resolve(__dirname, '../../detection.yml');
 let knownPorts: Promise<IKnownPort[]> = Promise.resolve([]);
+
+log.info('DETECTOR', detectionPath);
 
 interface IDetectorItem {
   device: string;
@@ -43,106 +57,94 @@ interface IDetectorItem {
 
 interface IDetection {
   mibCategories: {
-    [category: string]: IMibDescription,
+    [category: string]: MibDescription;
   };
   knownDevices: IDetectorItem[];
 }
 
-const loadDetection = (): IDetection | undefined => {
+const getRawDetection = (): IDetection => {
   try {
     const data = fs.readFileSync(detectionPath, 'utf8');
-    const result = yaml.safeLoad(data) as IDetection;
-    Object.keys(result.mibCategories).forEach((category) => {
-      const desc = result.mibCategories[category];
-      desc.category = category;
-      if (Array.isArray(desc.select)) {
-        desc.select = (desc.select as unknown as string[])
-          .map(cat => result.mibCategories[cat] || cat);
-      }
-    });
-    return result;
+    return yaml.safeLoad(data) as IDetection;
   } catch (err) {
-    debug(`Error: failed to read file ${detectionPath} (${err.message})`);
-    return undefined;
+    debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return staticDetecton as any;
   }
+};
+
+const loadDetection = (): IDetection | undefined => {
+  const result = getRawDetection();
+  Object.keys(result.mibCategories).forEach(category => {
+    const desc = result.mibCategories[category];
+    desc.category = category;
+    if (Array.isArray(desc.select)) {
+      desc.select = (desc.select as unknown as string[])
+        .map(cat => result.mibCategories[cat] || cat);
+    }
+  });
+  return result;
 };
 
 let detection = loadDetection();
 
-function reloadDevices(lastAdded?: usbDetection.IDevice) {
+function reloadDevices(lastAdded?: usbDetection.IDevice): void {
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
   knownPorts = knownPorts.then(ports => reloadDevicesAsync(ports, lastAdded));
 }
 
-const detectionListener = (curr: Stats, prev: Stats) => {
+const reload = _.debounce(reloadDevices, 2000);
+
+const detectionListener = (curr: Stats, prev: Stats): void => {
   if (curr.mtime !== prev.mtime) {
-    debug(`detection file was changed, reloading devices...`);
+    debug('detection file was changed, reloading devices...');
     detection = undefined;
     reloadDevices();
   }
 };
 
-/**
- * @fires add
- * @fires remove
- * @fires plug
- * @fires unplug
- */
-class Detector extends EventEmitter {
-  start() {
-    // usbDetection = require('usb-detection');
-    usbDetection.startMonitoring();
-    debug(`start watching the detector file ${detectionPath}`);
-    fs.watchFile(detectionPath, { persistent: false }, detectionListener);
-    // detection = loadDetection();
-    reloadDevices();
-    // Должна быть debounce с задержкой, иначе Serial.list не определит
-    usbDetection.on('add', reload);
-    // Удаление без задержки!
-    usbDetection.on('remove', reloadDevices);
-  }
-
-  stop() {
-    fs.unwatchFile(detectionPath, detectionListener);
-    usbDetection && usbDetection.stopMonitoring();
-  }
-
-  restart() {
-    if (!usbDetection) return this.start();
-    usbDetection.stopMonitoring();
-    process.nextTick(() => usbDetection.startMonitoring());
-  }
-
-  async getPorts() {
-    return knownPorts;
-  }
-
-  get detection(): IDetection | undefined {
-    return detection;
-  }
+interface IDetector extends NodeJS.EventEmitter {
+  start: () => void;
+  stop: () => void;
+  restart: () => void;
+  getPorts: () => Promise<IKnownPort[]>;
+  getDetection: () => IDetection | undefined;
 }
 
-const detector = new Detector();
+const detector = new EventEmitter() as IDetector;
+detector.start = () => {
+  usbDetection.startMonitoring();
+  debug(`start watching the detector file ${detectionPath}`);
+  fs.watchFile(detectionPath, { persistent: false }, detectionListener);
+  // detection = loadDetection();
+  reloadDevices();
+  // Должна быть debounce с задержкой, иначе Serial.list не определит
+  usbDetection.on('add', reload);
+  // Удаление без задержки!
+  usbDetection.on('remove', reloadDevices);
+};
 
-// interface ISerialPort {
-//   comName: string;
-//   locationId?: string;
-//   manufacturer?: string;
-//   pnpId?: string;
-//   productId: HexOrNumber;
-//   serialNumber: string;
-//   vendorId: HexOrNumber;
-// }
+detector.stop = () => {
+  fs.unwatchFile(detectionPath, detectionListener);
+  usbDetection && usbDetection.stopMonitoring();
+};
 
-// type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
-//
-// export interface IKnownPort extends Omit<SerialPort.PortInfo, 'productId' | 'vendorId'> {
-//   device?: string;
-//   productId: number;
-//   vendorId: number;
-//   category?: string;
-// }
+detector.restart = () => {
+  if (!usbDetection) {
+    detector.start();
+    return;
+  }
+  usbDetection.stopMonitoring();
+  process.nextTick(() => usbDetection.startMonitoring());
+};
 
-const getId = (id?: HexOrNumber) => typeof id === 'string' ? parseInt(id, 16) : id;
+detector.getPorts = () => knownPorts;
+
+detector.getDetection = (): IDetection | undefined => detection;
+
+const getId = (id?: HexOrNumber): number | undefined => (typeof id === 'string'
+  ? parseInt(id, 16)
+  : id);
 
 function equals(port: SerialPort.PortInfo, device: usbDetection.IDevice): boolean {
   return getId(port.productId) === device.productId
@@ -150,8 +152,10 @@ function equals(port: SerialPort.PortInfo, device: usbDetection.IDevice): boolea
     && port.serialNumber === device.serialNumber;
 }
 
-async function detectDevice(port: SerialPort.PortInfo, lastAdded?: usbDetection.IDevice)
-  : Promise<IKnownPort> {
+async function detectDevice(
+  port: SerialPort.PortInfo,
+  lastAdded?: usbDetection.IDevice,
+): Promise<IKnownPort> {
   let detected: usbDetection.IDevice | undefined;
   if (lastAdded && equals(port, lastAdded)) {
     detected = lastAdded;
@@ -174,7 +178,9 @@ async function detectDevice(port: SerialPort.PortInfo, lastAdded?: usbDetection.
     }
   }
   if (detected !== undefined) {
-    const { productId, vendorId, deviceName: device, deviceAddress } = detected;
+    const {
+      productId, vendorId, deviceName: device, deviceAddress,
+    } = detected;
     return {
       ...port,
       productId,
@@ -190,20 +196,6 @@ async function detectDevice(port: SerialPort.PortInfo, lastAdded?: usbDetection.
   };
 }
 
-// const loadDetection = () => new Promise<IDetection>((resolve, reject) => {
-//   fs.readFile(detectionPath, 'utf8', (err, data) => {
-//     if (err) {
-//       reject(`Error: failed to read file ${detectionPath} (${err.message})`);
-//     } else {
-//       const result = yaml.safeLoad(data) as IDetection;
-//       Object.keys(result.mibCategories).forEach((category) => {
-//         result.mibCategories[category].category = category;
-//       });
-//       resolve(result);
-//     }
-//   });
-// });
-
 const matchCategory = (port: IKnownPort): Category => {
   const match = detection && _.find(
     detection!.knownDevices,
@@ -218,10 +210,12 @@ const matchCategory = (port: IKnownPort): Category => {
     && port.vendorId === 0x0403) {
     return 'ftdi';
   }
-  if (match) return CategoryV.decode(match.category).getOrElse(undefined);
+  return match && getOrUndefined(CategoryV.decode(match.category));
 };
 
-async function reloadDevicesAsync(prevPorts: IKnownPort[], lastAdded?: usbDetection.IDevice) {
+async function reloadDevicesAsync(
+  prevPorts: IKnownPort[], lastAdded?: usbDetection.IDevice,
+): Promise<IKnownPort[]> {
   const ports: IKnownPort[] = [];
   try {
     if (detection == null) {
@@ -233,7 +227,7 @@ async function reloadDevicesAsync(prevPorts: IKnownPort[], lastAdded?: usbDetect
 
     await externalPorts.reduce(async (promise, port) => {
       const nextPorts = await promise;
-      const prev = _.findIndex(prevPorts, { comName: port.comName });
+      const prev = _.findIndex(prevPorts, { path: port.path });
       let device: IKnownPort;
       if (prev !== -1) {
         [device] = prevPorts.splice(prev, 1);
@@ -241,66 +235,41 @@ async function reloadDevicesAsync(prevPorts: IKnownPort[], lastAdded?: usbDetect
         if (category !== device.category) {
           debug(`device's category was changed ${device.category} to ${category}`);
           device.category && detector.emit('remove', device);
-          device.category = CategoryV.decode(category).getOrElse(undefined);
+          device.category = getOrUndefined(CategoryV.decode(category));
           device.category && detector.emit('add', device);
         }
       } else {
         device = await detectDevice(port, lastAdded);
         device.category = matchCategory(device);
-        /**
-         * new device plugged
-         * @event Detector#plug
-         */
         detector.emit('plug', device);
         // console.log('PORT', JSON.stringify(port));
         if (device.category) {
           debug(`new device ${device.device || device.vendorId}/\
-${device.category} was plugged to ${device.comName}`);
+${device.category} was plugged to ${device.path}`);
           detector.emit('add', device);
         } else {
           debug('unknown device %o was plugged', device);
         }
       }
       const validation = KnownPortV.decode(device);
-      if (validation.isLeft()) {
-        debug('<error>', PathReporter.report(validation));
+      if (isLeft(validation)) {
+        debug('<error>', PathReporter.report(validation).join('\n'));
       } else {
-        nextPorts.push(validation.value);
+        nextPorts.push(validation.right);
       }
       return nextPorts;
     }, Promise.resolve(ports));
-    prevPorts.forEach((port) => {
-      /**
-       * @event Detector#unplug
-       */
+    prevPorts.forEach(port => {
       detector.emit('unplug', port);
       debug(`device ${port.device || port.vendorId}/\
-${port.category || port.productId} was unplugged from ${port.comName}`);
-      /**
-       * device with category was removed
-       * @event Detector#remove
-       * @param {IKnownPort} device
-       */
+${port.category || port.productId} was unplugged from ${port.path}`);
       port.category && detector.emit('remove', port);
     });
     return ports;
   } catch (err) {
-    debug(`Error: reload devices was failed (${err.message || err})`);
+    debug(`Error: reload devices was failed (${err.stack || err})`);
     return ports;
   }
 }
-
-// debug(`start watching the detector file ${detectionPath}`);
-// fs.watchFile(detectionPath, { persistent: false }, (curr, prev) => {
-//   if (curr.mtime !== prev.mtime) {
-//     debug(`detection file was changed, reloading devices...`);
-//     detection = undefined;
-//     reloadDevices().catch();
-//   }
-// });
-
-// reloadDevices();
-
-const reload = _.debounce(reloadDevices, 2000);
 
 export default detector;

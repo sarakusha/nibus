@@ -1,3 +1,4 @@
+/* eslint-disable no-bitwise */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -11,8 +12,10 @@
 import _ from 'lodash';
 import { AddressParam } from '../Address';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
-import { getNibusTimeout } from '../nibus';
-import { encodeValue, getNmsType, getSizeOf, writeValue } from './nms';
+import config from '../nibus/config';
+import {
+  encodeValue, getNmsType, getSizeOf, writeValue,
+} from './nms';
 import NmsDatagram from './NmsDatagram';
 import NmsServiceType from './NmsServiceType';
 import NmsValueType from './NmsValueType';
@@ -22,13 +25,13 @@ export { NmsValueType };
 export { NmsDatagram };
 export { getNmsType };
 
-export function createNmsRead(destination: AddressParam, ...ids: number[]) {
+export function createNmsRead(destination: AddressParam, ...ids: number[]): NmsDatagram {
   if (ids.length > 21) {
     throw new Error('To many properties (21)');
   }
   const [id, ...rest] = ids;
   const nms = _.flatten(rest.map(next => [
-    NmsServiceType.Read << 3 | next >> 8,
+    (NmsServiceType.Read << 3) | (next >> 8),
     next & 0xff,
     0,
   ]));
@@ -42,7 +45,9 @@ export function createNmsRead(destination: AddressParam, ...ids: number[]) {
 }
 
 export function createNmsWrite(
-  destination: AddressParam, id: number, type: NmsValueType, value: any, notReply = false) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  destination: AddressParam, id: number, type: NmsValueType, value: any, notReply = false,
+): NmsDatagram {
   const nms = encodeValue(type, value);
   return new NmsDatagram({
     destination,
@@ -53,7 +58,10 @@ export function createNmsWrite(
   });
 }
 
-export function createNmsInitiateUploadSequence(destination: AddressParam, id: number) {
+export function createNmsInitiateUploadSequence(
+  destination: AddressParam,
+  id: number,
+): NmsDatagram {
   return new NmsDatagram({
     destination,
     id,
@@ -61,7 +69,10 @@ export function createNmsInitiateUploadSequence(destination: AddressParam, id: n
   });
 }
 
-export function createNmsRequestDomainUpload(destination: AddressParam, domain: string) {
+export function createNmsRequestDomainUpload(
+  destination: AddressParam,
+  domain: string,
+): NmsDatagram {
   if (domain.length !== 8) {
     throw new Error('domain must be string of 8 characters');
   }
@@ -74,11 +85,12 @@ export function createNmsRequestDomainUpload(destination: AddressParam, domain: 
 }
 
 export function createNmsUploadSegment(
-  destination: AddressParam, id: number, offset: number, length: number) {
+  destination: AddressParam, id: number, offset: number, length: number,
+): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
   }
-  if (length < 0 || 255 < length) {
+  if (length < 0 || length > 255) {
     throw new Error('Invalid length');
   }
   const nms = Buffer.alloc(5);
@@ -92,7 +104,9 @@ export function createNmsUploadSegment(
   });
 }
 
-export function createNmsRequestDomainDownload(destination: AddressParam, domain: string) {
+export function createNmsRequestDomainDownload(
+  destination: AddressParam, domain: string,
+): NmsDatagram {
   if (domain.length !== 8) {
     throw new Error('domain must be string of 8 characters');
   }
@@ -104,12 +118,14 @@ export function createNmsRequestDomainDownload(destination: AddressParam, domain
   });
 }
 
-export function createNmsInitiateDownloadSequence(destination: AddressParam, id: number) {
+export function createNmsInitiateDownloadSequence(
+  destination: AddressParam, id: number,
+): NmsDatagram {
   return new NmsDatagram({
     destination,
     id,
     service: NmsServiceType.InitiateDownloadSequence,
-    timeout: 5 * getNibusTimeout(),
+    timeout: 5 * config.timeout,
   });
 }
 
@@ -118,7 +134,8 @@ export function createNmsDownloadSegment(
   id: number,
   offset: number,
   data: Buffer,
-  notReply = false) {
+  notReply = false,
+): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
   }
@@ -138,12 +155,14 @@ export function createNmsDownloadSegment(
   });
 }
 
-export function createNmsTerminateDownloadSequence(destination: AddressParam, id: number) {
+export function createNmsTerminateDownloadSequence(
+  destination: AddressParam, id: number,
+): NmsDatagram {
   return new NmsDatagram({
     destination,
     id,
     service: NmsServiceType.TerminateDownloadSequence,
-    timeout: getNibusTimeout() * 10,
+    timeout: config.timeout * 10,
   });
 }
 
@@ -152,7 +171,8 @@ export function createNmsVerifyDomainChecksum(
   id: number,
   offset: number,
   size: number,
-  crc: number) {
+  crc: number,
+): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
   }
@@ -168,17 +188,19 @@ export function createNmsVerifyDomainChecksum(
     id,
     nms,
     service: NmsServiceType.VerifyDomainChecksum,
-    timeout: getNibusTimeout() * 10,
+    timeout: config.timeout * 10,
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TypedValue = [NmsValueType, any];
 
 export function createExecuteProgramInvocation(
   destination: AddressParam,
   id: number,
   notReply = false,
-  ...args: TypedValue[]) {
+  ...args: TypedValue[]
+): NmsDatagram {
   let nms = Buffer.alloc(0);
   if (args.length > 0) {
     const size = args.reduce((len, [type, value]) => len + getSizeOf(type, value), 1);
@@ -194,6 +216,6 @@ export function createExecuteProgramInvocation(
     nms,
     notReply,
     service: NmsServiceType.ExecuteProgramInvocation,
-    timeout: getNibusTimeout() * 3,
+    timeout: config.timeout * 3,
   });
 }

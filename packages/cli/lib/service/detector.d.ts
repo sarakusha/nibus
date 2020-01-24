@@ -1,7 +1,5 @@
 /// <reference types="node" />
-import { EventEmitter } from 'events';
-import { IMibDescription } from '@nibus/core/lib/MibDescription';
-import { Category, HexOrNumber, IKnownPort } from '@nibus/core/lib/session/KnownPorts';
+import { MibDescription, Category, HexOrNumber, IKnownPort } from '@nibus/core';
 interface IDetectorItem {
     device: string;
     vid: HexOrNumber;
@@ -12,17 +10,17 @@ interface IDetectorItem {
 }
 interface IDetection {
     mibCategories: {
-        [category: string]: IMibDescription;
+        [category: string]: MibDescription;
     };
     knownDevices: IDetectorItem[];
 }
-declare class Detector extends EventEmitter {
-    start(): void;
-    stop(): void;
-    restart(): void;
-    getPorts(): Promise<IKnownPort[]>;
-    readonly detection: IDetection | undefined;
+interface IDetector extends NodeJS.EventEmitter {
+    start: () => void;
+    stop: () => void;
+    restart: () => void;
+    getPorts: () => Promise<IKnownPort[]>;
+    getDetection: () => IDetection | undefined;
 }
-declare const detector: Detector;
+declare const detector: IDetector;
 export default detector;
 //# sourceMappingURL=detector.d.ts.map

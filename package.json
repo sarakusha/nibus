@@ -30,7 +30,7 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "clean": "rimraf packages/*/{lib,build,.next}",
-    "publish": "lerna publish --registry=https://npm.nata-info.ru",
+    "publish": "lerna publish from-package --registry=https://npm.nata-info.ru",
     "update:version": "lerna version --no-push"
   }
 }

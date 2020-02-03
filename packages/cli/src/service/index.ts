@@ -10,7 +10,6 @@
 
 /* eslint-disable no-bitwise */
 import Configstore from 'configstore';
-import debugFactory from 'debug';
 import { isLeft } from 'fp-ts/lib/Either';
 import { Socket } from 'net';
 import _ from 'lodash';
@@ -28,12 +27,13 @@ import {
   PATH,
   IKnownPort,
 } from '@nibus/core';
-
-
 import { createInterface } from 'readline';
+
+
 import fs from 'fs';
 
 import detector from './detector';
+import debugFactory from '../debug';
 
 import { Direction } from '../ipc/Server';
 import { SerialLogger } from '../ipc/SerialTee';

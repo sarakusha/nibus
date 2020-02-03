@@ -12,9 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __importStar(require("net"));
 const stream_1 = require("stream");
-const debug_1 = __importDefault(require("debug"));
 const fs_1 = __importDefault(require("fs"));
 const xpipe_1 = __importDefault(require("xpipe"));
+const debug_1 = __importDefault(require("../debug"));
 const debug = debug_1.default('nibus:IPCServer');
 const noop = () => { };
 var Direction;

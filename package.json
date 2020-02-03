@@ -22,15 +22,19 @@
     "typescript": "^3.7.3"
   },
   "workspaces": {
-    "packages": ["packages/*"],
-    "nohoist": ["**/@serialport/bindings"]
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/@serialport/bindings"
+    ]
   },
   "scripts": {
     "bootstrap": "lerna bootstrap",
     "build": "lerna run build",
     "test": "lerna run test",
     "clean": "rimraf packages/*/{lib,build,.next}",
-    "publish": "lerna publish --registry=https://npm.nata-info.ru",
+    "publish": "lerna publish from-package --registry=https://npm.nata-info.ru",
     "update:version": "lerna version --no-push"
   }
 }

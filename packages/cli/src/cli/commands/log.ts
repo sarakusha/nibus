@@ -9,12 +9,12 @@
  */
 
 import { CommandModule } from 'yargs';
-import debugFactory from 'debug';
 import { Tail } from 'tail';
 import path from 'path';
 import { homedir } from 'os';
 import { PATH, Client } from '@nibus/core';
 import { CommonOpts } from '../options';
+import debugFactory from '../../debug';
 
 
 const debug = debugFactory('nibus:log');

@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const pm2_1 = __importDefault(require("pm2"));
-const debug_1 = __importDefault(require("debug"));
+const debug_1 = __importDefault(require("../../debug"));
 const start_1 = require("./start");
 const debug = debug_1.default('nibus:start');
 const stopCommand = {

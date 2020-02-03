@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Nata-Info NiBUS",
   "private": true,
   "keywords": [
@@ -59,7 +59,7 @@
     "supports-color": "^7.0.0"
   },
   "dependencies": {
-    "@nibus/core": "^2",
+    "@nibus/core": "^2.0.1",
     "@serialport/bindings": "^8.0.6",
     "chalk": "^3.0.0",
     "cli-table3": "^0.5.1",
@@ -109,5 +109,5 @@
       "@serialport/bindings"
     ]
   },
-  "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"
+  "gitHead": "bff51a5d48e72aa5cb4acefd176d0026346fe532"
 }

@@ -22,8 +22,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const chalk_1 = __importDefault(require("chalk"));
 const cli_table3_1 = __importDefault(require("cli-table3"));
 const lodash_1 = __importDefault(require("lodash"));
-const debug_1 = __importDefault(require("debug"));
 const core_1 = __importStar(require("@nibus/core"));
+const debug_1 = __importDefault(require("../../debug"));
 const debug = debug_1.default('nibus:dump');
 let count = 0;
 function dumpDevice(address, connection, argv, mib) {

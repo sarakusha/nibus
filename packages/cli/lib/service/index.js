@@ -13,13 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const configstore_1 = __importDefault(require("configstore"));
-const debug_1 = __importDefault(require("debug"));
 const Either_1 = require("fp-ts/lib/Either");
 const lodash_1 = __importDefault(require("lodash"));
 const core_1 = require("@nibus/core");
 const readline_1 = require("readline");
 const fs_1 = __importDefault(require("fs"));
 const detector_1 = __importDefault(require("./detector"));
+const debug_1 = __importDefault(require("../debug"));
 const Server_1 = require("../ipc/Server");
 const ipc_1 = require("../ipc");
 const pkgName = '@nata/nibus.js';

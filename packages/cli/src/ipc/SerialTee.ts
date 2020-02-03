@@ -9,9 +9,9 @@
  */
 
 import SerialPort, { OpenOptions } from 'serialport';
-import debugFactory from 'debug';
 import { EventEmitter } from 'events';
 import { getSocketPath, IKnownPort, MibDescription } from '@nibus/core';
+import debugFactory from '../debug';
 import Server, { Direction } from './Server';
 
 

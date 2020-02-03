@@ -12,12 +12,11 @@ import chalk from 'chalk';
 import Table, { HorizontalTable } from 'cli-table3';
 import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
-import debugFactory from 'debug';
-
 import session, {
   Address, devices, IDevice, NibusConnection, SarpQueryType, config, getMibPrototype,
 } from '@nibus/core';
 
+import debugFactory from '../../debug';
 import { CommonOpts } from '../options';
 
 type RowType = {

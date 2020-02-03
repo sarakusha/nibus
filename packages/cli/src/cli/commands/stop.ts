@@ -10,7 +10,7 @@
 
 import pm2 from 'pm2';
 import { CommandModule } from 'yargs';
-import debugFactory from 'debug';
+import debugFactory from '../../debug';
 import { CommonOpts } from '../options';
 
 import { startOptions } from './start';

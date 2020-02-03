@@ -11,7 +11,7 @@
 import pm2, { StartOptions } from 'pm2';
 import { CommandModule } from 'yargs';
 import path from 'path';
-import debugFactory from 'debug';
+import debugFactory from '../../debug';
 import { CommonOpts } from '../options';
 
 const debug = debugFactory('nibus:start');

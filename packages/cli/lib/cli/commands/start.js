@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const pm2_1 = __importDefault(require("pm2"));
 const path_1 = __importDefault(require("path"));
-const debug_1 = __importDefault(require("debug"));
+const debug_1 = __importDefault(require("../../debug"));
 const debug = debug_1.default('nibus:start');
 exports.startOptions = {
     name: 'nibus.service',

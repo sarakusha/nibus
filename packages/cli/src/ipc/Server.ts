@@ -11,9 +11,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import net, { Socket, Server } from 'net';
 import { Duplex } from 'stream';
-import debugFactory from 'debug';
 import fs from 'fs';
 import xpipe from 'xpipe';
+import debugFactory from '../debug';
 
 const debug = debugFactory('nibus:IPCServer');
 const noop = (): void => {};

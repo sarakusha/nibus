@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const serialport_1 = __importDefault(require("serialport"));
-const debug_1 = __importDefault(require("debug"));
 const events_1 = require("events");
 const core_1 = require("@nibus/core");
+const debug_1 = __importDefault(require("../debug"));
 const Server_1 = __importDefault(require("./Server"));
 const debug = debug_1.default('nibus:serial-tee');
 const portOptions = {

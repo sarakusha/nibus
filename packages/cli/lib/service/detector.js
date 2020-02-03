@@ -11,8 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const electron_log_1 = __importDefault(require("electron-log"));
 const events_1 = require("events");
 const Either_1 = require("fp-ts/lib/Either");
 const fs_1 = __importDefault(require("fs"));
@@ -24,15 +30,16 @@ const serialport_1 = __importDefault(require("serialport"));
 const usb_detection_1 = __importDefault(require("usb-detection"));
 const core_1 = require("@nibus/core");
 const static_1 = __importDefault(require("./static"));
-electron_log_1.default.transports.file.level = 'info';
-electron_log_1.default.transports.console.level = false;
+const debug_1 = __importStar(require("../debug"));
 function getOrUndefined(e) {
     return Either_1.getOrElse(() => undefined)(e);
 }
-const debug = electron_log_1.default.info.bind(electron_log_1.default);
-const detectionPath = path_1.default.resolve(__dirname, '../../detection.yml');
+const debug = debug_1.default('nibus:detector');
+const detectionPath = debug_1.isElectron
+    ? path_1.default.resolve(__dirname, '..', 'extraResources', 'detection.yml')
+    : path_1.default.resolve(__dirname, '..', '..', 'detection.yml');
+debug('Detection file', detectionPath);
 let knownPorts = Promise.resolve([]);
-electron_log_1.default.info('DETECTOR', detectionPath);
 const getRawDetection = () => {
     try {
         const data = fs_1.default.readFileSync(detectionPath, 'utf8');
@@ -153,6 +160,7 @@ function reloadDevicesAsync(prevPorts, lastAdded) {
             }
             const list = yield serialport_1.default.list();
             const externalPorts = list.filter(port => !!port.productId);
+            debug('externalPorts', externalPorts);
             yield externalPorts.reduce((promise, port) => __awaiter(this, void 0, void 0, function* () {
                 const nextPorts = yield promise;
                 const prev = lodash_1.default.findIndex(prevPorts, { path: port.path });

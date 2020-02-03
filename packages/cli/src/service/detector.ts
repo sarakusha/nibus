@@ -9,8 +9,6 @@
  */
 
 /* tslint:disable:variable-name */
-import debugFactory from 'debug';
-import log from 'electron-log';
 import { EventEmitter } from 'events';
 import { Either, getOrElse, isLeft } from 'fp-ts/lib/Either';
 import fs, { Stats } from 'fs';
@@ -29,22 +27,21 @@ import {
   KnownPortV,
 } from '@nibus/core';
 
-import staticDetecton from './static';
-
-log.transports.file.level = 'info';
-log.transports.console.level = false;
+import staticDetection from './static';
+import debugFactory, { isElectron } from '../debug';
 
 function getOrUndefined<E, A>(e: Either<E, A>): A | undefined {
   return getOrElse<E, A | undefined>(() => undefined)(e);
 }
 
 // let usbDetection: typeof UsbDetection;
-// const debug = debugFactory('nibus:detector');
-const debug = log.info.bind(log);
-const detectionPath = path.resolve(__dirname, '../../detection.yml');
+const debug = debugFactory('nibus:detector');
+const detectionPath = isElectron
+  ? path.resolve(__dirname, '..', 'extraResources', 'detection.yml')
+  : path.resolve(__dirname, '..', '..', 'detection.yml');
+debug('Detection file', detectionPath);
 let knownPorts: Promise<IKnownPort[]> = Promise.resolve([]);
 
-log.info('DETECTOR', detectionPath);
 
 interface IDetectorItem {
   device: string;
@@ -69,7 +66,7 @@ const getRawDetection = (): IDetection => {
   } catch (err) {
     debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return staticDetecton as any;
+    return staticDetection as any;
   }
 };
 
@@ -223,6 +220,7 @@ async function reloadDevicesAsync(
     }
     const list: SerialPort.PortInfo[] = await SerialPort.list();
     const externalPorts = list.filter(port => !!port.productId);
+    debug('externalPorts', externalPorts);
     // const prevPorts = knownPorts.splice(0);
 
     await externalPorts.reduce(async (promise, port) => {

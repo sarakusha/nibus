@@ -2,6 +2,7 @@
   "name": "@nibus/cli",
   "version": "2.0.1",
   "description": "Nata-Info NiBUS",
+  "private": true,
   "keywords": [
     "nata-info",
     "nibus",
@@ -108,5 +109,5 @@
       "@serialport/bindings"
     ]
   },
-  "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"
+  "gitHead": "bff51a5d48e72aa5cb4acefd176d0026346fe532"
 }

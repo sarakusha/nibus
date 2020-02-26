@@ -10,7 +10,7 @@
 
 import { Arguments, CommandModule } from 'yargs';
 
-import { IDevice } from '@nibus/core/lib/mib';
+import { IDevice } from '@nibus/core';
 import makeAddressHandler from '../handlers';
 import { CommonOpts, MacOptions } from '../options';
 

@@ -18,6 +18,7 @@ import session, {
 
 import debugFactory from '../../debug';
 import { CommonOpts } from '../options';
+import serviceWrapper from '../serviceWrapper';
 
 type RowType = {
   displayName: string;
@@ -127,7 +128,7 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
       }
       return true;
     }),
-  handler: argv => new Promise((resolve, reject) => {
+  handler: serviceWrapper(argv => new Promise((resolve, reject) => {
     let timeout: NodeJS.Timeout;
     const close = (err?: string): void => {
       clearTimeout(timeout);
@@ -178,7 +179,7 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
     };
 
     timeout = setTimeout(wait, config.timeout);
-  }),
+  })),
 };
 
 export default dumpCommand;

@@ -17,7 +17,7 @@ import Progress from 'progress';
 import xmlParser from 'fast-xml-parser';
 import path from 'path';
 
-import { IDevice } from '@nibus/core/lib/mib';
+import { IDevice } from '@nibus/core';
 import makeAddressHandler from '../handlers';
 import { CommonOpts, MacOptions } from '../options';
 import { action as writeAction } from './write';

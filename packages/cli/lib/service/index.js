@@ -167,20 +167,24 @@ class NibusService {
     }
     start() {
         if (this.isStarted)
-            return;
+            return Promise.resolve();
         this.isStarted = true;
         const detection = detector_1.default.getDetection();
         if (detection == null)
             throw new Error('detection is N/A');
         detector_1.default.on('add', this.addHandler);
         detector_1.default.on('remove', this.removeHandler);
-        detector_1.default.getPorts().catch(err => {
-            console.error('error while get ports', err.stack);
+        const promise = new Promise((resolve, reject) => {
+            detector_1.default.getPorts().then(() => resolve()).catch(err => {
+                console.error('error while get ports', err.stack);
+                reject(err);
+            });
         });
         detector_1.default.start();
         process.once('SIGINT', () => this.stop());
         process.once('SIGTERM', () => this.stop());
         debug('started');
+        return promise;
     }
     stop() {
         if (!this.isStarted)
@@ -194,6 +198,7 @@ class NibusService {
         detector_1.default.removeListener('add', this.addHandler);
         detector_1.default.removeListener('remove', this.removeHandler);
         detector_1.default.stop();
+        this.server.close();
         this.isStarted = false;
         debug('stopped');
     }

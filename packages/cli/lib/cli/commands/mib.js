@@ -16,7 +16,7 @@ const Either_1 = require("fp-ts/lib/Either");
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
-const mib_1 = require("@nibus/core/lib/mib");
+const core_1 = require("@nibus/core");
 const mibCommand = {
     command: 'mib <mibfile>',
     describe: 'добавить mib-файл',
@@ -28,8 +28,8 @@ const mibCommand = {
         .demandOption('mibfile'),
     handler: ({ mibfile }) => __awaiter(void 0, void 0, void 0, function* () {
         const dest = path_1.default.resolve(__dirname, '../../../../core/mibs');
-        const jsonPath = yield mib_1.convert(mibfile, dest);
-        const validation = mib_1.MibDeviceV.decode(fs_1.default.readFileSync(jsonPath));
+        const jsonPath = yield core_1.convert(mibfile, dest);
+        const validation = core_1.MibDeviceV.decode(fs_1.default.readFileSync(jsonPath));
         if (Either_1.isLeft(validation)) {
             throw new Error(`Invalid mib file: ${mibfile}
       ${PathReporter_1.PathReporter.report(validation).join('\n')}`);

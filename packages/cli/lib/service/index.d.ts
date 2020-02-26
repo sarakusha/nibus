@@ -6,7 +6,7 @@ declare class NibusService {
     constructor();
     get path(): string;
     updateLogger(connection?: SerialTee): void;
-    start(): void;
+    start(): Promise<void>;
     stop(): void;
     private logLevelHandler;
     private connectionHandler;

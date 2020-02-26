@@ -21,7 +21,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = __importDefault(require("lodash"));
 const core_1 = __importStar(require("@nibus/core"));
-const delay = (timeout) => new Promise(resolve => setTimeout(resolve, timeout * 1000));
+exports.delay = (timeout) => new Promise(resolve => setTimeout(resolve, timeout * 1000));
 const round = (val) => Math.round(val * 10) / 10;
 const pingCommand = {
     command: 'ping',
@@ -64,7 +64,7 @@ min/avg/max = ${min || '-'}/${Number.isNaN(avg) ? '-' : avg}/${max || '-'}`);
             quiet || raw || console.info(`${mac} ${ping !== -1 ? `${ping} ms` : '*'}`);
             if (count - transmitted === 0)
                 break;
-            yield delay(timeout);
+            yield exports.delay(timeout);
         }
         core_1.default.close();
         if (raw)

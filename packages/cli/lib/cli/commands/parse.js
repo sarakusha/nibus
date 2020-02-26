@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const nibus_1 = require("@nibus/core/lib/nibus");
+const core_1 = require("@nibus/core");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const stream_1 = require("stream");
@@ -15,7 +15,7 @@ const hexTransform = new stream_1.Transform({
     },
 });
 const makeNibusDecoder = (pick, omit) => {
-    const decoder = new nibus_1.NibusDecoder();
+    const decoder = new core_1.NibusDecoder();
     decoder.on('data', (datagram) => {
         console.info(datagram.toString({
             pick,

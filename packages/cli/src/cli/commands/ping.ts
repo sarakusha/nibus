@@ -12,13 +12,14 @@ import { CommandModule } from 'yargs';
 import _ from 'lodash';
 import session, { TimeoutError } from '@nibus/core';
 import { CommonOpts, MacOptions } from '../options';
+import serviceWrapper from '../serviceWrapper';
 
 type PingOpts = MacOptions & {
   count?: number;
   timeout?: number;
 };
 
-const delay = (timeout: number): Promise<void> => new Promise(
+export const delay = (timeout: number): Promise<void> => new Promise(
   resolve => setTimeout(resolve, timeout * 1000),
 );
 const round = (val: number): number => Math.round(val * 10) / 10;
@@ -39,7 +40,7 @@ const pingCommand: CommandModule<CommonOpts, PingOpts> = {
       number: true,
     })
     .demandOption(['mac']),
-  handler: async ({
+  handler: serviceWrapper(async ({
     count = -1, timeout = 1, mac, quiet, raw,
   }): Promise<void> => {
     await session.start();
@@ -71,7 +72,7 @@ min/avg/max = ${min || '-'}/${Number.isNaN(avg) ? '-' : avg}/${max || '-'}`);
     session.close();
     if (raw) console.info(stat.length);
     if (stat.length === 0) throw new TimeoutError();
-  },
+  }),
 };
 
 export default pingCommand;

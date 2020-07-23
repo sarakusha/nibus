@@ -15,6 +15,7 @@ import { homedir } from 'os';
 import { PATH, Client } from '@nibus/core';
 import { CommonOpts } from '../options';
 import debugFactory from '../../debug';
+import serviceWrapper from '../serviceWrapper';
 
 
 const debug = debugFactory('nibus:log');
@@ -47,7 +48,7 @@ const logCommand: CommandModule<CommonOpts, LogOpts> = {
       describe: 'вывод с начала',
       boolean: true,
     }),
-  handler: ({
+  handler: serviceWrapper(({
     level, pick, omit, begin,
   }) => new Promise((resolve, reject) => {
     const socket = Client.connect(PATH);
@@ -75,7 +76,7 @@ const logCommand: CommandModule<CommonOpts, LogOpts> = {
     process.on('SIGINT', () => log.unwatch());
     log.watch();
     log.on('line', console.info.bind(console));
-  }),
+  })),
 };
 
 export default logCommand;

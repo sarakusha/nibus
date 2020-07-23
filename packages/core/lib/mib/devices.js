@@ -227,7 +227,8 @@ class DevicePrototype extends events_1.EventEmitter {
         const mibfile = getMibFile(mibname);
         const mibValidation = mib_1.MibDeviceV.decode(JSON.parse(fs_1.default.readFileSync(mibfile).toString()));
         if (Either_1.isLeft(mibValidation)) {
-            throw new Error(`Invalid mib file ${mibfile} ${PathReporter_1.PathReporter.report(mibValidation).join('\n')}`);
+            throw new Error(`Invalid mib file ${mibfile} ${PathReporter_1.PathReporter.report(mibValidation)
+                .join('\n')}`);
         }
         const mib = mibValidation.right;
         const { types, subroutines } = mib;
@@ -242,7 +243,8 @@ class DevicePrototype extends events_1.EventEmitter {
         device.appinfo.min_version && Reflect.defineMetadata('min_version', device.appinfo.min_version, this);
         types.errorType && Reflect.defineMetadata('errorType', types.errorType.enumeration, this);
         if (subroutines) {
-            const metasubs = lodash_1.default.transform(subroutines, (result, sub, name) => (Object.assign(Object.assign({}, result), { [name]: {
+            const metasubs = lodash_1.default.transform(subroutines, (result, sub, name) => {
+                result[name] = {
                     id: mib_1.toInt(sub.appinfo.nms_id),
                     description: sub.annotation,
                     args: sub.properties && Object.entries(sub.properties)
@@ -251,7 +253,8 @@ class DevicePrototype extends events_1.EventEmitter {
                         type: nms_1.getNmsType(prop.type),
                         desc: prop.annotation,
                     })),
-                } })), {});
+                };
+            }, {});
             Reflect.defineMetadata('subroutines', metasubs, this);
         }
         const keys = Reflect.ownKeys(device.properties);
@@ -624,6 +627,7 @@ class DevicePrototype extends events_1.EventEmitter {
             throw new Error('disconnected');
         const subroutines = Reflect.getMetadata('subroutines', this);
         if (!subroutines || !Reflect.has(subroutines, program)) {
+            console.warn('subroutines', subroutines);
             throw new Error(`Unknown program ${program}`);
         }
         const subroutine = subroutines[program];

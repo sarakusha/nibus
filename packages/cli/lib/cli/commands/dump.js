@@ -24,6 +24,7 @@ const cli_table3_1 = __importDefault(require("cli-table3"));
 const lodash_1 = __importDefault(require("lodash"));
 const core_1 = __importStar(require("@nibus/core"));
 const debug_1 = __importDefault(require("../../debug"));
+const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
 const debug = debug_1.default('nibus:dump');
 let count = 0;
 function dumpDevice(address, connection, argv, mib) {
@@ -114,7 +115,7 @@ const dumpCommand = {
         }
         return true;
     }),
-    handler: argv => new Promise((resolve, reject) => {
+    handler: serviceWrapper_1.default(argv => new Promise((resolve, reject) => {
         let timeout;
         const close = (err) => {
             clearTimeout(timeout);
@@ -166,7 +167,7 @@ const dumpCommand = {
             }
         };
         timeout = setTimeout(wait, core_1.config.timeout);
-    }),
+    })),
 };
 exports.default = dumpCommand;
 //# sourceMappingURL=dump.js.map

@@ -20,6 +20,7 @@ exports.startOptions = {
     name: 'nibus.service',
     script: 'service/daemon.js',
     cwd: path_1.default.resolve(__dirname, '../..'),
+    interpreter: 'none',
     max_restarts: 3,
     env: {
         DEBUG: 'nibus:*,nibus-serial:*',
@@ -73,7 +74,7 @@ const startCommand = {
                 }
                 pm2_1.default.disconnect();
                 if (e) {
-                    console.error('error while start nibus.service', e);
+                    console.error('error while start nibus.service:', e);
                     process.exit(2);
                 }
                 console.info(`nibus.service запущен. modules: ${process.versions.modules}, node: ${process.versions.node}`);

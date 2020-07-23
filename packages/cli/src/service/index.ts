@@ -170,21 +170,26 @@ class NibusService {
     connections.forEach(con => con.setLogger(logger));
   }
 
-  public start(): void {
-    if (this.isStarted) return;
+  public start(): Promise<void> {
+    if (this.isStarted) return Promise.resolve();
     this.isStarted = true;
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');
     detector.on('add', this.addHandler);
     detector.on('remove', this.removeHandler);
-    detector.getPorts().catch(err => {
-      console.error('error while get ports', err.stack);
+
+    const promise = new Promise<void>((resolve, reject) => {
+      detector.getPorts().then(() => resolve()).catch(err => {
+        console.error('error while get ports', err.stack);
+        reject(err);
+      });
     });
 
     detector.start();
     process.once('SIGINT', () => this.stop());
     process.once('SIGTERM', () => this.stop());
     debug('started');
+    return promise;
   }
 
   public stop(): void {
@@ -199,6 +204,7 @@ class NibusService {
     detector.removeListener('add', this.addHandler);
     detector.removeListener('remove', this.removeHandler);
     detector.stop();
+    this.server.close();
     this.isStarted = false;
     debug('stopped');
   }

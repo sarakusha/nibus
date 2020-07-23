@@ -19,7 +19,7 @@ export const isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
 
 export default (namespace: string): Debugger => {
   const debug = debugFactory(namespace);
-  if (isElectron || true) {
+  if (isElectron) {
     debug.log = log.log.bind(log);
   }
   return debug;

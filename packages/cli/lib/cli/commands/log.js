@@ -17,6 +17,7 @@ const path_1 = __importDefault(require("path"));
 const os_1 = require("os");
 const core_1 = require("@nibus/core");
 const debug_1 = __importDefault(require("../../debug"));
+const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
 const debug = debug_1.default('nibus:log');
 const logCommand = {
     command: 'log',
@@ -40,7 +41,7 @@ const logCommand = {
         describe: 'вывод с начала',
         boolean: true,
     }),
-    handler: ({ level, pick, omit, begin, }) => new Promise((resolve, reject) => {
+    handler: serviceWrapper_1.default(({ level, pick, omit, begin, }) => new Promise((resolve, reject) => {
         const socket = core_1.Client.connect(core_1.PATH);
         let resolved = false;
         socket.once('close', () => {
@@ -62,7 +63,7 @@ const logCommand = {
         process.on('SIGINT', () => log.unwatch());
         log.watch();
         log.on('line', console.info.bind(console));
-    }),
+    })),
 };
 exports.default = logCommand;
 //# sourceMappingURL=log.js.map

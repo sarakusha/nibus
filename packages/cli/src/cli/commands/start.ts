@@ -24,6 +24,7 @@ export const startOptions: StartOptions = {
   name: 'nibus.service',
   script: 'service/daemon.js',
   cwd: path.resolve(__dirname, '../..'),
+  interpreter: 'none',
   // eslint-disable-next-line @typescript-eslint/camelcase
   max_restarts: 3,
   env: {
@@ -83,7 +84,7 @@ const startCommand: CommandModule<CommonOpts, StartOpts> = {
         }
         pm2.disconnect();
         if (e) {
-          console.error('error while start nibus.service', e);
+          console.error('error while start nibus.service:', e);
           process.exit(2);
         }
         console.info(`nibus.service запущен. modules: ${process.versions.modules}, node: ${process.versions.node}`);

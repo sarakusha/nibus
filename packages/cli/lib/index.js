@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const yargs_1 = __importDefault(require("yargs"));
-const mib_1 = require("@nibus/core/lib/mib");
+const core_1 = require("@nibus/core");
 const dump_1 = __importDefault(require("./cli/commands/dump"));
 const list_1 = __importDefault(require("./cli/commands/list"));
 const ping_1 = __importDefault(require("./cli/commands/ping"));
@@ -16,7 +16,7 @@ const write_1 = __importDefault(require("./cli/commands/write"));
 const upload_1 = __importDefault(require("./cli/commands/upload"));
 const download_1 = __importDefault(require("./cli/commands/download"));
 const log_1 = __importDefault(require("./cli/commands/log"));
-const mib_2 = __importDefault(require("./cli/commands/mib"));
+const mib_1 = __importDefault(require("./cli/commands/mib"));
 const flash_1 = __importDefault(require("./cli/commands/flash"));
 const execute_1 = __importDefault(require("./cli/commands/execute"));
 const parse_1 = __importDefault(require("./cli/commands/parse"));
@@ -38,7 +38,7 @@ const { argv } = yargs_1.default
 })
     .option('mib', {
     desc: 'mib-файл',
-    choices: mib_1.getMibsSync(),
+    choices: core_1.getMibsSync(),
     string: true,
 })
     .option('compact', {
@@ -67,14 +67,13 @@ const { argv } = yargs_1.default
     .command(upload_1.default)
     .command(download_1.default)
     .command(log_1.default)
-    .command(mib_2.default)
+    .command(mib_1.default)
     .command(flash_1.default)
     .command(execute_1.default)
     .command(parse_1.default)
     .locale('ru')
     .completion('completion')
     .showHelpOnFail(false)
-    .strict()
     .help()
     .wrap(Math.min(yargs_1.default.terminalWidth(), 100))
     .epilogue(`(c) Nata-Info, ${new Date().getFullYear()}`);

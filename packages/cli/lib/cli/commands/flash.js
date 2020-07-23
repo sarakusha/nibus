@@ -170,6 +170,8 @@ const meta = {
         domain: 'MCU',
     },
 };
+const parseModuleSelect = (value) => (value !== undefined
+    ? `(${value >> 8}, ${value & 0xFF})` : 'Unknown');
 function action(device, args) {
     return __awaiter(this, void 0, void 0, function* () {
         const isModule = (yield write_1.action(device, args)).includes('moduleSelect');
@@ -226,15 +228,51 @@ function action(device, args) {
         if (isModule) {
             device.selector = 0;
             yield device.write(device.getId('selector'));
-            const data = yield device.upload('MODUL', 0, 6);
-            if (data[3] & 0b100) {
-                console.error('Ошибка контрольной суммы в кадре');
+            const checkModul = () => __awaiter(this, void 0, void 0, function* () {
+                const xy = parseModuleSelect(device.moduleSelect);
+                try {
+                    const data = yield device.upload('MODUL', 0, 6);
+                    if (data[3] & 0b100) {
+                        console.error(`Модуль ${xy}: Ошибка контрольной суммы в кадре`);
+                    }
+                    if (data[3] & 0b1000) {
+                        console.error(`Модуль ${xy}: Таймаут ожидания валидности страницы`);
+                    }
+                    if (data[3] & 0b10000) {
+                        console.error(`Модуль ${xy}: Ошибка в работе флеш памяти`);
+                    }
+                    console.log(`Модуль ${xy}: Ok`);
+                    return true;
+                }
+                catch (err) {
+                    return false;
+                }
+            });
+            if (device.moduleSelect !== 0xFFFF) {
+                yield checkModul();
             }
-            if (data[3] & 0b1000) {
-                console.error('Таймаут ожидания валидности страницы');
-            }
-            if (data[3] & 0b10000) {
-                console.error('Ошибка в работе флеш памяти');
+            else {
+                const idModuleSelect = device.getId('moduleSelect');
+                let y = 0;
+                for (let x = 0; x < 24; x += 1) {
+                    for (y = 0; y < 256; y += 1) {
+                        try {
+                            device.moduleSelect = (x << 8) + y;
+                            yield device.write(idModuleSelect);
+                            const res = yield checkModul();
+                            if (!res)
+                                break;
+                        }
+                        catch (err) {
+                            console.error('Ошибка при проверке диапазона модулей', err.message || err);
+                            break;
+                        }
+                    }
+                    if (y === 0)
+                        console.log(`Столб ${x} не ответил`);
+                }
+                device.moduleSelect = 0xFFFF;
+                yield device.write(idModuleSelect);
             }
         }
         if (opts.exec) {

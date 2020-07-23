@@ -9,8 +9,8 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NibusDatagram, NibusDecoder } from '@nibus/core/lib/nibus';
-// import { printBuffer } from '@nibus/core/lib/nibus/helper';
+import { NibusDatagram, NibusDecoder } from '@nibus/core';
+// import { printBuffer } from '@nibus/core';
 // import Configstore from 'configstore';
 import fs from 'fs';
 import path from 'path';

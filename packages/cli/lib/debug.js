@@ -11,7 +11,7 @@ electron_log_1.default.transports.console.level = false;
 exports.isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
 exports.default = (namespace) => {
     const debug = debug_1.default(namespace);
-    if (exports.isElectron || true) {
+    if (exports.isElectron) {
         debug.log = electron_log_1.default.log.bind(electron_log_1.default);
     }
     return debug;

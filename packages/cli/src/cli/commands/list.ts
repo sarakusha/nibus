@@ -14,13 +14,14 @@ import _ from 'lodash';
 import Table from 'table-layout';
 import { PATH, Client, PortArg } from '@nibus/core';
 import { CommonOpts } from '../options';
+import serviceWrapper from '../serviceWrapper';
 
 type ListOpts = CommonOpts;
 const listCommand: CommandModule<CommonOpts, ListOpts> = {
   command: 'list',
   describe: 'Показать список доступных устройств',
   builder: {},
-  handler: async () => new Promise((resolve, reject) => {
+  handler: serviceWrapper(() => new Promise((resolve, reject) => {
     const socket = Client.connect(PATH);
     let resolved = false;
     let error: Error;
@@ -55,7 +56,7 @@ const listCommand: CommandModule<CommonOpts, ListOpts> = {
         error = err;
       }
     });
-  }),
+  })),
 
 // const rows = _.sortBy<IKnownPort>(ports, [_.property('manufacturer'),
 // _.property('category')]) .map(({ manufacturer, category, device, comName }) => ({

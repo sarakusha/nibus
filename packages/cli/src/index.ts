@@ -10,7 +10,7 @@
  */
 
 import yargs from 'yargs';
-import { getMibsSync } from '@nibus/core/lib/mib';
+import { getMibsSync } from '@nibus/core';
 import dump from './cli/commands/dump';
 import list from './cli/commands/list';
 import ping from './cli/commands/ping';
@@ -86,7 +86,7 @@ const { argv } = yargs
   .locale('ru')
   .completion('completion')
   .showHelpOnFail(false)
-  .strict()
+  // .strict()
   .help()
   .wrap(Math.min(yargs.terminalWidth(), 100))
   .epilogue(`(c) Nata-Info, ${new Date().getFullYear()}`);

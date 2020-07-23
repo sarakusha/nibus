@@ -13,7 +13,7 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import { CommandModule } from 'yargs';
 import path from 'path';
 import fs from 'fs';
-import { convert, MibDeviceV } from '@nibus/core/lib/mib';
+import { convert, MibDeviceV } from '@nibus/core';
 import { CommonOpts } from '../options';
 
 type MibOpts = CommonOpts & {

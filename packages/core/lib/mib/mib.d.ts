@@ -64,6 +64,19 @@ declare const MibTypeV: t.IntersectionC<[t.TypeC<{
 }>]>;
 export interface IMibType extends t.TypeOf<typeof MibTypeV> {
 }
+declare const MibSubroutineV: t.IntersectionC<[t.TypeC<{
+    annotation: t.StringC;
+    appinfo: t.IntersectionC<[t.TypeC<{
+        nms_id: t.UnionC<[t.StringC, t.BrandC<t.NumberC, t.IntBrand>]>;
+    }>, t.PartialC<{
+        response: t.StringC;
+    }>]>;
+}>, t.PartialC<{
+    properties: t.RecordC<t.StringC, t.TypeC<{
+        type: t.StringC;
+        annotation: t.StringC;
+    }>>;
+}>]>;
 export declare const MibDeviceV: t.IntersectionC<[t.TypeC<{
     device: t.StringC;
     types: t.RecordC<t.StringC, t.UnionC<[t.TypeC<{
@@ -126,6 +139,8 @@ export declare const MibDeviceV: t.IntersectionC<[t.TypeC<{
         }>>;
     }>]>>;
 }>]>;
+export interface MibSubroutines extends t.TypeOf<typeof MibSubroutineV> {
+}
 export interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {
 }
 export declare function enumerationConverter(enumerationValues: IMibType['enumeration']): IConverter;

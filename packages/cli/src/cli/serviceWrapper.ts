@@ -27,8 +27,11 @@ export default function serviceWrapper<U>(handler: Handler<U>): Handler<U> {
       await service.start();
       await delay(1);
     }
-    handler(args).finally(() => {
-      nibus && nibus.stop();
-    });
+    handler(args)
+      .catch(err => console.error(err.message))
+      .finally(() => {
+        nibus && nibus.stop();
+        process.nextTick(() => process.exit(0));
+      });
   };
 }

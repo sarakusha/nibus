@@ -30,15 +30,14 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
     // На Windows сложнее метод определения и занимает больше времени
     let count = await session.start() * (process.platform === 'win32' ? 3 : 1);
     return new Promise(
-      (resolve, reject) => {
+      resolve => {
         let timeout: NodeJS.Timeout;
         let hasFound = false;
         const close = (err?: string): void => {
           clearTimeout(timeout);
           session.close();
           if (err || !hasFound) {
-            reject(err || 'Устройство не найдено');
-            return;
+            console.error(err || 'Устройство не найдено');
           }
           resolve();
         };

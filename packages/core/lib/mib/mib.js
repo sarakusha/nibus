@@ -271,7 +271,6 @@ function getIntSize(type) {
         case 'xs:unsignedLong':
             return 8;
         default:
-            console.warn('Unknown type:', type);
             return 0;
     }
 }

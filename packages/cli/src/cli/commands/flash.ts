@@ -198,6 +198,9 @@ const meta: KindMeta = {
   },
 };
 
+const parseModuleSelect = (value?: number): string => (value !== undefined
+  ? `(${value >> 8}, ${value & 0xFF})` : 'Unknown');
+
 async function action(device: IDevice, args: Arguments<FlashOpts>): Promise<void> {
   const isModule = (await writeAction(device, args)).includes('moduleSelect');
   let kind: Kind = args.kind as Kind;
@@ -259,16 +262,50 @@ async function action(device: IDevice, args: Arguments<FlashOpts>): Promise<void
   if (isModule) {
     device.selector = 0;
     await device.write(device.getId('selector'));
-    const data = await device.upload('MODUL', 0, 6);
-    // console.log('RESULT', data[3].toString(2), data);
-    if (data[3] & 0b100) {
-      console.error('Ошибка контрольной суммы в кадре');
-    }
-    if (data[3] & 0b1000) {
-      console.error('Таймаут ожидания валидности страницы');
-    }
-    if (data[3] & 0b10000) {
-      console.error('Ошибка в работе флеш памяти');
+    const checkModul = async (): Promise<boolean> => {
+      const xy = parseModuleSelect(device.moduleSelect);
+      try {
+        const data = await device.upload('MODUL', 0, 6);
+        // console.log('RESULT', data[3].toString(2), data);
+        if (data[3] & 0b100) {
+          console.error(`Модуль ${xy}: Ошибка контрольной суммы в кадре`);
+        }
+        if (data[3] & 0b1000) {
+          console.error(`Модуль ${xy}: Таймаут ожидания валидности страницы`);
+        }
+        if (data[3] & 0b10000) {
+          console.error(`Модуль ${xy}: Ошибка в работе флеш памяти`);
+        }
+        console.log(`Модуль ${xy}: Ok`);
+        return true;
+      } catch (err) {
+        // console.error('Ошибка проверки MODUL', err.message || err);
+        return false;
+      }
+    };
+    if (device.moduleSelect !== 0xFFFF) {
+      await checkModul();
+    } else {
+      const idModuleSelect = device.getId('moduleSelect');
+      let y = 0;
+      for (let x = 0; x < 24; x += 1) {
+        for (y = 0; y < 256; y += 1) {
+          try {
+            device.moduleSelect = (x << 8) + y;
+            // eslint-disable-next-line no-await-in-loop
+            await device.write(idModuleSelect);
+            // eslint-disable-next-line no-await-in-loop
+            const res = await checkModul();
+            if (!res) break;
+          } catch (err) {
+            console.error('Ошибка при проверке диапазона модулей', err.message || err);
+            break;
+          }
+        }
+        if (y === 0) console.log(`Столб ${x} не ответил`);
+      }
+      device.moduleSelect = 0xFFFF;
+      await device.write(idModuleSelect);
     }
   }
   if (opts.exec) {

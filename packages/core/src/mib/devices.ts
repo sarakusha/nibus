@@ -15,7 +15,7 @@ import { EventEmitter } from 'events';
 import { isLeft } from 'fp-ts/lib/Either';
 import fs from 'fs';
 import { PathReporter } from 'io-ts/lib/PathReporter';
-import _ from 'lodash';
+import _, { Dictionary } from 'lodash';
 import path from 'path';
 import 'reflect-metadata';
 import { config as configDir } from 'xdg-basedir';
@@ -420,7 +420,8 @@ class DevicePrototype extends EventEmitter implements IDevice {
     const mibfile = getMibFile(mibname);
     const mibValidation = MibDeviceV.decode(JSON.parse(fs.readFileSync(mibfile).toString()));
     if (isLeft(mibValidation)) {
-      throw new Error(`Invalid mib file ${mibfile} ${PathReporter.report(mibValidation).join('\n')}`);
+      throw new Error(`Invalid mib file ${mibfile} ${PathReporter.report(mibValidation)
+        .join('\n')}`);
     }
     const mib = mibValidation.right;
     const { types, subroutines } = mib;
@@ -454,9 +455,8 @@ class DevicePrototype extends EventEmitter implements IDevice {
     if (subroutines) {
       const metasubs = _.transform(
         subroutines,
-        (result, sub, name) => ({
-          ...result,
-          [name]: {
+        (result, sub, name) => {
+          result[name] = {
             id: toInt(sub.appinfo.nms_id),
             description: sub.annotation,
             args: sub.properties && Object.entries(sub.properties)
@@ -465,9 +465,9 @@ class DevicePrototype extends EventEmitter implements IDevice {
                 type: getNmsType(prop.type),
                 desc: prop.annotation,
               })),
-          },
-        }),
-        {} as Record<string, ISubroutineDesc>,
+          };
+        },
+        {} as Dictionary<ISubroutineDesc>,
       );
       Reflect.defineMetadata('subroutines', metasubs, this);
     }
@@ -913,6 +913,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
     if (!connection) throw new Error('disconnected');
     const subroutines = Reflect.getMetadata('subroutines', this) as Record<string, ISubroutineDesc>;
     if (!subroutines || !Reflect.has(subroutines, program)) {
+      console.warn('subroutines', subroutines);
       throw new Error(`Unknown program ${program}`);
     }
     const subroutine = subroutines[program];
@@ -1089,7 +1090,7 @@ export class Devices extends EventEmitter {
       process.nextTick(() => this.emit('new', device));
     }
     return device;
-  }
+  };
 }
 
 const devices = new Devices();

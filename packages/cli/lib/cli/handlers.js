@@ -24,15 +24,14 @@ const serviceWrapper_1 = __importDefault(require("./serviceWrapper"));
 function makeAddressHandler(action, breakout = false) {
     return serviceWrapper_1.default((args) => __awaiter(this, void 0, void 0, function* () {
         let count = (yield core_1.default.start()) * (process.platform === 'win32' ? 3 : 1);
-        return new Promise((resolve, reject) => {
+        return new Promise(resolve => {
             let timeout;
             let hasFound = false;
             const close = (err) => {
                 clearTimeout(timeout);
                 core_1.default.close();
                 if (err || !hasFound) {
-                    reject(err || 'Устройство не найдено');
-                    return;
+                    console.error(err || 'Устройство не найдено');
                 }
                 resolve();
             };

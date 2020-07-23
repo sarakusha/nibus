@@ -712,8 +712,8 @@
     "BlueVertexX": {
       "base": "xs:unsignedByte",
       "appinfo": {
-        "get": "x => 640/1024 + x/2048",
-        "set": "value => 2048*value - 1280",
+        "get": "x => 64/1024 + x/2048",
+        "set": "value => 2048*value - 128",
         "precision": "3"
       }},
     "BlueVertexY": {

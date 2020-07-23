@@ -157,6 +157,8 @@ export const MibDeviceV = t.intersection([
   }),
 ]);
 
+export interface MibSubroutines extends t.TypeOf<typeof MibSubroutineV> {}
+
 export interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {}
 
 export function enumerationConverter(enumerationValues: IMibType['enumeration']): IConverter {
@@ -312,7 +314,7 @@ export function getIntSize(type: string): number {
     case 'xs:unsignedLong':
       return 8;
     default:
-      console.warn('Unknown type:', type);
+      // console.warn('Unknown type:', type);
       return 0;
   }
 }

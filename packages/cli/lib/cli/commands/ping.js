@@ -21,6 +21,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const lodash_1 = __importDefault(require("lodash"));
 const core_1 = __importStar(require("@nibus/core"));
+const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
 exports.delay = (timeout) => new Promise(resolve => setTimeout(resolve, timeout * 1000));
 const round = (val) => Math.round(val * 10) / 10;
 const pingCommand = {
@@ -39,7 +40,7 @@ const pingCommand = {
         number: true,
     })
         .demandOption(['mac']),
-    handler: ({ count = -1, timeout = 1, mac, quiet, raw, }) => __awaiter(void 0, void 0, void 0, function* () {
+    handler: serviceWrapper_1.default(({ count = -1, timeout = 1, mac, quiet, raw, }) => __awaiter(void 0, void 0, void 0, function* () {
         yield core_1.default.start();
         const stat = [];
         let transmitted = 0;
@@ -71,7 +72,7 @@ min/avg/max = ${min || '-'}/${Number.isNaN(avg) ? '-' : avg}/${max || '-'}`);
             console.info(stat.length);
         if (stat.length === 0)
             throw new core_1.TimeoutError();
-    }),
+    })),
 };
 exports.default = pingCommand;
 //# sourceMappingURL=ping.js.map

@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.detectionPath = exports.NibusService = void 0;
 const configstore_1 = __importDefault(require("configstore"));
 const Either_1 = require("fp-ts/lib/Either");
 const lodash_1 = __importDefault(require("lodash"));
@@ -28,8 +29,8 @@ const conf = new configstore_1.default(pkgName, {
     omit: ['priority'],
 });
 const debug = debug_1.default('nibus:service');
-const debugIn = debug_1.default('nibus:INP<<<');
-const debugOut = debug_1.default('nibus:OUT>>>');
+const debugIn = debug_1.default('nibus:<<<');
+const debugOut = debug_1.default('nibus:>>>');
 debug(`config path: ${conf.path}`);
 const noop = () => { };
 if (process.platform === 'win32') {
@@ -175,7 +176,10 @@ class NibusService {
         detector_1.default.on('add', this.addHandler);
         detector_1.default.on('remove', this.removeHandler);
         const promise = new Promise((resolve, reject) => {
-            detector_1.default.getPorts().then(() => resolve()).catch(err => {
+            detector_1.default
+                .getPorts()
+                .then(() => resolve())
+                .catch(err => {
                 console.error('error while get ports', err.stack);
                 reject(err);
             });
@@ -202,7 +206,13 @@ class NibusService {
         this.isStarted = false;
         debug('stopped');
     }
+    reload() {
+        detector_1.default.reload();
+    }
 }
+exports.NibusService = NibusService;
 const service = new NibusService();
+var detector_2 = require("./detector");
+Object.defineProperty(exports, "detectionPath", { enumerable: true, get: function () { return detector_2.detectionPath; } });
 exports.default = service;
 //# sourceMappingURL=index.js.map

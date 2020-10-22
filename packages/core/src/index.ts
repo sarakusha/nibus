@@ -19,6 +19,7 @@ export * from './MibDescription';
 
 export * from './session';
 export { default } from './session';
+export * from './flash';
 
 // export {
 //   sarp, nibus, mib, nms, ipc, Address, NibusError,

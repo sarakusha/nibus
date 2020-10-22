@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MINIHOST_TYPE = void 0;
 const Either_1 = require("fp-ts/lib/Either");
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));

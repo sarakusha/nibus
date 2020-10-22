@@ -1,4 +1,23 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -11,14 +30,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.detectionPath = void 0;
 const events_1 = require("events");
 const Either_1 = require("fp-ts/lib/Either");
 const fs_1 = __importDefault(require("fs"));
@@ -29,26 +42,19 @@ const path_1 = __importDefault(require("path"));
 const serialport_1 = __importDefault(require("serialport"));
 const usb_detection_1 = __importDefault(require("usb-detection"));
 const core_1 = require("@nibus/core");
-const static_1 = __importDefault(require("./static"));
 const debug_1 = __importStar(require("../debug"));
 function getOrUndefined(e) {
     return Either_1.getOrElse(() => undefined)(e);
 }
 const debug = debug_1.default('nibus:detector');
-const detectionPath = debug_1.isElectron
+exports.detectionPath = debug_1.isElectron && process.env.NODE_ENV === 'production'
     ? path_1.default.resolve(__dirname, '..', 'extraResources', 'detection.yml')
-    : path_1.default.resolve(__dirname, '..', '..', 'detection.yml');
-debug('Detection file', detectionPath);
+    : path_1.default.resolve(__dirname, '..', '..', 'assets', 'detection.yml');
+debug('Detection file', exports.detectionPath);
 let knownPorts = Promise.resolve([]);
 const getRawDetection = () => {
-    try {
-        const data = fs_1.default.readFileSync(detectionPath, 'utf8');
-        return js_yaml_1.default.safeLoad(data);
-    }
-    catch (err) {
-        debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
-        return static_1.default;
-    }
+    const data = fs_1.default.readFileSync(exports.detectionPath, 'utf8');
+    return js_yaml_1.default.safeLoad(data);
 };
 const loadDetection = () => {
     const result = getRawDetection();
@@ -56,8 +62,7 @@ const loadDetection = () => {
         const desc = result.mibCategories[category];
         desc.category = category;
         if (Array.isArray(desc.select)) {
-            desc.select = desc.select
-                .map(cat => result.mibCategories[cat] || cat);
+            desc.select = desc.select.map(cat => result.mibCategories[cat] || cat);
         }
     });
     return result;
@@ -69,7 +74,7 @@ function reloadDevices(lastAdded) {
 const reload = lodash_1.default.debounce(reloadDevices, 2000);
 const detectionListener = (curr, prev) => {
     if (curr.mtime !== prev.mtime) {
-        debug('detection file was changed, reloading devices...');
+        debug(`detection file ${exports.detectionPath} was changed, reloading devices...`);
         detection = undefined;
         reloadDevices();
     }
@@ -77,14 +82,14 @@ const detectionListener = (curr, prev) => {
 const detector = new events_1.EventEmitter();
 detector.start = () => {
     usb_detection_1.default.startMonitoring();
-    debug(`start watching the detector file ${detectionPath}`);
-    fs_1.default.watchFile(detectionPath, { persistent: false }, detectionListener);
+    debug(`start watching the detector file ${exports.detectionPath}`);
+    fs_1.default.watchFile(exports.detectionPath, { persistent: false }, detectionListener);
     reloadDevices();
     usb_detection_1.default.on('add', reload);
     usb_detection_1.default.on('remove', reloadDevices);
 };
 detector.stop = () => {
-    fs_1.default.unwatchFile(detectionPath, detectionListener);
+    fs_1.default.unwatchFile(exports.detectionPath, detectionListener);
     usb_detection_1.default && usb_detection_1.default.stopMonitoring();
 };
 detector.restart = () => {
@@ -97,13 +102,12 @@ detector.restart = () => {
 };
 detector.getPorts = () => knownPorts;
 detector.getDetection = () => detection;
-const getId = (id) => (typeof id === 'string'
-    ? parseInt(id, 16)
-    : id);
+detector.reload = reloadDevices;
+const getId = (id) => typeof id === 'string' ? parseInt(id, 16) : id;
 function equals(port, device) {
-    return getId(port.productId) === device.productId
-        && getId(port.vendorId) === device.vendorId
-        && port.serialNumber === device.serialNumber;
+    return (getId(port.productId) === device.productId &&
+        getId(port.vendorId) === device.vendorId &&
+        port.serialNumber === device.serialNumber);
 }
 function detectDevice(port, lastAdded) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -129,7 +133,7 @@ function detectDevice(port, lastAdded) {
             }
         }
         if (detected !== undefined) {
-            const { productId, vendorId, deviceName: device, deviceAddress, } = detected;
+            const { productId, vendorId, deviceName: device, deviceAddress } = detected;
             return Object.assign(Object.assign({}, port), { productId,
                 vendorId,
                 device,
@@ -139,14 +143,17 @@ function detectDevice(port, lastAdded) {
     });
 }
 const matchCategory = (port) => {
-    const match = detection && lodash_1.default.find(detection.knownDevices, item => (!item.device || (port.device && port.device.startsWith(item.device)))
-        && (!item.serialNumber
-            || (port.serialNumber && port.serialNumber.startsWith(item.serialNumber)))
-        && (!item.manufacturer || (port.manufacturer === item.manufacturer))
-        && (getId(item.vid) === port.vendorId) && (getId(item.pid) === port.productId));
-    if (!match && process.platform === 'win32'
-        && (port.productId === 0x6001 || port.productId === 0x6015)
-        && port.vendorId === 0x0403) {
+    const match = detection &&
+        lodash_1.default.find(detection.knownDevices, item => (!item.device || (port.device && port.device.startsWith(item.device))) &&
+            (!item.serialNumber ||
+                (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
+            (!item.manufacturer || port.manufacturer === item.manufacturer) &&
+            getId(item.vid) === port.vendorId &&
+            getId(item.pid) === port.productId);
+    if (!match &&
+        process.platform === 'win32' &&
+        (port.productId === 0x6001 || port.productId === 0x6015) &&
+        port.vendorId === 0x0403) {
         return 'ftdi';
     }
     return match && getOrUndefined(core_1.CategoryV.decode(match.category));

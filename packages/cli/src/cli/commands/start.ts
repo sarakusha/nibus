@@ -25,7 +25,6 @@ export const startOptions: StartOptions = {
   script: 'service/daemon.js',
   cwd: path.resolve(__dirname, '../..'),
   interpreter: 'none',
-  // eslint-disable-next-line @typescript-eslint/camelcase
   max_restarts: 3,
   env: {
     // DEBUG: 'nibus:*,-nibus:decoder',
@@ -45,26 +44,27 @@ if (path.extname(__filename) === '.ts') {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const startup = (platform: any): Promise<void> => new Promise(((resolve, reject) => {
-  const timeout = setTimeout(() => reject(new Error('Timeout')), 10000);
-  pm2.startup(platform, err => {
-    clearTimeout(timeout);
-    if (err) {
-      reject(err);
-    } else {
-      resolve();
-    }
+const startup = (platform: any): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error('Timeout')), 10000);
+    pm2.startup(platform, err => {
+      clearTimeout(timeout);
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
   });
-}));
 
 type StartOpts = CommonOpts;
 
 const startCommand: CommandModule<CommonOpts, StartOpts> = {
   command: 'start',
   describe: 'запустить сервис NiBUS',
-  builder: argv => argv
-    .option('auto', {
-      describe: 'автозапуск сервиса после старта стистемы для заданной ОС',
+  builder: argv =>
+    argv.option('auto', {
+      describe: 'автозапуск сервиса после старта системы для заданной ОС',
       choices: ['ubuntu', 'centos', 'redhat', 'gentoo', 'systemd', 'darwin', 'amazon'],
     }),
   handler: argc => {
@@ -74,21 +74,25 @@ const startCommand: CommandModule<CommonOpts, StartOpts> = {
         process.exit(2);
       }
       debug('pm2 is connected');
-      pm2.delete(startOptions.name!, () => pm2.start(startOptions, async e => {
-        if (!e && argc.auto) {
-          try {
-            await startup(argc.auto);
-          } catch (error) {
-            console.error('Не удалось зарегестрировать сервис', error.message);
+      pm2.delete(startOptions.name!, () =>
+        pm2.start(startOptions, async e => {
+          if (!e && argc.auto) {
+            try {
+              await startup(argc.auto);
+            } catch (error) {
+              console.error('Не удалось зарегистрировать сервис', error.message);
+            }
           }
-        }
-        pm2.disconnect();
-        if (e) {
-          console.error('error while start nibus.service:', e);
-          process.exit(2);
-        }
-        console.info(`nibus.service запущен. modules: ${process.versions.modules}, node: ${process.versions.node}`);
-      }));
+          pm2.disconnect();
+          if (e) {
+            console.error('error while start nibus.service:', e);
+            process.exit(2);
+          }
+          console.info(
+            `nibus.service запущен. modules: ${process.versions.modules}, node: ${process.versions.node}`
+          );
+        })
+      );
     });
   },
 };

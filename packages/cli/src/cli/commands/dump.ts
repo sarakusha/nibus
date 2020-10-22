@@ -9,7 +9,7 @@
  */
 
 import chalk from 'chalk';
-import Table, { HorizontalTable } from 'cli-table3';
+import Table, { HorizontalTableRow, GenericTable } from 'cli-table3';
 import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
 import session, {
@@ -20,12 +20,16 @@ import debugFactory from '../../debug';
 import { CommonOpts } from '../options';
 import serviceWrapper from '../serviceWrapper';
 
+type HorizontalTable = GenericTable<HorizontalTableRow>;
+
 type RowType = {
   displayName: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   value: any;
   key: string;
 };
+
+type DumpOpts = CommonOpts;
 
 const debug = debugFactory('nibus:dump');
 let count = 0;
@@ -114,8 +118,6 @@ function findDevices(mib: string, connection: NibusConnection, argv: Arguments<D
     );
   });
 }
-
-type DumpOpts = CommonOpts;
 
 const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
   command: 'dump',

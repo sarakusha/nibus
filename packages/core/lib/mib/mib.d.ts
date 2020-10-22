@@ -1,7 +1,7 @@
 import * as t from 'io-ts';
 export declare function validJsName(name: string): string;
 export declare const withValue: (value: unknown, writable?: boolean, configurable?: boolean) => PropertyDescriptor;
-export declare const toInt: (value?: string | number | boolean) => number;
+export declare const toInt: (value?: string | boolean | number) => number;
 declare type ResultType = string | number | boolean | undefined;
 declare type PresentType = string | number | boolean | undefined;
 export interface IConverter {
@@ -18,6 +18,13 @@ declare const MibPropertyV: t.TypeC<{
         access: t.StringC;
     }>, t.PartialC<{
         category: t.StringC;
+        rank: t.StringC;
+        zero: t.StringC;
+        units: t.StringC;
+        precision: t.StringC;
+        representation: t.StringC;
+        get: t.StringC;
+        set: t.StringC;
     }>]>;
 }>;
 export interface IMibProperty extends t.TypeOf<typeof MibPropertyV> {
@@ -40,6 +47,13 @@ declare const MibDeviceTypeV: t.TypeC<{
             access: t.StringC;
         }>, t.PartialC<{
             category: t.StringC;
+            rank: t.StringC;
+            zero: t.StringC;
+            units: t.StringC;
+            precision: t.StringC;
+            representation: t.StringC;
+            get: t.StringC;
+            set: t.StringC;
         }>]>;
     }>>;
 }>;
@@ -97,6 +111,13 @@ export declare const MibDeviceV: t.IntersectionC<[t.TypeC<{
                 access: t.StringC;
             }>, t.PartialC<{
                 category: t.StringC;
+                rank: t.StringC;
+                zero: t.StringC;
+                units: t.StringC;
+                precision: t.StringC;
+                representation: t.StringC;
+                get: t.StringC;
+                set: t.StringC;
             }>]>;
         }>>;
     }>, t.IntersectionC<[t.TypeC<{
@@ -154,7 +175,7 @@ export declare function getIntSize(type: string): number;
 export declare function minInclusiveConverter(min: number): IConverter;
 export declare function maxInclusiveConverter(max: number): IConverter;
 export declare const evalConverter: (get: string, set: string) => IConverter;
-export declare const convertTo: (converters: IConverter[]) => (value: PresentType) => PresentType;
+export declare const convertTo: (converters: IConverter[]) => (value: ResultType) => ResultType;
 export declare const convertFrom: (converters: IConverter[]) => (value: PresentType) => PresentType;
 export {};
 //# sourceMappingURL=mib.d.ts.map

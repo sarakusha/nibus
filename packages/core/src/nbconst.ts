@@ -9,6 +9,7 @@
  */
 
 /** @internal */
+// eslint-disable-next-line no-shadow
 export enum States {
   PREAMBLE_WAITING = 0,
   HEADER_READING = 1,
@@ -16,6 +17,7 @@ export enum States {
 }
 
 /** @internal */
+// eslint-disable-next-line no-shadow
 export enum Offsets {
   DESTINATION = 1,
   SOURCE = 7,
@@ -26,7 +28,7 @@ export enum Offsets {
 }
 
 /** @internal */
-export const PREAMBLE = 0x7E;
+export const PREAMBLE = 0x7e;
 /** @internal */
 export const SERVICE_INFO_LENGTH = Offsets.DATA;
 /** @internal */

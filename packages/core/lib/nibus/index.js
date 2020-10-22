@@ -1,16 +1,20 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.printBuffer = exports.config = exports.NibusConnection = exports.NibusDecoder = exports.NibusEncoder = exports.Protocol = exports.NibusDatagram = void 0;
 var NibusDatagram_1 = require("./NibusDatagram");
-exports.NibusDatagram = NibusDatagram_1.default;
-exports.Protocol = NibusDatagram_1.Protocol;
+Object.defineProperty(exports, "NibusDatagram", { enumerable: true, get: function () { return __importDefault(NibusDatagram_1).default; } });
+Object.defineProperty(exports, "Protocol", { enumerable: true, get: function () { return NibusDatagram_1.Protocol; } });
 var NibusEncoder_1 = require("./NibusEncoder");
-exports.NibusEncoder = NibusEncoder_1.default;
+Object.defineProperty(exports, "NibusEncoder", { enumerable: true, get: function () { return __importDefault(NibusEncoder_1).default; } });
 var NibusDecoder_1 = require("./NibusDecoder");
-exports.NibusDecoder = NibusDecoder_1.default;
+Object.defineProperty(exports, "NibusDecoder", { enumerable: true, get: function () { return __importDefault(NibusDecoder_1).default; } });
 var NibusConnection_1 = require("./NibusConnection");
-exports.NibusConnection = NibusConnection_1.default;
+Object.defineProperty(exports, "NibusConnection", { enumerable: true, get: function () { return __importDefault(NibusConnection_1).default; } });
 var config_1 = require("./config");
-exports.config = config_1.default;
+Object.defineProperty(exports, "config", { enumerable: true, get: function () { return __importDefault(config_1).default; } });
 var helper_1 = require("./helper");
-exports.printBuffer = helper_1.printBuffer;
+Object.defineProperty(exports, "printBuffer", { enumerable: true, get: function () { return helper_1.printBuffer; } });
 //# sourceMappingURL=index.js.map

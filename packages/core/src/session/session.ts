@@ -16,10 +16,8 @@ import { Socket } from 'net';
 import fs from 'fs';
 import Address, { AddressParam, AddressType } from '../Address';
 import { Client, PortArg } from '../ipc';
-import {
-  devices, IDevice, toInt, getMibFile,
-} from '../mib';
-import { IMibDeviceType } from '../mib/mib';
+import { devices, IDevice, toInt, getMibFile, IMibDeviceType } from '../mib';
+
 import { NibusConnection } from '../nibus';
 import { createNmsRead } from '../nms';
 import SarpDatagram from '../sarp/SarpDatagram';
@@ -28,33 +26,35 @@ import { Category } from './KnownPorts';
 
 const debug = debugFactory('nibus:session');
 const noop = (): void => {};
-export const delay = (seconds: number): Promise<void> => new Promise(
-  resolve => setTimeout(resolve, seconds * 1000),
-);
+export const delay = (seconds: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, seconds * 1000));
 
-export type FoundListener =
-  (arg: { connection: NibusConnection; category: Category; address: Address }) => void;
+export type FoundListener = (arg: {
+  connection: NibusConnection;
+  category: Category;
+  address: Address;
+}) => void;
 
 export type ConnectionListener = (connection: NibusConnection) => void;
 export type DeviceListener = (device: IDevice) => void;
 
 declare interface NibusSession {
-  on(event: 'start' | 'close', listener: Function): this;
+  on(event: 'start' | 'close', listener: () => void): this;
   on(event: 'found', listener: FoundListener): this;
   on(event: 'add' | 'remove', listener: ConnectionListener): this;
   on(event: 'connected' | 'disconnected', listener: DeviceListener): this;
   on(event: 'pureConnection', listener: (connection: NibusConnection) => void): this;
-  once(event: 'start' | 'close', listener: Function): this;
+  once(event: 'start' | 'close', listener: () => void): this;
   once(event: 'found', listener: FoundListener): this;
   once(event: 'add' | 'remove', listener: ConnectionListener): this;
   once(event: 'connected' | 'disconnected', listener: DeviceListener): this;
   once(event: 'pureConnection', listener: (connection: NibusConnection) => void): this;
-  off(event: 'start' | 'close', listener: Function): this;
+  off(event: 'start' | 'close', listener: () => void): this;
   off(event: 'found', listener: FoundListener): this;
   off(event: 'add' | 'remove', listener: ConnectionListener): this;
   off(event: 'connected' | 'disconnected', listener: DeviceListener): this;
   off(event: 'pureConnection', listener: (connection: NibusConnection) => void): this;
-  removeListener(event: 'start' | 'close', listener: Function): this;
+  removeListener(event: 'start' | 'close', listener: () => void): this;
   removeListener(event: 'found', listener: FoundListener): this;
   removeListener(event: 'add' | 'remove', listener: ConnectionListener): this;
   removeListener(event: 'connected' | 'disconnected', listener: DeviceListener): this;
@@ -129,17 +129,20 @@ class NibusSession extends EventEmitter {
     }
 
     const mib = Reflect.getMetadata('mib', device);
-    const occupied = devices.get()
+    const occupied = devices
+      .get()
       .map(item => item.connection!)
       .filter(connection => connection != null && !connection.description.link);
-    const acceptables = _.difference(connections, occupied)
-      .filter(({ description }) => description.link || description.mib === mib);
+    const acceptables = _.difference(connections, occupied).filter(
+      ({ description }) => description.link || description.mib === mib
+    );
     if (acceptables.length === 0) return -1;
 
-    const [timeout, connection] = await Promise.race(acceptables.map(
-      item => item.ping(device.address)
-        .then(t => [t, item] as [number, NibusConnection]),
-    ));
+    const [timeout, connection] = await Promise.race(
+      acceptables.map(item =>
+        item.ping(device.address).then(t => [t, item] as [number, NibusConnection])
+      )
+    );
     if (timeout === -1) {
       // ping(acceptables[0], device.address);
       return -1;
@@ -178,7 +181,9 @@ class NibusSession extends EventEmitter {
   private reloadHandler = (ports: PortArg[]): void => {
     const prev = this.connections.splice(0, this.connections.length);
     ports.forEach(port => {
-      const { portInfo: { path } } = port;
+      const {
+        portInfo: { path },
+      } = port;
       const index = _.findIndex(prev, { path });
       if (index !== -1) {
         this.connections.push(prev.splice(index, 1)[0]);
@@ -196,7 +201,8 @@ class NibusSession extends EventEmitter {
     this.emit('add', connection);
     if (process.platform === 'win32') await delay(2);
     this.find(connection);
-    devices.get()
+    devices
+      .get()
       .filter(device => device.connection == null)
       .reduce(async (promise, device) => {
         await promise;
@@ -214,7 +220,8 @@ class NibusSession extends EventEmitter {
 
   private closeConnection(connection: NibusConnection): void {
     connection.close();
-    devices.get()
+    devices
+      .get()
       .filter(device => device.connection === connection)
       .forEach(device => {
         // eslint-disable-next-line no-param-reassign
@@ -257,42 +264,35 @@ class NibusSession extends EventEmitter {
             }
             const address = new Address(sarpDatagram.mac);
             debug(`device ${category}[${address}] was found on ${connection.path}`);
-            this.emit(
-              'found',
-              {
-                connection,
-                category,
-                address,
-              },
-            );
+            this.emit('found', {
+              connection,
+              category,
+              address,
+            });
           });
           connection.findByType(type).catch(noop);
           break;
         }
         case 'version':
-          connection.sendDatagram(createNmsRead(Address.empty, 2))
-            .then(
-              datagram => {
-                if (!datagram || Array.isArray(datagram)) return;
-                if (connection.description.category === 'ftdi') {
-                  debug(`category was changed: ${connection.description.category} => ${category}`);
-                  connection.description = descr;
-                }
-                const address = new Address(datagram.source.mac);
-                this.emit(
-                  'found',
-                  {
-                    connection,
-                    category,
-                    address,
-                  },
-                );
-                debug(`device ${category}[${address}] was found on ${connection.path}`);
-              },
-              () => {
-                this.emit('pureConnection', connection);
-              },
-            );
+          connection.sendDatagram(createNmsRead(Address.empty, 2)).then(
+            datagram => {
+              if (!datagram || Array.isArray(datagram)) return;
+              if (connection.description.category === 'ftdi') {
+                debug(`category was changed: ${connection.description.category} => ${category}`);
+                connection.description = descr;
+              }
+              const address = new Address(datagram.source.mac);
+              this.emit('found', {
+                connection,
+                category,
+                address,
+              });
+              debug(`device ${category}[${address}] was found on ${connection.path}`);
+            },
+            () => {
+              this.emit('pureConnection', connection);
+            }
+          );
           break;
         default:
           this.emit('pureConnection', connection);
@@ -321,7 +321,7 @@ devices.on('delete', (device: IDevice) => {
 session.on('found', ({ address, connection }) => {
   console.assert(
     address.type === AddressType.mac || address.type === 'empty',
-    'mac-address expected',
+    'mac-address expected'
   );
   const devs = devices.find(address);
   if (devs && devs.length === 1) {

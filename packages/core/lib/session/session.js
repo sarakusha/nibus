@@ -1,15 +1,28 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.delay = void 0;
 const debug_1 = __importDefault(require("debug"));
 const events_1 = require("events");
 const lodash_1 = __importDefault(require("lodash"));
@@ -31,7 +44,7 @@ class NibusSession extends events_1.EventEmitter {
         this.reloadHandler = (ports) => {
             const prev = this.connections.splice(0, this.connections.length);
             ports.forEach(port => {
-                const { portInfo: { path } } = port;
+                const { portInfo: { path }, } = port;
                 const index = lodash_1.default.findIndex(prev, { path });
                 if (index !== -1) {
                     this.connections.push(prev.splice(index, 1)[0]);
@@ -50,7 +63,8 @@ class NibusSession extends events_1.EventEmitter {
             if (process.platform === 'win32')
                 await exports.delay(2);
             this.find(connection);
-            mib_1.devices.get()
+            mib_1.devices
+                .get()
                 .filter(device => device.connection == null)
                 .reduce(async (promise, device) => {
                 await promise;
@@ -128,15 +142,14 @@ class NibusSession extends events_1.EventEmitter {
             this.emit('disconnected', device);
         }
         const mib = Reflect.getMetadata('mib', device);
-        const occupied = mib_1.devices.get()
+        const occupied = mib_1.devices
+            .get()
             .map(item => item.connection)
             .filter(connection => connection != null && !connection.description.link);
-        const acceptables = lodash_1.default.difference(connections, occupied)
-            .filter(({ description }) => description.link || description.mib === mib);
+        const acceptables = lodash_1.default.difference(connections, occupied).filter(({ description }) => description.link || description.mib === mib);
         if (acceptables.length === 0)
             return -1;
-        const [timeout, connection] = await Promise.race(acceptables.map(item => item.ping(device.address)
-            .then(t => [t, item])));
+        const [timeout, connection] = await Promise.race(acceptables.map(item => item.ping(device.address).then(t => [t, item])));
         if (timeout === -1) {
             return -1;
         }
@@ -152,7 +165,8 @@ class NibusSession extends events_1.EventEmitter {
     }
     closeConnection(connection) {
         connection.close();
-        mib_1.devices.get()
+        mib_1.devices
+            .get()
             .filter(device => device.connection === connection)
             .forEach(device => {
             device.connection = undefined;
@@ -195,8 +209,7 @@ class NibusSession extends events_1.EventEmitter {
                     break;
                 }
                 case 'version':
-                    connection.sendDatagram(nms_1.createNmsRead(Address_1.default.empty, 2))
-                        .then(datagram => {
+                    connection.sendDatagram(nms_1.createNmsRead(Address_1.default.empty, 2)).then(datagram => {
                         if (!datagram || Array.isArray(datagram))
                             return;
                         if (connection.description.category === 'ftdi') {

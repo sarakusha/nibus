@@ -4,6 +4,7 @@ import 'reflect-metadata';
 import Address, { AddressParam } from '../Address';
 import { NibusConnection } from '../nibus';
 import NmsDatagram from '../nms/NmsDatagram';
+import { Config } from '../session/common';
 declare type Listener<T> = (arg: T) => void;
 declare type ChangeArg = {
     id: number;
@@ -50,25 +51,7 @@ export declare type DownloadFinishListener = Listener<DownloadFinishArg>;
 export declare type DeviceId = string & {
     __brand: 'DeviceId';
 };
-export interface IDevice {
-    readonly id: DeviceId;
-    readonly address: Address;
-    connection?: NibusConnection;
-    drain(): Promise<number[]>;
-    write(...ids: number[]): Promise<number[]>;
-    read(...ids: number[]): Promise<{
-        [name: string]: any;
-    }>;
-    upload(domain: string, offset?: number, size?: number): Promise<Buffer>;
-    download(domain: string, data: Buffer, offset?: number, noTerm?: boolean): Promise<void>;
-    execute(program: string, args?: Record<string, any>): Promise<NmsDatagram | NmsDatagram[] | undefined>;
-    release(): number;
-    getId(idOrName: string | number): number;
-    getName(idOrName: string | number): string;
-    getRawValue(idOrName: number | string): any;
-    getError(idOrName: number | string): any;
-    isDirty(idOrName: string | number): boolean;
-    [mibProperty: string]: any;
+interface IDeviceEvents extends EventEmitter {
     on(event: 'connected' | 'disconnected', listener: () => void): this;
     on(event: 'changing' | 'changed', listener: ChangeListener): this;
     on(event: 'uploadStart', listener: UploadStartListener): this;
@@ -118,14 +101,28 @@ export interface IDevice {
     emit(event: 'downloadData', arg: DownloadDataArg): boolean;
     emit(event: 'downloadFinish', arg: DownloadFinishArg): boolean;
 }
+export interface IDevice extends IDeviceEvents {
+    readonly id: DeviceId;
+    readonly address: Address;
+    connection?: NibusConnection;
+    drain(): Promise<number[]>;
+    write(...ids: number[]): Promise<number[]>;
+    read(...ids: number[]): Promise<{
+        [name: string]: any;
+    }>;
+    upload(domain: string, offset?: number, size?: number): Promise<Buffer>;
+    download(domain: string, data: Buffer, offset?: number, noTerm?: boolean): Promise<void>;
+    execute(program: string, args?: Record<string, any>): Promise<NmsDatagram | NmsDatagram[] | undefined>;
+    release(): number;
+    getId(idOrName: string | number): number;
+    getName(idOrName: string | number): string;
+    getRawValue(idOrName: number | string): any;
+    getError(idOrName: number | string): any;
+    isDirty(idOrName: string | number): boolean;
+    [mibProperty: string]: any;
+}
 export declare function getMibFile(mibname: string): string;
-export declare const getMibTypes: () => {
-    [x: string]: ({
-        mib: string;
-    } & {
-        minVersion?: number | undefined;
-    })[];
-} | undefined;
+export declare const getMibTypes: () => Config['mibTypes'];
 export declare function findMibByType(type: number, version?: number): string | undefined;
 export declare interface Devices {
     on(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;

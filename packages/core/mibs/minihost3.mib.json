@@ -55,7 +55,8 @@
           "appinfo": {
             "nms_id": "2",
             "access": "r",
-            "category": "Устройство"
+            "category": "Устройство",
+            "rank": "800"
           }
         },
         "fw_version": {
@@ -102,7 +103,8 @@
           "appinfo": {
             "nms_id": "0x100",
             "access": "r",
-            "category": "NiBUS"
+            "category": "NiBUS",
+            "rank": "900"
           }
         },
         "rs485_collisions": {
@@ -147,7 +149,8 @@
           "appinfo": {
             "nms_id": "0x200",
             "access": "r",
-            "category": "SARP"
+            "category": "SARP",
+            "rank": "1000"
           }
         },
         "sarp_failed_resp": {
@@ -183,7 +186,8 @@
           "appinfo": {
             "nms_id": "0x81",
             "access": "r\nw",
-            "category": "Сетевая адресация"
+            "category": "Сетевая адресация",
+            "rank": "700"
           }
         },
         "subnet": {
@@ -192,7 +196,8 @@
           "appinfo": {
             "nms_id": "0x86",
             "access": "r\nw",
-            "category": "Сетевая адресация"
+            "category": "Сетевая адресация",
+            "rank": "701"
           }
         },
         "did": {
@@ -201,7 +206,8 @@
           "appinfo": {
             "nms_id": "0x83",
             "access": "r\nw",
-            "category": "Сетевая адресация"
+            "category": "Сетевая адресация",
+            "rank": "702"
           }
         },
         "pld_version": {
@@ -219,7 +225,8 @@
           "appinfo": {
             "nms_id": "0x352",
             "access": "r",
-            "category": "Параметры DVI потока"
+            "category": "Параметры DVI потока",
+            "rank": "1100"
           }
         },
         "hsync": {
@@ -309,7 +316,7 @@
           "appinfo": {
             "nms_id": "0x37F",
             "access": "r",
-            "category": "Параметры FPGA"
+            "category": "Устройство"
           }
         },
         "test_signal": {
@@ -336,7 +343,8 @@
           "appinfo": {
             "nms_id": "0x376",
             "access": "r\nw",
-            "category": "Разрешение модуля"
+            "category": "Разрешение модуля",
+            "rank": "100"
           }
         },
         "module_vres": {
@@ -354,7 +362,8 @@
           "appinfo": {
             "nms_id": "0x378",
             "access": "r\nw",
-            "category": "Разрешение экрана"
+            "category": "Разрешение экрана",
+            "rank": "200"
           }
         },
         "vres": {
@@ -372,7 +381,8 @@
           "appinfo": {
             "nms_id": "0x37A",
             "access": "r\nw",
-            "category": "Смещение экрана"
+            "category": "Смещение экрана",
+            "rank": "300"
           }
         },
         "voffs": {
@@ -408,17 +418,19 @@
           "appinfo": {
             "nms_id": "0x360",
             "access": "r\nw",
-            "category": "Управление"
+            "category": "Управление",
+            "rank": "400"
           }
         },
         "brightness": {
           "type": "percentsType",
           "annotation": "Яркость",
           "appinfo": {
-            "browseable": "false",
+            "browsable": "false",
             "nms_id": "0x304",
             "access": "r\nw",
-            "category": "Цветовая кривая"
+            "category": "Цветовая кривая",
+            "rank": "500"
           }
         },
         "contrast": {
@@ -462,6 +474,33 @@
           "annotation": "Точка белого (синий)",
           "appinfo": {
             "nms_id": "0x375",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "curRed": {
+          "type": "percentsType2",
+          "annotation": "Коэффициент тока (красный)",
+          "appinfo": {
+            "nms_id": "0x3A9",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "curGreen": {
+          "type": "percentsType2",
+          "annotation": "Коэффициент тока (зеленый)",
+          "appinfo": {
+            "nms_id": "0x3AA",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "curBlue": {
+          "type": "percentsType2",
+          "annotation": "Коэффициент тока (синий)",
+          "appinfo": {
+            "nms_id": "0x3AB",
             "access": "r\nw",
             "category": "Цветовая кривая"
           }
@@ -544,7 +583,8 @@
           "appinfo": {
             "nms_id": "0x39F",
             "access": "r\nw",
-            "category": "Калибровка"
+            "category": "Калибровка",
+            "rank": "600"
           }
         },
         "calib_bright_en": {
@@ -708,21 +748,24 @@
         "get": "y => 640/1024 + y/2048",
         "set": "value => 2048*value - 1280",
         "precision": "3"
-      }},
+      }
+    },
     "BlueVertexX": {
       "base": "xs:unsignedByte",
       "appinfo": {
         "get": "x => 64/1024 + x/2048",
         "set": "value => 2048*value - 128",
         "precision": "3"
-      }},
+      }
+    },
     "BlueVertexY": {
       "base": "xs:unsignedByte",
       "appinfo": {
         "get": "x => x/2048",
         "set": "value => 2048*value",
         "precision": "3"
-      }},
+      }
+    },
     "TypeColorTable": {
       "base": "xs:unsignedByte",
       "enumeration": {
@@ -1071,6 +1114,14 @@
       "base": "xs:unsignedByte",
       "minInclusive": "0",
       "maxInclusive": "100"
+    },
+    "percentsType2": {
+      "appinfo": {
+        "units": "%"
+      },
+      "base": "xs:unsignedByte",
+      "minInclusive": "0",
+      "maxInclusive": "200"
     },
     "blackPointType": {
       "base": "xs:short",

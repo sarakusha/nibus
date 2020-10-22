@@ -37,6 +37,7 @@ const padHex = (val: number): string => val.toString(16).padStart(2, '0');
  * broadcast = FF:FF:FF:FF:FF:FF
  * empty = 00:00:00:00:00:00
  */
+// eslint-disable-next-line no-shadow
 export enum AddressType {
   broadcast = 'broadcast',
   empty = 'empty',
@@ -142,7 +143,7 @@ export default class Address {
           this.raw.fill(255);
           break;
         case 'auto': {
-          this.raw.fill(0xFE, 0, 2);
+          this.raw.fill(0xfe, 0, 2);
           this.raw.writeUInt32BE(Address.autocount, 2);
           this.type = AddressType.mac;
           Address.autocount += 1;
@@ -211,8 +212,10 @@ export default class Address {
             }
           }
       }
-    } else if ((Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array)
-      && address.length === MAC_LENGTH) {
+    } else if (
+      (Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array) &&
+      address.length === MAC_LENGTH
+    ) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.mac = Buffer.from(address as any);
       this.raw = this.mac;
@@ -307,10 +310,7 @@ export default class Address {
         return new Address(net.join('.'));
       }
       case AddressType.group: {
-        const group = [
-          buffer.readUInt16LE(offset),
-          buffer.readUInt8(offset + 2),
-        ];
+        const group = [buffer.readUInt16LE(offset), buffer.readUInt8(offset + 2)];
         return new Address(group.join('.'));
       }
       default:
@@ -334,10 +334,7 @@ export default class Address {
       case AddressType.mac: {
         const mac = this.mac ? [...this.mac] : [];
         const first = mac.findIndex(b => b > 0);
-        const str = [...mac.slice(first)]
-          .map(padHex)
-          .join(':')
-          .toUpperCase();
+        const str = [...mac.slice(first)].map(padHex).join(':').toUpperCase();
         return first > 0 ? `::${str}` : str;
       }
       default:

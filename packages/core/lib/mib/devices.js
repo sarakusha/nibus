@@ -31,7 +31,6 @@ const fs_1 = __importDefault(require("fs"));
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));
 const path_1 = __importDefault(require("path"));
-require("reflect-metadata");
 const xdg_basedir_1 = require("xdg-basedir");
 const Address_1 = __importStar(require("../Address"));
 const errors_1 = require("../errors");

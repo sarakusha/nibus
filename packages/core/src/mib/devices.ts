@@ -17,12 +17,11 @@ import fs from 'fs';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import _, { Dictionary } from 'lodash';
 import path from 'path';
-import 'reflect-metadata';
 import { config as configDir } from 'xdg-basedir';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
-import { NibusConnection } from '../nibus';
+import { INibusConnection } from '../nibus';
 import { chunkArray } from '../nibus/helper';
 import {
   createExecuteProgramInvocation,
@@ -184,7 +183,7 @@ interface IDeviceEvents extends EventEmitter {
 export interface IDevice extends IDeviceEvents {
   readonly id: DeviceId;
   readonly address: Address;
-  connection?: NibusConnection;
+  connection?: INibusConnection;
   drain(): Promise<number[]>;
   write(...ids: number[]): Promise<number[]>;
   read(...ids: number[]): Promise<{ [name: string]: any }>;
@@ -504,12 +503,12 @@ class DevicePrototype extends EventEmitter implements IDevice {
     Reflect.defineMetadata('map', map, this);
   }
 
-  public get connection(): NibusConnection | undefined {
+  public get connection(): INibusConnection | undefined {
     const { [$values]: values } = this;
     return values[PrivateProps.connection];
   }
 
-  public set connection(value: NibusConnection | undefined) {
+  public set connection(value: INibusConnection | undefined) {
     const { [$values]: values } = this;
     const prev = values[PrivateProps.connection];
     if (prev === value) return;

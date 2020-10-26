@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = exports.AddressType = exports.Address = void 0;
+require("reflect-metadata");
 var Address_1 = require("./Address");
 Object.defineProperty(exports, "Address", { enumerable: true, get: function () { return __importDefault(Address_1).default; } });
 Object.defineProperty(exports, "AddressType", { enumerable: true, get: function () { return Address_1.AddressType; } });

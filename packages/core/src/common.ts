@@ -7,5 +7,5 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type ProtoType = object;
+export const noop = (): void => {};

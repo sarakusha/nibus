@@ -79,8 +79,7 @@ function makeAddressHandler(action, breakout = false) {
                             wait();
                         }
                     }
-                    if ((address.equals(mac) && connection.description.type)
-                        || connection.description.link) {
+                    if ((address.equals(mac) && connection.description.type) || connection.description.link) {
                         count += 1;
                         const [version, type] = yield connection.getVersion(mac);
                         if (type) {

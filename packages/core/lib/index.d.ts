@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 export { default as Address, AddressType } from './Address';
 export * from './errors';
 export * from './sarp';

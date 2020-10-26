@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Protocol = void 0;
-require("reflect-metadata");
 const crc_1 = require("crc");
 const lodash_1 = __importDefault(require("lodash"));
 const Address_1 = __importDefault(require("../Address"));

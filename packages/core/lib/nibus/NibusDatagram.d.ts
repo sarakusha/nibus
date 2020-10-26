@@ -1,5 +1,4 @@
 /// <reference types="node" />
-import 'reflect-metadata';
 import Address, { AddressParam } from '../Address';
 export interface INibusCommon {
     destination: AddressParam;
@@ -25,7 +24,7 @@ export interface INibusDatagramJSON {
 export default class NibusDatagram implements INibusOptions {
     static defaultSource: AddressParam;
     readonly priority: number;
-    readonly protocol: number;
+    readonly protocol: Protocol;
     readonly destination: Address;
     readonly source: Address;
     readonly data: Buffer;

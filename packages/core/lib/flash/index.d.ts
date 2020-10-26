@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 import { IDevice } from '../mib';
 export declare const FlashKinds: readonly ["fpga", "mcu", "rbf", "ttc", "ctrl", "tca", "tcc"];
 export declare type Kind = typeof FlashKinds[number];
-export declare type Ext = '.rbf' | '.tcc' | '.tca' | '.xml' | '.txt';
+export declare type Ext = 'rbf' | 'tcc' | 'tca' | 'xml' | 'txt';
 export declare const KindMap: Record<Kind, readonly [ext: Ext, isModule: boolean, legacy: boolean]>;
 declare type Listener<T> = (arg: T) => void;
 export declare type FlasherStart = {

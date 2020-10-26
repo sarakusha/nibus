@@ -27,9 +27,7 @@ class WaitedNmsDatagram {
     constructor(req, resolve, reject, callback) {
         this.req = req;
         let timer;
-        let counter = req.service !== NmsServiceType_1.default.Read
-            ? 1
-            : Math.floor(req.nms.length / 3) + 1;
+        let counter = req.service !== NmsServiceType_1.default.Read ? 1 : Math.floor(req.nms.length / 3) + 1;
         const datagrams = [];
         const timeout = () => {
             callback(this);
@@ -80,7 +78,9 @@ class NibusConnection extends events_1.EventEmitter {
             this.socket.destroy();
             this.emit('close');
         };
-        this.stopWaiting = (waited) => { lodash_1.default.remove(this.waited, waited); };
+        this.stopWaiting = (waited) => {
+            lodash_1.default.remove(this.waited, waited);
+        };
         this.onDatagram = (datagram) => {
             let showLog = true;
             if (datagram instanceof nms_1.NmsDatagram) {
@@ -97,8 +97,7 @@ class NibusConnection extends events_1.EventEmitter {
                 this.emit('sarp', datagram);
                 showLog = false;
             }
-            showLog
-                && debug('datagram received', JSON.stringify(datagram.toJSON()));
+            showLog && debug('datagram received', JSON.stringify(datagram.toJSON()));
         };
         const validate = MibDescription_1.MibDescriptionV.decode(description);
         if (Either_1.isLeft(validate)) {
@@ -115,7 +114,7 @@ class NibusConnection extends events_1.EventEmitter {
         debug(`new connection on ${path} (${description.category})`);
     }
     sendDatagram(datagram) {
-        const { encoder, stopWaiting, waited, closed, } = this;
+        const { encoder, stopWaiting, waited, closed } = this;
         return new Promise((resolve, reject) => {
             this.ready = this.ready.finally(async () => {
                 if (closed)
@@ -124,7 +123,7 @@ class NibusConnection extends events_1.EventEmitter {
                     await new Promise(cb => encoder.once('drain', cb));
                 }
                 if (!(datagram instanceof nms_1.NmsDatagram) || datagram.notReply) {
-                    return resolve();
+                    return resolve(undefined);
                 }
                 return waited.push(new WaitedNmsDatagram(datagram, resolve, reject, stopWaiting));
             });
@@ -139,18 +138,18 @@ class NibusConnection extends events_1.EventEmitter {
     }
     findByType(type = exports.MINIHOST_TYPE) {
         debug(`findByType ${type} on ${this.path} (${this.description.category})`);
-        const sarp = sarp_1.createSarp(sarp_1.SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xFF, type & 0xFF]);
+        const sarp = sarp_1.createSarp(sarp_1.SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xff, type & 0xff]);
         return this.sendDatagram(sarp);
     }
     async getVersion(address) {
         const nmsRead = nms_1.createNmsRead(address, VERSION_ID);
         try {
-            const { value, status } = await this.sendDatagram(nmsRead);
+            const { value, status } = (await this.sendDatagram(nmsRead));
             if (status !== 0) {
                 debug('<error>', status);
                 return [];
             }
-            const version = value & 0xFFFF;
+            const version = value & 0xffff;
             const type = value >>> 16;
             return [version, type];
         }

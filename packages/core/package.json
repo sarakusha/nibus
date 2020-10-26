@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -20,9 +20,6 @@
     "mibs",
     "EULA.md"
   ],
-  "publishConfig": {
-    "registry": "https://npm.nata-info.ru"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sarakusha/nibus.git"

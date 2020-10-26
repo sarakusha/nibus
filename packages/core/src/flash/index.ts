@@ -44,16 +44,16 @@ type KindOpts = {
   domain: Domains;
 };
 type KindMeta = Record<Kind, KindOpts>;
-export type Ext = '.rbf' | '.tcc' | '.tca' | '.xml' | '.txt';
+export type Ext = 'rbf' | 'tcc' | 'tca' | 'xml' | 'txt';
 
 export const KindMap: Record<Kind, readonly [ext: Ext, isModule: boolean, legacy: boolean]> = {
-  fpga: ['.rbf', false, false],
-  mcu: ['.txt', false, false],
-  rbf: ['.rbf', true, false],
-  tcc: ['.tcc', true, true],
-  tca: ['.tca', true, true],
-  ttc: ['.xml', true, false],
-  ctrl: ['.txt', true, false],
+  fpga: ['rbf', false, false],
+  mcu: ['txt', false, false],
+  rbf: ['rbf', true, false],
+  ctrl: ['txt', true, false],
+  ttc: ['xml', true, false],
+  tcc: ['tcc', true, true],
+  tca: ['tca', true, true],
 } as const;
 
 const ident = (buf: Buffer): Buffer => buf;

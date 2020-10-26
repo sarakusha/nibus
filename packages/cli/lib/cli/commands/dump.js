@@ -56,8 +56,7 @@ function dumpDevice(address, connection, argv, mib) {
             ids = argv.id.map(id => device.getId(id));
         }
         const result = yield device.read(...ids);
-        const rows = Object.keys(result)
-            .map(key => {
+        const rows = Object.keys(result).map(key => {
             const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
             return {
                 value,
@@ -93,10 +92,12 @@ function dumpDevice(address, connection, argv, mib) {
         Object.keys(categories).forEach(category => {
             const rowItems = categories[category];
             if (category) {
-                table.push([{
+                table.push([
+                    {
                         colSpan: 3,
                         content: chalk_1.default.yellow(category.toUpperCase()),
-                    }]);
+                    },
+                ]);
             }
             table.push(...rowItems.map(toRow));
         });
@@ -119,9 +120,8 @@ function findDevices(mib, connection, argv) {
 const dumpCommand = {
     command: 'dump',
     describe: 'Выдать дампы устройств',
-    builder: argv => argv
-        .check(checkArgv => {
-        if (checkArgv.id && (!checkArgv.mac && !checkArgv.mib)) {
+    builder: argv => argv.check(checkArgv => {
+        if (checkArgv.id && !checkArgv.mac && !checkArgv.mib) {
             throw new Error(`Данный аргумент требует следующий дополнительный аргумент:
  id -> mib или id -> mac`);
         }
@@ -155,8 +155,8 @@ const dumpCommand = {
                         findDevices(argv.mib, connection, argv);
                     }
                 }
-                if ((!mac || mac.equals(address))
-                    && (!argv.mib || argv.mib === connection.description.mib)) {
+                if ((!mac || mac.equals(address)) &&
+                    (!argv.mib || argv.mib === connection.description.mib)) {
                     yield dumpDevice(address, connection, argv, connection.description.mib);
                 }
                 count -= 1;

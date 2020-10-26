@@ -13,7 +13,13 @@ import Table, { HorizontalTableRow, GenericTable } from 'cli-table3';
 import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
 import session, {
-  Address, devices, IDevice, NibusConnection, SarpQueryType, config, getMibPrototype,
+  Address,
+  devices,
+  IDevice,
+  INibusConnection,
+  SarpQueryType,
+  config,
+  getMibPrototype,
 } from '@nibus/core';
 
 import debugFactory from '../../debug';
@@ -36,9 +42,9 @@ let count = 0;
 
 async function dumpDevice(
   address: Address,
-  connection: NibusConnection,
+  connection: INibusConnection,
   argv: Arguments<DumpOpts>,
-  mib?: string,
+  mib?: string
 ): Promise<void> {
   const { raw, compact } = argv;
 
@@ -55,20 +61,19 @@ async function dumpDevice(
     ids = argv.id.map(id => device.getId(id));
   }
   const result = await device.read(...ids);
-  const rows: RowType[] = Object.keys(result)
-    .map(key => {
-      const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
-      return {
-        value,
-        key,
-        displayName: Reflect.getMetadata('displayName', device, key),
-      };
-    });
+  const rows: RowType[] = Object.keys(result).map(key => {
+    const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
+    return {
+      value,
+      key,
+      displayName: Reflect.getMetadata('displayName', device, key),
+    };
+  });
   const proto = Reflect.getPrototypeOf(device);
   device.release();
   const categories = _.groupBy(
     rows,
-    ({ key }) => Reflect.getMetadata('category', proto, key) || '',
+    ({ key }) => Reflect.getMetadata('category', proto, key) || ''
   );
   console.info(` Устройство ${Reflect.getMetadata('mib', proto)} [${address.toString()}]`);
   const table = new Table({
@@ -93,17 +98,19 @@ async function dumpDevice(
   Object.keys(categories).forEach(category => {
     const rowItems = categories[category] as RowType[];
     if (category) {
-      table.push([{
-        colSpan: 3,
-        content: chalk.yellow(category.toUpperCase()),
-      }]);
+      table.push([
+        {
+          colSpan: 3,
+          content: chalk.yellow(category.toUpperCase()),
+        },
+      ]);
     }
     table.push(...rowItems.map(toRow));
   });
   console.info(table.toString());
 }
 
-function findDevices(mib: string, connection: NibusConnection, argv: Arguments<DumpOpts>): void {
+function findDevices(mib: string, connection: INibusConnection, argv: Arguments<DumpOpts>): void {
   count += 1;
   const proto = getMibPrototype(mib);
   const type = Reflect.getMetadata('deviceType', proto) as number;
@@ -114,7 +121,7 @@ function findDevices(mib: string, connection: NibusConnection, argv: Arguments<D
     const address = new Address(datagram.mac);
     dumpDevice(address, connection, argv, mib).catch(
       // () => {},
-      e => console.error('error while dump:', e.message),
+      e => console.error('error while dump:', e.message)
     );
   });
 }
@@ -122,66 +129,72 @@ function findDevices(mib: string, connection: NibusConnection, argv: Arguments<D
 const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
   command: 'dump',
   describe: 'Выдать дампы устройств',
-  builder: argv => argv
-    .check(checkArgv => {
-      if (checkArgv.id && (!checkArgv.mac && !checkArgv.mib)) {
+  builder: argv =>
+    argv.check(checkArgv => {
+      if (checkArgv.id && !checkArgv.mac && !checkArgv.mib) {
         throw new Error(`Данный аргумент требует следующий дополнительный аргумент:
  id -> mib или id -> mac`);
       }
       return true;
     }),
-  handler: serviceWrapper(argv => new Promise((resolve, reject) => {
-    let timeout: NodeJS.Timeout;
-    const close = (err?: string): void => {
-      clearTimeout(timeout);
-      session.close();
-      if (err) reject(err); else resolve();
-    };
-    const mac = argv.mac && new Address(argv.mac);
-    session.start().then(value => {
-      count = value;
-      // На Windows сложнее метод определения и занимает больше времени
-      if (process.platform === 'win32') {
-        count *= 3;
-      }
-    });
-    // console.log('RUN DUMP');
-    session.on('found', async ({ address, connection }) => {
-      // console.log('FOUND', connection.description);
-      try {
-        if (connection.description.link) {
-          if (mac) {
-            count += 1;
-            await dumpDevice(mac, connection, argv);
-          } else if (argv.mib) {
-            findDevices(argv.mib!, connection, argv);
-          }
-        }
-        if ((!mac || mac.equals(address))
-          && (!argv.mib || argv.mib === connection.description.mib)) {
-          await dumpDevice(address, connection, argv, connection.description.mib);
-        }
-        count -= 1;
-        if (count === 0) {
+  handler: serviceWrapper(
+    argv =>
+      new Promise((resolve, reject) => {
+        let timeout: NodeJS.Timeout;
+        const close = (err?: string): void => {
           clearTimeout(timeout);
-          process.nextTick(close);
-        }
-      } catch (e) {
-        close(e.message || e);
-      }
-    });
+          session.close();
+          if (err) reject(err);
+          else resolve();
+        };
+        const mac = argv.mac && new Address(argv.mac);
+        session.start().then(value => {
+          count = value;
+          // На Windows сложнее метод определения и занимает больше времени
+          if (process.platform === 'win32') {
+            count *= 3;
+          }
+        });
+        // console.log('RUN DUMP');
+        session.on('found', async ({ address, connection }) => {
+          // console.log('FOUND', connection.description);
+          try {
+            if (connection.description.link) {
+              if (mac) {
+                count += 1;
+                await dumpDevice(mac, connection, argv);
+              } else if (argv.mib) {
+                findDevices(argv.mib!, connection, argv);
+              }
+            }
+            if (
+              (!mac || mac.equals(address)) &&
+              (!argv.mib || argv.mib === connection.description.mib)
+            ) {
+              await dumpDevice(address, connection, argv, connection.description.mib);
+            }
+            count -= 1;
+            if (count === 0) {
+              clearTimeout(timeout);
+              process.nextTick(close);
+            }
+          } catch (e) {
+            close(e.message || e);
+          }
+        });
 
-    const wait = (): void => {
-      count -= 1;
-      if (count > 0) {
+        const wait = (): void => {
+          count -= 1;
+          if (count > 0) {
+            timeout = setTimeout(wait, config.timeout);
+          } else {
+            close();
+          }
+        };
+
         timeout = setTimeout(wait, config.timeout);
-      } else {
-        close();
-      }
-    };
-
-    timeout = setTimeout(wait, config.timeout);
-  })),
+      })
+  ),
 };
 
 export default dumpCommand;

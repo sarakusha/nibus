@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -29,9 +29,6 @@
     "lib",
     "detection.yml"
   ],
-  "publishConfig": {
-    "registry": "https://npm.nata-info.ru"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sarakusha/nibus.git"
@@ -58,7 +55,7 @@
     "eslint-plugin-react": "^7.17.0"
   },
   "dependencies": {
-    "@nibus/core": "^2.0.1",
+    "@nibus/core": "^2.1.0",
     "@serialport/bindings": "^9.0.1",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",

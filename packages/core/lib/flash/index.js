@@ -13,13 +13,13 @@ const path_1 = __importDefault(require("path"));
 const crcPrev = 0xaa55;
 exports.FlashKinds = ['fpga', 'mcu', 'rbf', 'ttc', 'ctrl', 'tca', 'tcc'];
 exports.KindMap = {
-    fpga: ['.rbf', false, false],
-    mcu: ['.txt', false, false],
-    rbf: ['.rbf', true, false],
-    tcc: ['.tcc', true, true],
-    tca: ['.tca', true, true],
-    ttc: ['.xml', true, false],
-    ctrl: ['.txt', true, false],
+    fpga: ['rbf', false, false],
+    mcu: ['txt', false, false],
+    rbf: ['rbf', true, false],
+    ctrl: ['txt', true, false],
+    ttc: ['xml', true, false],
+    tcc: ['tcc', true, true],
+    tca: ['tca', true, true],
 };
 const ident = (buf) => buf;
 const createHeader = (kind, option, data) => {

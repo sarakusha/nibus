@@ -8,6 +8,8 @@
  * the EULA file that was distributed with this source code.
  */
 
+import 'reflect-metadata';
+
 export { default as Address, AddressType } from './Address';
 export * from './errors';
 export * from './sarp';

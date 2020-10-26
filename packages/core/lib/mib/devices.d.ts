@@ -1,8 +1,7 @@
 /// <reference types="node" />
 import { EventEmitter } from 'events';
-import 'reflect-metadata';
 import Address, { AddressParam } from '../Address';
-import { NibusConnection } from '../nibus';
+import { INibusConnection } from '../nibus';
 import NmsDatagram from '../nms/NmsDatagram';
 import { Config } from '../session/common';
 declare type Listener<T> = (arg: T) => void;
@@ -104,7 +103,7 @@ interface IDeviceEvents extends EventEmitter {
 export interface IDevice extends IDeviceEvents {
     readonly id: DeviceId;
     readonly address: Address;
-    connection?: NibusConnection;
+    connection?: INibusConnection;
     drain(): Promise<number[]>;
     write(...ids: number[]): Promise<number[]>;
     read(...ids: number[]): Promise<{

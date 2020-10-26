@@ -9,7 +9,6 @@
  * the EULA file that was distributed with this source code.
  */
 
-import 'reflect-metadata';
 import { crc16ccitt } from 'crc';
 import _ from 'lodash';
 import Address, { AddressParam } from '../Address';
@@ -66,7 +65,7 @@ export default class NibusDatagram implements INibusOptions {
 
   public readonly priority: number;
 
-  public readonly protocol: number;
+  public readonly protocol: Protocol;
 
   public readonly destination: Address;
 

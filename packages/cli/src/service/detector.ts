@@ -27,7 +27,6 @@ import {
   KnownPortV,
 } from '@nibus/core';
 
-import staticDetection from './static';
 import debugFactory, { isElectron } from '../debug';
 
 function getOrUndefined<E, A>(e: Either<E, A>): A | undefined {
@@ -36,12 +35,12 @@ function getOrUndefined<E, A>(e: Either<E, A>): A | undefined {
 
 // let usbDetection: typeof UsbDetection;
 const debug = debugFactory('nibus:detector');
-const detectionPath = isElectron
-  ? path.resolve(__dirname, '..', 'extraResources', 'detection.yml')
-  : path.resolve(__dirname, '..', '..', 'detection.yml');
+export const detectionPath =
+  isElectron && process.env.NODE_ENV === 'production'
+    ? path.resolve(__dirname, '..', 'extraResources', 'detection.yml')
+    : path.resolve(__dirname, '..', '..', 'assets', 'detection.yml');
 debug('Detection file', detectionPath);
 let knownPorts: Promise<IKnownPort[]> = Promise.resolve([]);
-
 
 interface IDetectorItem {
   device: string;
@@ -60,14 +59,16 @@ interface IDetection {
 }
 
 const getRawDetection = (): IDetection => {
-  try {
-    const data = fs.readFileSync(detectionPath, 'utf8');
-    return yaml.safeLoad(data) as IDetection;
+  // try {
+  const data = fs.readFileSync(detectionPath, 'utf8');
+  return yaml.safeLoad(data) as IDetection;
+  /*
   } catch (err) {
     debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return staticDetection as any;
   }
+*/
 };
 
 const loadDetection = (): IDetection | undefined => {
@@ -76,8 +77,9 @@ const loadDetection = (): IDetection | undefined => {
     const desc = result.mibCategories[category];
     desc.category = category;
     if (Array.isArray(desc.select)) {
-      desc.select = (desc.select as unknown as string[])
-        .map(cat => result.mibCategories[cat] || cat);
+      desc.select = ((desc.select as unknown) as string[]).map(
+        cat => result.mibCategories[cat] || cat
+      );
     }
   });
   return result;
@@ -94,7 +96,7 @@ const reload = _.debounce(reloadDevices, 2000);
 
 const detectionListener = (curr: Stats, prev: Stats): void => {
   if (curr.mtime !== prev.mtime) {
-    debug('detection file was changed, reloading devices...');
+    debug(`detection file ${detectionPath} was changed, reloading devices...`);
     detection = undefined;
     reloadDevices();
   }
@@ -106,6 +108,7 @@ interface IDetector extends NodeJS.EventEmitter {
   restart: () => void;
   getPorts: () => Promise<IKnownPort[]>;
   getDetection: () => IDetection | undefined;
+  reload: () => void;
 }
 
 const detector = new EventEmitter() as IDetector;
@@ -139,19 +142,22 @@ detector.getPorts = () => knownPorts;
 
 detector.getDetection = (): IDetection | undefined => detection;
 
-const getId = (id?: HexOrNumber): number | undefined => (typeof id === 'string'
-  ? parseInt(id, 16)
-  : id);
+detector.reload = reloadDevices;
+
+const getId = (id?: HexOrNumber): number | undefined =>
+  typeof id === 'string' ? parseInt(id, 16) : id;
 
 function equals(port: SerialPort.PortInfo, device: usbDetection.IDevice): boolean {
-  return getId(port.productId) === device.productId
-    && getId(port.vendorId) === device.vendorId
-    && port.serialNumber === device.serialNumber;
+  return (
+    getId(port.productId) === device.productId &&
+    getId(port.vendorId) === device.vendorId &&
+    port.serialNumber === device.serialNumber
+  );
 }
 
 async function detectDevice(
   port: SerialPort.PortInfo,
-  lastAdded?: usbDetection.IDevice,
+  lastAdded?: usbDetection.IDevice
 ): Promise<IKnownPort> {
   let detected: usbDetection.IDevice | undefined;
   if (lastAdded && equals(port, lastAdded)) {
@@ -159,13 +165,10 @@ async function detectDevice(
   } else {
     let list = await usbDetection.find(getId(port.vendorId)!, getId(port.productId)!, () => {});
     const { serialNumber, manufacturer } = port;
-    list = _.filter(
-      list,
-      {
-        serialNumber,
-        manufacturer,
-      },
-    );
+    list = _.filter(list, {
+      serialNumber,
+      manufacturer,
+    });
     if (list.length === 0) {
       debug(`Unknown device ${JSON.stringify(port)}`);
     } else if (list.length > 1) {
@@ -175,9 +178,7 @@ async function detectDevice(
     }
   }
   if (detected !== undefined) {
-    const {
-      productId, vendorId, deviceName: device, deviceAddress,
-    } = detected;
+    const { productId, vendorId, deviceName: device, deviceAddress } = detected;
     return {
       ...port,
       productId,
@@ -194,24 +195,32 @@ async function detectDevice(
 }
 
 const matchCategory = (port: IKnownPort): Category => {
-  const match = detection && _.find(
-    detection!.knownDevices,
-    item => (!item.device || (port.device && port.device.startsWith(item.device)))
-      && (!item.serialNumber
-        || (port.serialNumber && port.serialNumber.startsWith(item.serialNumber)))
-      && (!item.manufacturer || (port.manufacturer === item.manufacturer))
-      && (getId(item.vid) === port.vendorId) && (getId(item.pid) === port.productId),
-  ) as IDetectorItem;
-  if (!match && process.platform === 'win32'
-    && (port.productId === 0x6001 || port.productId === 0x6015)
-    && port.vendorId === 0x0403) {
+  const match =
+    detection &&
+    (_.find(
+      detection!.knownDevices,
+      item =>
+        (!item.device || (port.device && port.device.startsWith(item.device))) &&
+        (!item.serialNumber ||
+          (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
+        (!item.manufacturer || port.manufacturer === item.manufacturer) &&
+        getId(item.vid) === port.vendorId &&
+        getId(item.pid) === port.productId
+    ) as IDetectorItem);
+  if (
+    !match &&
+    process.platform === 'win32' &&
+    (port.productId === 0x6001 || port.productId === 0x6015) &&
+    port.vendorId === 0x0403
+  ) {
     return 'ftdi';
   }
   return match && getOrUndefined(CategoryV.decode(match.category));
 };
 
 async function reloadDevicesAsync(
-  prevPorts: IKnownPort[], lastAdded?: usbDetection.IDevice,
+  prevPorts: IKnownPort[],
+  lastAdded?: usbDetection.IDevice
 ): Promise<IKnownPort[]> {
   const ports: IKnownPort[] = [];
   try {

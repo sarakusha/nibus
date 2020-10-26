@@ -9,7 +9,6 @@
  * the EULA file that was distributed with this source code.
  */
 
-import 'reflect-metadata';
 import { crc16ccitt } from 'crc';
 import _ from 'lodash';
 import Address, { AddressParam } from '../Address';
@@ -24,6 +23,7 @@ export interface INibusCommon {
   source?: AddressParam;
 }
 
+// eslint-disable-next-line no-shadow
 export enum Protocol {
   NMS = 1,
   SARP = 2,
@@ -46,16 +46,18 @@ export interface INibusDatagramJSON {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const replaceBuffers = (obj: any): any => Object.entries(obj).reduce(
-  (result, [name, value]) => ({
-    ...result,
-    [name]:
-      Buffer.isBuffer(value) ? printBuffer(value) : _.isPlainObject(value)
+const replaceBuffers = (obj: any): any =>
+  Object.entries(obj).reduce(
+    (result, [name, value]) => ({
+      ...result,
+      [name]: Buffer.isBuffer(value)
+        ? printBuffer(value)
+        : _.isPlainObject(value)
         ? replaceBuffers(value)
         : value,
-  }),
-  {},
-);
+    }),
+    {}
+  );
 
 // @timeStamp
 export default class NibusDatagram implements INibusOptions {
@@ -63,7 +65,7 @@ export default class NibusDatagram implements INibusOptions {
 
   public readonly priority: number;
 
-  public readonly protocol: number;
+  public readonly protocol: Protocol;
 
   public readonly destination: Address;
 
@@ -80,10 +82,7 @@ export default class NibusDatagram implements INibusOptions {
   constructor(frameOrOptions: Buffer | INibusOptions) {
     if (Buffer.isBuffer(frameOrOptions)) {
       const frame: Buffer = Buffer.from(frameOrOptions);
-      console.assert(
-        Offsets.DATA < frame.length && frame.length < 256,
-        'Invalid datagram',
-      );
+      console.assert(Offsets.DATA < frame.length && frame.length < 256, 'Invalid datagram');
       this.raw = frame;
     } else {
       const options = {
@@ -99,10 +98,10 @@ export default class NibusDatagram implements INibusOptions {
         PREAMBLE,
         ...destination.raw,
         ...source.raw,
-        0xC0
-        | ((options.priority & 3) << 4)
-        | ((destination.rawType & 3) << 2)
-        | (source.rawType & 3),
+        0xc0 |
+          ((options.priority & 3) << 4) |
+          ((destination.rawType & 3) << 2) |
+          (source.rawType & 3),
         options.data.length + 1,
         options.protocol,
         ...options.data,
@@ -120,7 +119,7 @@ export default class NibusDatagram implements INibusOptions {
     this.destination = Address.read(destAddressType, this.raw, Offsets.DESTINATION);
     this.source = Address.read(srcAddressType, this.raw, Offsets.SOURCE);
     // Реальная длина данных на 1 меньше чем указано в LENGTH!
-    this.data = this.raw.slice(Offsets.DATA, (Offsets.DATA + this.raw[Offsets.LENGTH]) - 1);
+    this.data = this.raw.slice(Offsets.DATA, Offsets.DATA + this.raw[Offsets.LENGTH] - 1);
     Reflect.defineMetadata('timeStamp', Date.now(), this);
     process.nextTick(() => Object.freeze(this));
   }

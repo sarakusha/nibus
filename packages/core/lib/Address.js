@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddressType = exports.MAC_LENGTH = void 0;
 const lodash_1 = __importDefault(require("lodash"));
 exports.MAC_LENGTH = 6;
 const isHex = (str) => /^(?:0X[0-9A-F]+)|(?:[0-9]*[A-F]+)/i.test(str);
@@ -32,7 +33,7 @@ class Address {
                     this.raw.fill(255);
                     break;
                 case 'auto': {
-                    this.raw.fill(0xFE, 0, 2);
+                    this.raw.fill(0xfe, 0, 2);
                     this.raw.writeUInt32BE(Address.autocount, 2);
                     this.type = AddressType.mac;
                     Address.autocount += 1;
@@ -104,8 +105,8 @@ class Address {
                     }
             }
         }
-        else if ((Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array)
-            && address.length === exports.MAC_LENGTH) {
+        else if ((Array.isArray(address) || Buffer.isBuffer(address) || address instanceof Uint8Array) &&
+            address.length === exports.MAC_LENGTH) {
             this.mac = Buffer.from(address);
             this.raw = this.mac;
             if (isEmpty(address)) {
@@ -179,10 +180,7 @@ class Address {
                 return new Address(net.join('.'));
             }
             case AddressType.group: {
-                const group = [
-                    buffer.readUInt16LE(offset),
-                    buffer.readUInt8(offset + 2),
-                ];
+                const group = [buffer.readUInt16LE(offset), buffer.readUInt8(offset + 2)];
                 return new Address(group.join('.'));
             }
             default:
@@ -202,10 +200,7 @@ class Address {
             case AddressType.mac: {
                 const mac = this.mac ? [...this.mac] : [];
                 const first = mac.findIndex(b => b > 0);
-                const str = [...mac.slice(first)]
-                    .map(padHex)
-                    .join(':')
-                    .toUpperCase();
+                const str = [...mac.slice(first)].map(padHex).join(':').toUpperCase();
                 return first > 0 ? `::${str}` : str;
             }
             default:

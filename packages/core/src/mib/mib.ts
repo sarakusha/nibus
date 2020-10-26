@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase,no-bitwise,no-eval */
+/* eslint-disable no-bitwise,no-eval */
 /* tslint:disable:no-eval */
 /*
  * @license
@@ -20,7 +20,7 @@ export function validJsName(name: string): string {
 export const withValue = (
   value: unknown,
   writable = false,
-  configurable = false,
+  configurable = false
 ): PropertyDescriptor => ({
   value,
   writable,
@@ -28,8 +28,8 @@ export const withValue = (
   enumerable: true,
 });
 const hex = /^0X[0-9A-F]+$/i;
-const isHex = (str: string): boolean => hex.test(str)
-  || parseInt(str, 10).toString(10) !== str.toLowerCase().replace(/^[0 ]+/, '');
+const isHex = (str: string): boolean =>
+  hex.test(str) || parseInt(str, 10).toString(10) !== str.toLowerCase().replace(/^[0 ]+/, '');
 
 export const toInt = (value: string | boolean | number = 0): number => {
   if (typeof value === 'number') return value;
@@ -65,12 +65,18 @@ export function precisionConverter(precision: string): IConverter {
 
 const MibPropertyAppInfoV = t.intersection([
   t.type({
-    // eslint-disable-next-line @typescript-eslint/camelcase
     nms_id: t.union([t.string, t.Int]),
     access: t.string,
   }),
   t.partial({
     category: t.string,
+    rank: t.string,
+    zero: t.string,
+    units: t.string,
+    precision: t.string,
+    representation: t.string,
+    get: t.string,
+    set: t.string,
   }),
 ]);
 const MibPropertyV = t.type({
@@ -132,10 +138,13 @@ const MibSubroutineV = t.intersection([
     ]),
   }),
   t.partial({
-    properties: t.record(t.string, t.type({
-      type: t.string,
-      annotation: t.string,
-    })),
+    properties: t.record(
+      t.string,
+      t.type({
+        type: t.string,
+        annotation: t.string,
+      })
+    ),
   }),
 ]);
 const SubroutineTypeV = t.type({
@@ -213,14 +222,10 @@ export const booleanConverter: IConverter = {
 };
 
 export const percentConverter: IConverter = {
-  from: value => (typeof value === 'number' ? Math.max(Math.min(
-    Math.round((value * 255) / 100),
-    255,
-  ), 0) : value),
-  to: value => (typeof value === 'number' ? Math.max(
-    Math.min(Math.round((value * 100) / 255), 100),
-    0,
-  ) : value),
+  from: value =>
+    typeof value === 'number' ? Math.max(Math.min(Math.round((value * 255) / 100), 255), 0) : value,
+  to: value =>
+    typeof value === 'number' ? Math.max(Math.min(Math.round((value * 100) / 255), 100), 0) : value,
 };
 
 export function representationConverter(format: string, size: number): IConverter {
@@ -261,7 +266,7 @@ export function packed8floatConverter(subtype: IMibType): IConverter {
   return {
     from: value => {
       const val = typeof value === 'string' ? parseFloat(value) : value;
-      return typeof val === 'number' ? Math.floor((val - delta) * 100) & 0xFF : val;
+      return typeof val === 'number' ? Math.floor((val - delta) * 100) & 0xff : val;
     },
     to: value => (typeof value === 'number' ? value / 100 + delta : value),
   };
@@ -274,17 +279,17 @@ export const fixedPointNumber4Converter: IConverter = {
       return val;
     }
     const dec = Math.round(val * 1000) % 1000;
-    const hi = ((Math.floor(val) << 4) + Math.floor(dec / 100)) & 0xFF;
-    const low = ((dec % 10) + ((Math.floor(dec / 10) % 10) << 4)) & 0xFF;
+    const hi = ((Math.floor(val) << 4) + Math.floor(dec / 100)) & 0xff;
+    const low = ((dec % 10) + (Math.floor(dec / 10) % 10 << 4)) & 0xff;
     return (hi << 8) | low;
   },
   to: value => {
     if (typeof value !== 'number') {
       return value;
     }
-    const hi = (value >> 8) & 0xFF;
-    const low = value & 0xFF;
-    const dec = (hi & 0xF) * 100 + (low >> 4) * 10 + (low & 0xF);
+    const hi = (value >> 8) & 0xff;
+    const low = value & 0xff;
+    const dec = (hi & 0xf) * 100 + (low >> 4) * 10 + (low & 0xf);
     return (hi >> 4) + dec / 1000;
   },
 };
@@ -293,9 +298,10 @@ export const versionTypeConverter: IConverter = {
   from: () => {
     throw new Error('versionType is readonly property');
   },
-  to: value => (typeof value === 'number'
-    ? `${(value >> 8) & 0xFF}.${value & 0xFF} [0x${(value >>> 16).toString(16)}]`
-    : value),
+  to: value =>
+    typeof value === 'number'
+      ? `${(value >> 8) & 0xff}.${value & 0xff} [0x${(value >>> 16).toString(16)}]`
+      : value,
 };
 
 export function getIntSize(type: string): number {
@@ -338,14 +344,11 @@ export const evalConverter = (get: string, set: string): IConverter => ({
   to: eval(get),
 });
 
-export const convertTo = (
-  converters: IConverter[],
-) => (value: ResultType) => converters.reduceRight(
-  (result, converter) => result !== undefined && converter.to(result),
-  value,
-);
+export const convertTo = (converters: IConverter[]) => (value: ResultType): ResultType =>
+  converters.reduceRight(
+    (result, converter) => result !== undefined && converter.to(result),
+    value
+  );
 
-export const convertFrom = (converters: IConverter[]) => (value: PresentType) => converters.reduce((
-  present,
-  converter,
-) => converter.from(present), value);
+export const convertFrom = (converters: IConverter[]) => (value: PresentType): PresentType =>
+  converters.reduce((present, converter) => converter.from(present), value);

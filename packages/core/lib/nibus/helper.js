@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.printBuffer = exports.chunkArray = void 0;
 function chunkArray(array, len) {
     const ret = [];
     const size = Math.ceil(array.length / len);

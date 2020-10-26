@@ -12,7 +12,10 @@
 import Address from '../Address';
 import { NMS_MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
 import NibusDatagram, {
-  INibusCommon, INibusDatagramJSON, INibusOptions,
+  INibusCommon,
+  INibusDatagramJSON,
+  INibusOptions,
+  Protocol,
 } from '../nibus/NibusDatagram';
 import { decodeValue, getSizeOf } from './nms';
 import NmsServiceType from './NmsServiceType';
@@ -45,15 +48,21 @@ export interface INmsDatagramJSON extends INibusDatagramJSON {
 
 export default class NmsDatagram extends NibusDatagram implements INmsOptions {
   public static isNmsFrame(frame: Buffer): boolean {
-    return frame[0] === PREAMBLE && frame.length > 15 && frame[Offsets.PROTOCOL] === 1
-      && frame[Offsets.LENGTH] > 3;
+    return (
+      frame[0] === PREAMBLE &&
+      frame.length > 15 &&
+      frame[Offsets.PROTOCOL] === 1 &&
+      frame[Offsets.LENGTH] > 3
+    );
   }
+
+  public readonly protocol: Protocol.NMS;
 
   public readonly isResponse: boolean;
 
   public readonly notReply: boolean;
 
-  public readonly service: number;
+  public readonly service: NmsServiceType;
 
   public readonly id: number;
 
@@ -74,9 +83,7 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
       };
       console.assert(options.nms.length <= NMS_MAX_DATA_LENGTH);
       // fix: NMS batch read
-      const nmsLength = options.service !== NmsServiceType.Read
-        ? (options.nms.length & 0x3f)
-        : 0;
+      const nmsLength = options.service !== NmsServiceType.Read ? options.nms.length & 0x3f : 0;
       const nibusData = [
         ((options.service & 0x1f) << 3) | (options.isResponse ? 4 : 0) | ((options.id >> 8) & 3),
         options.id & 0xff,
@@ -85,7 +92,7 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
       ];
       const nibusOptions: INibusOptions = {
         data: Buffer.from(nibusData),
-        protocol: 1,
+        protocol: Protocol.NMS,
         ...options,
       };
       super(nibusOptions);
@@ -93,15 +100,14 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
         this.timeout = frameOrOptions.timeout;
       }
     }
+    this.protocol = Protocol.NMS;
     const { data } = this;
     this.id = ((data[0] & 3) << 8) | data[1];
     this.service = data[0] >> 3;
     this.isResponse = !!(data[0] & 4);
     this.notReply = !!(data[2] & 0x80);
     // fix: NMS batch read
-    const nmsLength = this.service !== NmsServiceType.Read
-      ? data[2] & 0x3F
-      : data.length - 3;
+    const nmsLength = this.service !== NmsServiceType.Read ? data[2] & 0x3f : data.length - 3;
     this.nms = this.data.slice(3, 3 + nmsLength);
   }
 
@@ -142,9 +148,8 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
     }
     const { length } = nms;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const safeDecode = (index: number, type = valueType): any => (length < index + getSizeOf(type)
-      ? undefined
-      : decodeValue(type, nms, index));
+    const safeDecode = (index: number, type = valueType): any =>
+      length < index + getSizeOf(type) ? undefined : decodeValue(type, nms, index);
     switch (service) {
       case NmsServiceType.Read:
         return safeDecode(2);

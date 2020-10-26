@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NMS_MAX_DATA_LENGTH = exports.MAX_DATA_LENGTH = exports.SERVICE_INFO_LENGTH = exports.PREAMBLE = exports.Offsets = exports.States = void 0;
 var States;
 (function (States) {
     States[States["PREAMBLE_WAITING"] = 0] = "PREAMBLE_WAITING";
@@ -15,7 +16,7 @@ var Offsets;
     Offsets[Offsets["PROTOCOL"] = 15] = "PROTOCOL";
     Offsets[Offsets["DATA"] = 16] = "DATA";
 })(Offsets = exports.Offsets || (exports.Offsets = {}));
-exports.PREAMBLE = 0x7E;
+exports.PREAMBLE = 0x7e;
 exports.SERVICE_INFO_LENGTH = Offsets.DATA;
 exports.MAX_DATA_LENGTH = 238;
 exports.NMS_MAX_DATA_LENGTH = 63;

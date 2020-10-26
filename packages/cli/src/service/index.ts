@@ -29,7 +29,6 @@ import {
 } from '@nibus/core';
 import { createInterface } from 'readline';
 
-
 import fs from 'fs';
 
 import detector from './detector';
@@ -40,18 +39,15 @@ import { SerialLogger } from '../ipc/SerialTee';
 import { SerialTee, Server } from '../ipc';
 
 const pkgName = '@nata/nibus.js'; // = require('../../package.json');
-const conf = new Configstore(
-  pkgName,
-  {
-    logLevel: 'none',
-    omit: ['priority'],
-  },
-);
+const conf = new Configstore(pkgName, {
+  logLevel: 'none',
+  omit: ['priority'],
+});
 
 // debugFactory.enable('nibus:detector,nibus.service');
 const debug = debugFactory('nibus:service');
-const debugIn = debugFactory('nibus:INP<<<');
-const debugOut = debugFactory('nibus:OUT>>>');
+const debugIn = debugFactory('nibus:<<<');
+const debugOut = debugFactory('nibus:>>>');
 
 debug(`config path: ${conf.path}`);
 
@@ -104,17 +100,21 @@ updateMibTypes().catch(e => debug(`<error> ${e.message}`));
 // const direction = (dir: Direction) => dir === Direction.in ? '<<<' : '>>>';
 const decoderIn = new NibusDecoder();
 decoderIn.on('data', (datagram: NibusDatagram) => {
-  debugIn(datagram.toString({
-    pick: conf.get('pick') as Fields,
-    omit: conf.get('omit') as Fields,
-  }));
+  debugIn(
+    datagram.toString({
+      pick: conf.get('pick') as Fields,
+      omit: conf.get('omit') as Fields,
+    })
+  );
 });
 const decoderOut = new NibusDecoder();
 decoderOut.on('data', (datagram: NibusDatagram) => {
-  debugOut(datagram.toString({
-    pick: conf.get('pick') as Fields,
-    omit: conf.get('omit') as Fields,
-  }));
+  debugOut(
+    datagram.toString({
+      pick: conf.get('pick') as Fields,
+      omit: conf.get('omit') as Fields,
+    })
+  );
 });
 
 const loggers = {
@@ -147,7 +147,7 @@ const loggers = {
   },
 };
 
-class NibusService {
+export class NibusService {
   private readonly server: Server;
 
   private isStarted = false;
@@ -179,10 +179,13 @@ class NibusService {
     detector.on('remove', this.removeHandler);
 
     const promise = new Promise<void>((resolve, reject) => {
-      detector.getPorts().then(() => resolve()).catch(err => {
-        console.error('error while get ports', err.stack);
-        reject(err);
-      });
+      detector
+        .getPorts()
+        .then(() => resolve())
+        .catch(err => {
+          console.error('error while get ports', err.stack);
+          reject(err);
+        });
     });
 
     detector.start();
@@ -213,7 +216,7 @@ class NibusService {
     client: Socket,
     logLevel: LogLevel | undefined,
     pickFields: Fields,
-    omitFields: Fields,
+    omitFields: Fields
   ): void => {
     logLevel && conf.set('logLevel', logLevel);
     pickFields && conf.set('pick', pickFields);
@@ -224,7 +227,11 @@ class NibusService {
   private connectionHandler = (socket: Socket): void => {
     const { server, connections } = this;
     server
-      .send(socket, 'ports', connections.map(connection => connection.toJSON()))
+      .send(
+        socket,
+        'ports',
+        connections.map(connection => connection.toJSON())
+      )
       .catch(err => {
         debug('<error>', err.stack);
       });
@@ -252,8 +259,15 @@ class NibusService {
       this.server.broadcast('remove', connection.toJSON()).catch(noop);
     }
   };
+
+  // eslint-disable-next-line class-methods-use-this
+  reload(): void {
+    detector.reload();
+  }
 }
 
 const service = new NibusService();
+
+export { detectionPath } from './detector';
 
 export default service;

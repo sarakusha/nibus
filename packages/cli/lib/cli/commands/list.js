@@ -19,8 +19,7 @@ const listCommand = {
             resolved ? resolve() : reject(error && error.message);
         });
         socket.on('ports', (ports) => {
-            const rows = lodash_1.default.sortBy(ports, [lodash_1.default.property('description.category')])
-                .map(({ portInfo: { manufacturer, category, device, path, }, }) => ({
+            const rows = lodash_1.default.sortBy(ports, [lodash_1.default.property('description.category')]).map(({ portInfo: { manufacturer, category, device, path } }) => ({
                 manufacturer,
                 category,
                 device,

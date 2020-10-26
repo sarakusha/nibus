@@ -10,6 +10,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+// eslint-disable-next-line no-shadow
 enum NmsValueType {
   Unknown = 0,
   Boolean = 11,

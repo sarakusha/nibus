@@ -12,6 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.startOptions = void 0;
 const pm2_1 = __importDefault(require("pm2"));
 const path_1 = __importDefault(require("path"));
 const debug_1 = __importDefault(require("../../debug"));
@@ -36,7 +37,7 @@ if (path_1.default.extname(__filename) === '.ts') {
         'service/detector.ts',
     ];
 }
-const startup = (platform) => new Promise(((resolve, reject) => {
+const startup = (platform) => new Promise((resolve, reject) => {
     const timeout = setTimeout(() => reject(new Error('Timeout')), 10000);
     pm2_1.default.startup(platform, err => {
         clearTimeout(timeout);
@@ -47,13 +48,12 @@ const startup = (platform) => new Promise(((resolve, reject) => {
             resolve();
         }
     });
-}));
+});
 const startCommand = {
     command: 'start',
     describe: 'запустить сервис NiBUS',
-    builder: argv => argv
-        .option('auto', {
-        describe: 'автозапуск сервиса после старта стистемы для заданной ОС',
+    builder: argv => argv.option('auto', {
+        describe: 'автозапуск сервиса после старта системы для заданной ОС',
         choices: ['ubuntu', 'centos', 'redhat', 'gentoo', 'systemd', 'darwin', 'amazon'],
     }),
     handler: argc => {
@@ -69,7 +69,7 @@ const startCommand = {
                         yield startup(argc.auto);
                     }
                     catch (error) {
-                        console.error('Не удалось зарегестрировать сервис', error.message);
+                        console.error('Не удалось зарегистрировать сервис', error.message);
                     }
                 }
                 pm2_1.default.disconnect();

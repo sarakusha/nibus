@@ -48,7 +48,7 @@ const parseCommand = {
         boolean: true,
         desc: 'входной файл в формате hex',
     }),
-    handler: (({ _level, pick, omit, input, hex, }) => new Promise((resolve, reject) => {
+    handler: ({ _level, pick, omit, input, hex }) => new Promise((resolve, reject) => {
         const inputPath = path_1.default.resolve(process.cwd(), input);
         if (!fs_1.default.existsSync(inputPath)) {
             reject(Error(`File ${inputPath} not found`));
@@ -64,7 +64,7 @@ const parseCommand = {
         else {
             stream.pipe(decoder);
         }
-    })),
+    }),
 };
 exports.default = parseCommand;
 //# sourceMappingURL=parse.js.map

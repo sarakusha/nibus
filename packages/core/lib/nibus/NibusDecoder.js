@@ -61,7 +61,7 @@ class NibusDecoder extends stream_1.Transform {
                             continue;
                         }
                         state = nbconst_1.States.DATA_READING;
-                        expectedLength = (length + nbconst_1.SERVICE_INFO_LENGTH + 2) - 1;
+                        expectedLength = length + nbconst_1.SERVICE_INFO_LENGTH + 2 - 1;
                     }
                     break;
                 case nbconst_1.States.DATA_READING:

@@ -13,9 +13,7 @@ import _ from 'lodash';
 import { AddressParam } from '../Address';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import config from '../nibus/config';
-import {
-  encodeValue, getNmsType, getSizeOf, writeValue,
-} from './nms';
+import { encodeValue, getNmsType, getSizeOf, writeValue } from './nms';
 import NmsDatagram from './NmsDatagram';
 import NmsServiceType from './NmsServiceType';
 import NmsValueType from './NmsValueType';
@@ -30,11 +28,9 @@ export function createNmsRead(destination: AddressParam, ...ids: number[]): NmsD
     throw new Error('To many properties (21)');
   }
   const [id, ...rest] = ids;
-  const nms = _.flatten(rest.map(next => [
-    (NmsServiceType.Read << 3) | (next >> 8),
-    next & 0xff,
-    0,
-  ]));
+  const nms = _.flatten(
+    rest.map(next => [(NmsServiceType.Read << 3) | (next >> 8), next & 0xff, 0])
+  );
   return new NmsDatagram({
     destination,
     id,
@@ -45,8 +41,11 @@ export function createNmsRead(destination: AddressParam, ...ids: number[]): NmsD
 }
 
 export function createNmsWrite(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  destination: AddressParam, id: number, type: NmsValueType, value: any, notReply = false,
+  destination: AddressParam,
+  id: number,
+  type: NmsValueType,
+  value: unknown,
+  notReply = false
 ): NmsDatagram {
   const nms = encodeValue(type, value);
   return new NmsDatagram({
@@ -60,7 +59,7 @@ export function createNmsWrite(
 
 export function createNmsInitiateUploadSequence(
   destination: AddressParam,
-  id: number,
+  id: number
 ): NmsDatagram {
   return new NmsDatagram({
     destination,
@@ -71,7 +70,7 @@ export function createNmsInitiateUploadSequence(
 
 export function createNmsRequestDomainUpload(
   destination: AddressParam,
-  domain: string,
+  domain: string
 ): NmsDatagram {
   if (domain.length !== 8) {
     throw new Error('domain must be string of 8 characters');
@@ -85,7 +84,10 @@ export function createNmsRequestDomainUpload(
 }
 
 export function createNmsUploadSegment(
-  destination: AddressParam, id: number, offset: number, length: number,
+  destination: AddressParam,
+  id: number,
+  offset: number,
+  length: number
 ): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
@@ -105,7 +107,8 @@ export function createNmsUploadSegment(
 }
 
 export function createNmsRequestDomainDownload(
-  destination: AddressParam, domain: string,
+  destination: AddressParam,
+  domain: string
 ): NmsDatagram {
   if (domain.length !== 8) {
     throw new Error('domain must be string of 8 characters');
@@ -119,7 +122,8 @@ export function createNmsRequestDomainDownload(
 }
 
 export function createNmsInitiateDownloadSequence(
-  destination: AddressParam, id: number,
+  destination: AddressParam,
+  id: number
 ): NmsDatagram {
   return new NmsDatagram({
     destination,
@@ -134,7 +138,7 @@ export function createNmsDownloadSegment(
   id: number,
   offset: number,
   data: Buffer,
-  notReply = false,
+  notReply = false
 ): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
@@ -156,7 +160,8 @@ export function createNmsDownloadSegment(
 }
 
 export function createNmsTerminateDownloadSequence(
-  destination: AddressParam, id: number,
+  destination: AddressParam,
+  id: number
 ): NmsDatagram {
   return new NmsDatagram({
     destination,
@@ -171,7 +176,7 @@ export function createNmsVerifyDomainChecksum(
   id: number,
   offset: number,
   size: number,
-  crc: number,
+  crc: number
 ): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');

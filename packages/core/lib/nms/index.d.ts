@@ -9,7 +9,7 @@ export { NmsValueType };
 export { NmsDatagram };
 export { getNmsType };
 export declare function createNmsRead(destination: AddressParam, ...ids: number[]): NmsDatagram;
-export declare function createNmsWrite(destination: AddressParam, id: number, type: NmsValueType, value: any, notReply?: boolean): NmsDatagram;
+export declare function createNmsWrite(destination: AddressParam, id: number, type: NmsValueType, value: unknown, notReply?: boolean): NmsDatagram;
 export declare function createNmsInitiateUploadSequence(destination: AddressParam, id: number): NmsDatagram;
 export declare function createNmsRequestDomainUpload(destination: AddressParam, domain: string): NmsDatagram;
 export declare function createNmsUploadSegment(destination: AddressParam, id: number, offset: number, length: number): NmsDatagram;

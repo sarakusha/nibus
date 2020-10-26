@@ -1,14 +1,16 @@
 {
   "extends": "./tsconfig.settings.json",
   "compilerOptions": {
+    "noEmit": false,
     "module": "commonjs",
-    "outDir": "lib",
     /* Redirect output structure to the directory. */
+    "outDir": "lib",
     "rootDir": "src",
-    "strict": true,
     /* Enable all strict type-checking options. */
-    "experimentalDecorators": true,
+    "strict": true,
     /* Enables experimental support for ES7 decorators. */
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "baseUrl": "./",
     "strictNullChecks": true,
     "paths": {

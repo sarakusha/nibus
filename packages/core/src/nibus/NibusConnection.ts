@@ -21,10 +21,7 @@ import { AddressParam } from '../Address';
 import { TimeoutError } from '../errors';
 import { getSocketPath } from '../ipc';
 // import { devices } from '../mib';
-import {
-  createNmsRead,
-  NmsDatagram,
-} from '../nms';
+import { createNmsRead, NmsDatagram } from '../nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import { createSarp, SarpQueryType, SarpDatagram } from '../sarp';
 import { MibDescriptionV, MibDescription } from '../MibDescription';
@@ -53,19 +50,20 @@ class WaitedNmsDatagram {
     public readonly req: NmsDatagram,
     resolve: (datagram: NmsDatagram | NmsDatagram[]) => void,
     reject: (reason: Error) => void,
-    callback: (self: WaitedNmsDatagram) => void,
+    callback: (self: WaitedNmsDatagram) => void
   ) {
     let timer: NodeJS.Timer;
-    let counter: number = req.service !== NmsServiceType.Read
-      ? 1
-      : Math.floor(req.nms.length / 3) + 1;
+    let counter: number =
+      req.service !== NmsServiceType.Read ? 1 : Math.floor(req.nms.length / 3) + 1;
     const datagrams: NmsDatagram[] = [];
     const timeout = (): void => {
       callback(this);
       if (datagrams.length === 0) {
-        reject(new TimeoutError(
-          `Timeout error on ${req.destination} while ${NmsServiceType[req.service]}`,
-        ));
+        reject(
+          new TimeoutError(
+            `Timeout error on ${req.destination} while ${NmsServiceType[req.service]}`
+          )
+        );
       } else {
         resolve(datagrams);
       }
@@ -90,24 +88,31 @@ class WaitedNmsDatagram {
   }
 }
 
-type SarpListner = (datagram: SarpDatagram) => void;
+type SarpListener = (datagram: SarpDatagram) => void;
 type NmsListener = (datagram: NmsDatagram) => void;
 
-declare interface NibusConnection {
-  on(event: 'sarp', listener: SarpListner): this;
+export interface INibusConnection {
+  on(event: 'sarp', listener: SarpListener): this;
   on(event: 'nms', listener: NmsListener): this;
-  once(event: 'sarp', listener: SarpListner): this;
+  once(event: 'sarp', listener: SarpListener): this;
   once(event: 'nms', listener: NmsListener): this;
-  addListener(event: 'sarp', listener: SarpListner): this;
+  addListener(event: 'sarp', listener: SarpListener): this;
   addListener(event: 'nms', listener: NmsListener): this;
-  off(event: 'sarp', listener: SarpListner): this;
+  off(event: 'sarp', listener: SarpListener): this;
   off(event: 'nms', listener: NmsListener): this;
-  removeListener(event: 'sarp', listener: SarpListner): this;
+  removeListener(event: 'sarp', listener: SarpListener): this;
   removeListener(event: 'nms', listener: NmsListener): this;
+  sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
+  ping(address: AddressParam): Promise<number>;
+  findByType(type: number): Promise<NmsDatagram | NmsDatagram[] | undefined>;
+  getVersion(address: AddressParam): Promise<[number?, number?]>;
+  close(): void;
+  readonly path: string;
+  description: MibDescription;
 }
 
-class NibusConnection extends EventEmitter {
-  public description: MibDescription;
+class NibusConnection extends EventEmitter implements INibusConnection {
+  public readonly description: MibDescription;
 
   private readonly socket: Socket;
 
@@ -140,9 +145,7 @@ class NibusConnection extends EventEmitter {
 
   public sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined> {
     // debug('write datagram from ', datagram.source.toString());
-    const {
-      encoder, stopWaiting, waited, closed,
-    } = this;
+    const { encoder, stopWaiting, waited, closed } = this;
     return new Promise((resolve, reject) => {
       this.ready = this.ready.finally(async () => {
         if (closed) return reject(new Error('Closed'));
@@ -150,14 +153,9 @@ class NibusConnection extends EventEmitter {
           await new Promise(cb => encoder.once('drain', cb));
         }
         if (!(datagram instanceof NmsDatagram) || datagram.notReply) {
-          return resolve();
+          return resolve(undefined);
         }
-        return waited.push(new WaitedNmsDatagram(
-          datagram,
-          resolve,
-          reject,
-          stopWaiting,
-        ));
+        return waited.push(new WaitedNmsDatagram(datagram, resolve, reject, stopWaiting));
       });
     });
   }
@@ -171,22 +169,22 @@ class NibusConnection extends EventEmitter {
   }
 
   public findByType(
-    type: number = MINIHOST_TYPE,
+    type: number = MINIHOST_TYPE
   ): Promise<NmsDatagram | NmsDatagram[] | undefined> {
     debug(`findByType ${type} on ${this.path} (${this.description.category})`);
-    const sarp = createSarp(SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xFF, type & 0xFF]);
+    const sarp = createSarp(SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xff, type & 0xff]);
     return this.sendDatagram(sarp);
   }
 
   public async getVersion(address: AddressParam): Promise<[number?, number?]> {
     const nmsRead = createNmsRead(address, VERSION_ID);
     try {
-      const { value, status } = await this.sendDatagram(nmsRead) as NmsDatagram;
+      const { value, status } = (await this.sendDatagram(nmsRead)) as NmsDatagram;
       if (status !== 0) {
         debug('<error>', status);
         return [];
       }
-      const version = (value as number) & 0xFFFF;
+      const version = (value as number) & 0xffff;
       const type = (value as number) >>> 16;
       return [version, type];
     } catch (err) {
@@ -206,7 +204,9 @@ class NibusConnection extends EventEmitter {
     this.emit('close');
   };
 
-  private stopWaiting = (waited: WaitedNmsDatagram): void => { _.remove(this.waited, waited); };
+  private stopWaiting = (waited: WaitedNmsDatagram): void => {
+    _.remove(this.waited, waited);
+  };
 
   private onDatagram = (datagram: NibusDatagram): void => {
     let showLog = true;
@@ -223,8 +223,7 @@ class NibusConnection extends EventEmitter {
       this.emit('sarp', datagram);
       showLog = false;
     }
-    showLog
-    && debug('datagram received', JSON.stringify(datagram.toJSON()));
+    showLog && debug('datagram received', JSON.stringify(datagram.toJSON()));
   };
 }
 

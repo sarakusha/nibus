@@ -35,7 +35,7 @@ const hexTransform = new Transform({
   transform(
     chunk: any,
     encoding: string,
-    callback: (error?: (Error | null), data?: any) => void,
+    callback: (error?: Error | null, data?: any) => void
   ): void {
     const data = chunk.toString().replace(/-/g, '').replace(/\n/g, '');
     const buffer = Buffer.from(data, 'hex');
@@ -46,10 +46,12 @@ const hexTransform = new Transform({
 const makeNibusDecoder = (pick?: string[], omit?: string[]): NibusDecoder => {
   const decoder = new NibusDecoder();
   decoder.on('data', (datagram: NibusDatagram) => {
-    console.info(datagram.toString({
-      pick,
-      omit,
-    }));
+    console.info(
+      datagram.toString({
+        pick,
+        omit,
+      })
+    );
   });
   return decoder;
 };
@@ -65,65 +67,65 @@ type ParseOptions = CommonOpts & {
 const parseCommand: CommandModule<CommonOpts, ParseOptions> = {
   command: 'parse',
   describe: 'Разбор пакетов',
-  builder: argv => argv
-    // .option('level', {
-    //   alias: 'l',
-    //   desc: 'уровень',
-    //   choices: ['hex', 'nibus'],
-    //   default: 'nibus',
-    //   required: true,
-    // })
-    .option('pick', {
-      desc: 'выдавать указанные поля в логах nibus',
-      string: true,
-      array: true,
-    })
-    .option('omit', {
-      desc: 'выдавть поля кроме указанных в логах nibus',
-      string: true,
-      array: true,
-    })
-    .option('input', {
-      alias: 'i',
-      string: true,
-      desc: 'входной файл с данными',
-      required: true,
-    })
-    .option('hex', {
-      boolean: true,
-      desc: 'входной файл в формате hex',
+  builder: argv =>
+    argv
+      // .option('level', {
+      //   alias: 'l',
+      //   desc: 'уровень',
+      //   choices: ['hex', 'nibus'],
+      //   default: 'nibus',
+      //   required: true,
+      // })
+      .option('pick', {
+        desc: 'выдавать указанные поля в логах nibus',
+        string: true,
+        array: true,
+      })
+      .option('omit', {
+        desc: 'выдавть поля кроме указанных в логах nibus',
+        string: true,
+        array: true,
+      })
+      .option('input', {
+        alias: 'i',
+        string: true,
+        desc: 'входной файл с данными',
+        required: true,
+      })
+      .option('hex', {
+        boolean: true,
+        desc: 'входной файл в формате hex',
+      }),
+  handler: ({ _level, pick, omit, input, hex }) =>
+    new Promise<void>((resolve, reject) => {
+      const inputPath = path.resolve(process.cwd(), input);
+      // console.log('PARSE', inputPath);
+      if (!fs.existsSync(inputPath)) {
+        reject(Error(`File ${inputPath} not found`));
+        return;
+      }
+      const stream = fs.createReadStream(inputPath);
+      stream.on('finish', () => resolve());
+      stream.on('error', reject);
+      // if (level === 'nibus') {
+      const decoder = makeNibusDecoder(pick, omit);
+      if (hex) {
+        stream.pipe(hexTransform).pipe(decoder);
+      } else {
+        stream.pipe(decoder);
+      }
+      // } else {
+      //   const logger = new Writable({
+      //     write: (chunk: any, encoding: string, callback: Function) => {
+      //       console.log('write');
+      //       console.info(printBuffer(chunk as Buffer));
+      //       callback();
+      //     },
+      //   });
+      //   stream.pipe(logger);
+      // }
+      // console.log('END');
     }),
-  handler: (({
-    _level, pick, omit, input, hex,
-  }) => new Promise((resolve, reject) => {
-    const inputPath = path.resolve(process.cwd(), input);
-    // console.log('PARSE', inputPath);
-    if (!fs.existsSync(inputPath)) {
-      reject(Error(`File ${inputPath} not found`));
-      return;
-    }
-    const stream = fs.createReadStream(inputPath);
-    stream.on('finish', () => resolve());
-    stream.on('error', reject);
-    // if (level === 'nibus') {
-    const decoder = makeNibusDecoder(pick, omit);
-    if (hex) {
-      stream.pipe(hexTransform).pipe(decoder);
-    } else {
-      stream.pipe(decoder);
-    }
-    // } else {
-    //   const logger = new Writable({
-    //     write: (chunk: any, encoding: string, callback: Function) => {
-    //       console.log('write');
-    //       console.info(printBuffer(chunk as Buffer));
-    //       callback();
-    //     },
-    //   });
-    //   stream.pipe(logger);
-    // }
-    // console.log('END');
-  })),
 };
 
 export default parseCommand;

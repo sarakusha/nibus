@@ -8,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+// eslint-disable-next-line no-shadow
 enum NmsServiceType {
   Invalid = -1,
   None = 0,

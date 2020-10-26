@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require("reflect-metadata");
+exports.Protocol = void 0;
 const crc_1 = require("crc");
 const lodash_1 = __importDefault(require("lodash"));
 const Address_1 = __importDefault(require("../Address"));
@@ -15,9 +15,11 @@ var Protocol;
     Protocol[Protocol["SARP"] = 2] = "SARP";
 })(Protocol = exports.Protocol || (exports.Protocol = {}));
 const leadZero = (value) => value.toString().padStart(2, '0');
-const replaceBuffers = (obj) => Object.entries(obj).reduce((result, [name, value]) => (Object.assign(Object.assign({}, result), { [name]: Buffer.isBuffer(value) ? helper_1.printBuffer(value) : lodash_1.default.isPlainObject(value)
-        ? replaceBuffers(value)
-        : value })), {});
+const replaceBuffers = (obj) => Object.entries(obj).reduce((result, [name, value]) => (Object.assign(Object.assign({}, result), { [name]: Buffer.isBuffer(value)
+        ? helper_1.printBuffer(value)
+        : lodash_1.default.isPlainObject(value)
+            ? replaceBuffers(value)
+            : value })), {});
 class NibusDatagram {
     constructor(frameOrOptions) {
         if (Buffer.isBuffer(frameOrOptions)) {
@@ -34,10 +36,10 @@ class NibusDatagram {
                 nbconst_1.PREAMBLE,
                 ...destination.raw,
                 ...source.raw,
-                0xC0
-                    | ((options.priority & 3) << 4)
-                    | ((destination.rawType & 3) << 2)
-                    | (source.rawType & 3),
+                0xc0 |
+                    ((options.priority & 3) << 4) |
+                    ((destination.rawType & 3) << 2) |
+                    (source.rawType & 3),
                 options.data.length + 1,
                 options.protocol,
                 ...options.data,
@@ -53,7 +55,7 @@ class NibusDatagram {
         this.protocol = this.raw[nbconst_1.Offsets.PROTOCOL];
         this.destination = Address_1.default.read(destAddressType, this.raw, nbconst_1.Offsets.DESTINATION);
         this.source = Address_1.default.read(srcAddressType, this.raw, nbconst_1.Offsets.SOURCE);
-        this.data = this.raw.slice(nbconst_1.Offsets.DATA, (nbconst_1.Offsets.DATA + this.raw[nbconst_1.Offsets.LENGTH]) - 1);
+        this.data = this.raw.slice(nbconst_1.Offsets.DATA, nbconst_1.Offsets.DATA + this.raw[nbconst_1.Offsets.LENGTH] - 1);
         Reflect.defineMetadata('timeStamp', Date.now(), this);
         process.nextTick(() => Object.freeze(this));
     }

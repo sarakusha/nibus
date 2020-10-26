@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { MibDescription, Category, HexOrNumber, IKnownPort } from '@nibus/core';
+export declare const detectionPath: string;
 interface IDetectorItem {
     device: string;
     vid: HexOrNumber;
@@ -20,6 +21,7 @@ interface IDetector extends NodeJS.EventEmitter {
     restart: () => void;
     getPorts: () => Promise<IKnownPort[]>;
     getDetection: () => IDetection | undefined;
+    reload: () => void;
 }
 declare const detector: IDetector;
 export default detector;

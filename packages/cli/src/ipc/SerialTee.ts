@@ -14,7 +14,6 @@ import { getSocketPath, IKnownPort, MibDescription } from '@nibus/core';
 import debugFactory from '../debug';
 import Server, { Direction } from './Server';
 
-
 const debug = debugFactory('nibus:serial-tee');
 const portOptions: OpenOptions = {
   baudRate: 115200,
@@ -60,8 +59,12 @@ export default class SerialTee extends EventEmitter {
         baudRate: description.baudRate || 115200,
         parity: win32.parity || description.parity || portOptions.parity,
       },
+      err => {
+        err && this.close();
+      }
     );
     this.serial.on('close', this.close);
+    this.serial.on('error', this.close);
     this.server = new Server(getSocketPath(path), true);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.server.pipe(this.serial as any);

@@ -10,19 +10,19 @@
 /* eslint-disable max-classes-per-file */
 
 import Address from './Address';
+import { ProtoType } from './common';
 
 /**
  * Ошибка mib
  */
-export class MibError extends Error {
-}
+export class MibError extends Error {}
 
 /**
  * Извлечь описание ошибки из прототипа
- * @param errcode - код ощибки
+ * @param errcode - код ошибки
  * @param prototype - прототип
  */
-const getErrMsg = (errcode: number, prototype: object): string | undefined => {
+const getErrMsg = (errcode: number, prototype: ProtoType): string | undefined => {
   const errEnum = Reflect.getMetadata('errorType', prototype);
   return (errEnum && errEnum[errcode]?.annotation) ?? `NiBUS error ${errcode}`;
 };
@@ -37,8 +37,8 @@ export class NibusError extends Error {
    * @param prototype - прототип
    * @param msg - дополнительное сообщение
    */
-  constructor(public errcode: number, prototype: object, msg?: string) {
-    super(`${msg ? `${msg}: ` : ''}${getErrMsg(errcode, prototype)}`);
+  constructor(public errcode: number, prototype: ProtoType, msg?: string) {
+    super(`${msg ? `${msg}: ` : ''}${getErrMsg(errcode, prototype)} (${errcode})`);
   }
 }
 

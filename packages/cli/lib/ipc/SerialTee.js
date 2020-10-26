@@ -36,8 +36,11 @@ class SerialTee extends events_1.EventEmitter {
         };
         const { path } = portInfo;
         const win32 = (process.platform === 'win32' && description.win32) || {};
-        this.serial = new serialport_1.default(path, Object.assign(Object.assign({}, portOptions), { baudRate: description.baudRate || 115200, parity: win32.parity || description.parity || portOptions.parity }));
+        this.serial = new serialport_1.default(path, Object.assign(Object.assign({}, portOptions), { baudRate: description.baudRate || 115200, parity: win32.parity || description.parity || portOptions.parity }), err => {
+            err && this.close();
+        });
         this.serial.on('close', this.close);
+        this.serial.on('error', this.close);
         this.server = new Server_1.default(core_1.getSocketPath(path), true);
         this.server.pipe(this.serial);
         this.serial.pipe(this.server);

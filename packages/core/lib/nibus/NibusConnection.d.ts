@@ -6,23 +6,30 @@ import { SarpDatagram } from '../sarp';
 import { MibDescription } from '../MibDescription';
 import NibusDatagram from './NibusDatagram';
 export declare const MINIHOST_TYPE = 43974;
-declare type SarpListner = (datagram: SarpDatagram) => void;
+declare type SarpListener = (datagram: SarpDatagram) => void;
 declare type NmsListener = (datagram: NmsDatagram) => void;
-declare interface NibusConnection {
-    on(event: 'sarp', listener: SarpListner): this;
+export interface INibusConnection {
+    on(event: 'sarp', listener: SarpListener): this;
     on(event: 'nms', listener: NmsListener): this;
-    once(event: 'sarp', listener: SarpListner): this;
+    once(event: 'sarp', listener: SarpListener): this;
     once(event: 'nms', listener: NmsListener): this;
-    addListener(event: 'sarp', listener: SarpListner): this;
+    addListener(event: 'sarp', listener: SarpListener): this;
     addListener(event: 'nms', listener: NmsListener): this;
-    off(event: 'sarp', listener: SarpListner): this;
+    off(event: 'sarp', listener: SarpListener): this;
     off(event: 'nms', listener: NmsListener): this;
-    removeListener(event: 'sarp', listener: SarpListner): this;
+    removeListener(event: 'sarp', listener: SarpListener): this;
     removeListener(event: 'nms', listener: NmsListener): this;
-}
-declare class NibusConnection extends EventEmitter {
+    sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
+    ping(address: AddressParam): Promise<number>;
+    findByType(type: number): Promise<NmsDatagram | NmsDatagram[] | undefined>;
+    getVersion(address: AddressParam): Promise<[number?, number?]>;
+    close(): void;
     readonly path: string;
     description: MibDescription;
+}
+declare class NibusConnection extends EventEmitter implements INibusConnection {
+    readonly path: string;
+    readonly description: MibDescription;
     private readonly socket;
     private readonly encoder;
     private readonly decoder;

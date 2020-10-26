@@ -1,15 +1,28 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Devices = exports.getMibPrototype = exports.findMibByType = exports.getMibTypes = exports.getMibFile = void 0;
 const crc_1 = require("crc");
 const debug_1 = __importDefault(require("debug"));
 const events_1 = require("events");
@@ -18,7 +31,6 @@ const fs_1 = __importDefault(require("fs"));
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));
 const path_1 = __importDefault(require("path"));
-require("reflect-metadata");
 const xdg_basedir_1 = require("xdg-basedir");
 const Address_1 = __importStar(require("../Address"));
 const errors_1 = require("../errors");
@@ -36,7 +48,7 @@ const $errors = Symbol('errors');
 const $dirties = Symbol('dirties');
 function safeNumber(val) {
     const num = parseFloat(val);
-    return (Number.isNaN(num) || `${num}` !== val) ? val : num;
+    return Number.isNaN(num) || `${num}` !== val ? val : num;
 }
 var PrivateProps;
 (function (PrivateProps) {
@@ -52,6 +64,7 @@ function getBaseType(types, type) {
     return base;
 }
 function defineMibProperty(target, key, types, prop) {
+    var _a;
     const propertyKey = mib_1.validJsName(key);
     const { appinfo } = prop;
     const id = mib_1.toInt(appinfo.nms_id);
@@ -131,10 +144,10 @@ function defineMibProperty(target, key, types, prop) {
             Reflect.defineMetadata('max', max, target, propertyKey);
         }
     }
-    if (type != null) {
-        const { appinfo: info = {} } = type;
-        enumeration = type.enumeration;
-        const { units, precision, representation, get, set, } = info;
+    const info = (_a = type === null || type === void 0 ? void 0 : type.appinfo) !== null && _a !== void 0 ? _a : appinfo;
+    if (info != null) {
+        enumeration = type === null || type === void 0 ? void 0 : type.enumeration;
+        const { units, precision, representation, get, set } = info;
         const size = mib_1.getIntSize(simpleType);
         if (units) {
             converters.push(mib_1.unitConverter(units));
@@ -147,15 +160,11 @@ function defineMibProperty(target, key, types, prop) {
         if (precision) {
             precisionConv = mib_1.precisionConverter(precision);
             converters.push(precisionConv);
-            Reflect.defineMetadata('step', 1 / (10 ** parseInt(precision, 10)), target, propertyKey);
+            Reflect.defineMetadata('step', 1 / 10 ** parseInt(precision, 10), target, propertyKey);
         }
         if (enumeration) {
             converters.push(mib_1.enumerationConverter(enumeration));
-            Reflect.defineMetadata('enum', Object.entries(enumeration)
-                .map(([enumKey, val]) => [
-                val.annotation,
-                mib_1.toInt(enumKey),
-            ]), target, propertyKey);
+            Reflect.defineMetadata('enum', Object.entries(enumeration).map(([enumKey, val]) => [val.annotation, mib_1.toInt(enumKey)]), target, propertyKey);
         }
         representation && size && converters.push(mib_1.representationConverter(representation, size));
         if (get && set) {
@@ -179,7 +188,10 @@ function defineMibProperty(target, key, types, prop) {
     }
     if (simpleType === 'xs:boolean' && !enumeration) {
         converters.push(mib_1.booleanConverter);
-        Reflect.defineMetadata('enum', [['Да', true], ['Нет', false]], target, propertyKey);
+        Reflect.defineMetadata('enum', [
+            ['Да', true],
+            ['Нет', false],
+        ], target, propertyKey);
     }
     Reflect.defineMetadata('isWritable', isWritable, target, propertyKey);
     Reflect.defineMetadata('isReadable', isReadable, target, propertyKey);
@@ -187,6 +199,7 @@ function defineMibProperty(target, key, types, prop) {
     Reflect.defineMetadata('simpleType', simpleType, target, propertyKey);
     Reflect.defineMetadata('displayName', prop.annotation ? prop.annotation : key, target, propertyKey);
     appinfo.category && Reflect.defineMetadata('category', appinfo.category, target, propertyKey);
+    appinfo.rank && Reflect.defineMetadata('rank', appinfo.rank, target, propertyKey);
     Reflect.defineMetadata('nmsType', nms_1.getNmsType(simpleType), target, propertyKey);
     const attributes = {
         enumerable: isReadable,
@@ -227,8 +240,7 @@ class DevicePrototype extends events_1.EventEmitter {
         const mibfile = getMibFile(mibname);
         const mibValidation = mib_1.MibDeviceV.decode(JSON.parse(fs_1.default.readFileSync(mibfile).toString()));
         if (Either_1.isLeft(mibValidation)) {
-            throw new Error(`Invalid mib file ${mibfile} ${PathReporter_1.PathReporter.report(mibValidation)
-                .join('\n')}`);
+            throw new Error(`Invalid mib file ${mibfile} ${PathReporter_1.PathReporter.report(mibValidation).join('\n')}`);
         }
         const mib = mibValidation.right;
         const { types, subroutines } = mib;
@@ -238,21 +250,24 @@ class DevicePrototype extends events_1.EventEmitter {
         Reflect.defineMetadata('annotation', device.annotation, this);
         Reflect.defineMetadata('mibVersion', device.appinfo.mib_version, this);
         Reflect.defineMetadata('deviceType', mib_1.toInt(device.appinfo.device_type), this);
-        device.appinfo.loader_type && Reflect.defineMetadata('loaderType', mib_1.toInt(device.appinfo.loader_type), this);
+        device.appinfo.loader_type &&
+            Reflect.defineMetadata('loaderType', mib_1.toInt(device.appinfo.loader_type), this);
         device.appinfo.firmware && Reflect.defineMetadata('firmware', device.appinfo.firmware, this);
-        device.appinfo.min_version && Reflect.defineMetadata('min_version', device.appinfo.min_version, this);
-        types.errorType && Reflect.defineMetadata('errorType', types.errorType.enumeration, this);
+        device.appinfo.min_version &&
+            Reflect.defineMetadata('min_version', device.appinfo.min_version, this);
+        types.errorType &&
+            Reflect.defineMetadata('errorType', types.errorType.enumeration, this);
         if (subroutines) {
             const metasubs = lodash_1.default.transform(subroutines, (result, sub, name) => {
                 result[name] = {
                     id: mib_1.toInt(sub.appinfo.nms_id),
                     description: sub.annotation,
-                    args: sub.properties && Object.entries(sub.properties)
-                        .map(([propName, prop]) => ({
-                        name: propName,
-                        type: nms_1.getNmsType(prop.type),
-                        desc: prop.annotation,
-                    })),
+                    args: sub.properties &&
+                        Object.entries(sub.properties).map(([propName, prop]) => ({
+                            name: propName,
+                            type: nms_1.getNmsType(prop.type),
+                            desc: prop.annotation,
+                        })),
                 };
             }, {});
             Reflect.defineMetadata('subroutines', metasubs, this);
@@ -372,8 +387,10 @@ class DevicePrototype extends events_1.EventEmitter {
             id,
             names,
         });
-        if (names.includes('serno') && !isDirty
-            && this.address.type === Address_1.AddressType.mac && typeof this.serno === 'string') {
+        if (names.includes('serno') &&
+            !isDirty &&
+            this.address.type === Address_1.AddressType.mac &&
+            typeof this.serno === 'string') {
             const value = this.serno;
             const prevAddress = this.address;
             const address = Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex');
@@ -401,7 +418,9 @@ class DevicePrototype extends events_1.EventEmitter {
     drain() {
         debug(`drain [${this.address}]`);
         const { [$dirties]: dirties } = this;
-        const ids = Object.keys(dirties).map(Number).filter(id => dirties[id]);
+        const ids = Object.keys(dirties)
+            .map(Number)
+            .filter(id => dirties[id]);
         return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
     }
     write(...ids) {
@@ -430,10 +449,7 @@ class DevicePrototype extends events_1.EventEmitter {
             }
             return acc;
         }, []);
-        return Promise
-            .all(requests
-            .map(datagram => connection.sendDatagram(datagram)
-            .then(response => {
+        return Promise.all(requests.map(datagram => connection.sendDatagram(datagram).then(response => {
             const { status } = response;
             if (status === 0) {
                 this.setDirty(datagram.id, false);
@@ -444,8 +460,7 @@ class DevicePrototype extends events_1.EventEmitter {
         }, reason => {
             this.setError(datagram.id, reason);
             return -datagram.id;
-        })))
-            .then(idss => idss.concat(invalidNms));
+        }))).then(idss => idss.concat(invalidNms));
     }
     writeValues(source, strong = true) {
         try {
@@ -453,8 +468,7 @@ class DevicePrototype extends events_1.EventEmitter {
             if (ids.length === 0)
                 return Promise.reject(new TypeError('value is empty'));
             Object.assign(this, source);
-            return this.write(...ids)
-                .then(written => {
+            return this.write(...ids).then(written => {
                 if (written.length === 0 || (strong && written.length !== ids.length)) {
                     throw this.getError(ids[0]);
                 }
@@ -475,28 +489,38 @@ class DevicePrototype extends events_1.EventEmitter {
         const map = Reflect.getMetadata('map', this);
         const chunks = helper_1.chunkArray(ids, disableBatchReading ? 1 : 21);
         debug(`read [${chunks.map(chunk => `[${chunk.join()}]`).join()}] from [${this.address}]`);
-        const requests = chunks.map(chunk => nms_1.createNmsRead(this.address, ...chunk));
-        return requests.reduce(async (promise, datagram) => {
-            const result = await promise;
-            const response = await connection.sendDatagram(datagram);
-            const datagrams = Array.isArray(response)
-                ? response
-                : [response];
-            datagrams.forEach(({ id, value, status }) => {
-                if (status === 0) {
-                    this.setRawValue(id, value, false);
-                }
-                else {
-                    this.setError(id, new errors_1.NibusError(status, this));
-                }
-                const names = map[id];
-                console.assert(names && names.length > 0, `Invalid id ${id}`);
-                names.forEach(propName => {
-                    result[propName] = status === 0
-                        ? this[propName]
-                        : { error: (this.getError(id) || {}).message || 'error' };
-                });
+        const requests = chunks.map(chunk => [
+            nms_1.createNmsRead(this.address, ...chunk),
+            chunk,
+        ]);
+        const parseResult = (id, status, value) => {
+            if (status === 0) {
+                this.setRawValue(id, value, false);
+            }
+            else {
+                this.setError(id, typeof status === 'number' ? new errors_1.NibusError(status, this) : status);
+            }
+            const result = {};
+            const names = map[id];
+            console.assert(names && names.length > 0, `Invalid id ${id}`);
+            names.forEach(propName => {
+                result[propName] =
+                    status === 0 ? this[propName] : { error: (this.getError(id) || {}).message || 'error' };
             });
+            return result;
+        };
+        return requests.reduce(async (promise, [datagram, chunkIds]) => {
+            const result = await promise;
+            try {
+                const response = await connection.sendDatagram(datagram);
+                const datagrams = Array.isArray(response)
+                    ? response
+                    : [response];
+                datagrams.forEach(({ id, value, status }) => Object.assign(result, parseResult(id, status, value)));
+            }
+            catch (e) {
+                chunkIds.forEach(id => Object.assign(result, parseResult(id, e)));
+            }
             return result;
         }, Promise.resolve({}));
     }
@@ -506,16 +530,16 @@ class DevicePrototype extends events_1.EventEmitter {
             if (!connection)
                 throw new Error('disconnected');
             const reqUpload = nms_1.createNmsRequestDomainUpload(this.address, domain.padEnd(8, '\0'));
-            const { id, value: domainSize, status, } = await connection.sendDatagram(reqUpload);
+            const { id, value: domainSize, status } = (await connection.sendDatagram(reqUpload));
             if (status !== 0) {
                 throw new errors_1.NibusError(status, this, 'Request upload domain error');
             }
             const initUpload = nms_1.createNmsInitiateUploadSequence(this.address, id);
-            const { status: initStat } = await connection.sendDatagram(initUpload);
+            const { status: initStat } = (await connection.sendDatagram(initUpload));
             if (initStat !== 0) {
                 throw new errors_1.NibusError(initStat, this, 'Initiate upload domain error');
             }
-            const total = size || (domainSize - offset);
+            const total = size || domainSize - offset;
             let rest = total;
             let pos = offset;
             this.emit('uploadStart', {
@@ -528,7 +552,7 @@ class DevicePrototype extends events_1.EventEmitter {
             while (rest > 0) {
                 const length = Math.min(255, rest);
                 const uploadSegment = nms_1.createNmsUploadSegment(this.address, id, pos, length);
-                const { status: uploadStatus, value: result, } = await connection.sendDatagram(uploadSegment);
+                const { status: uploadStatus, value: result, } = (await connection.sendDatagram(uploadSegment));
                 if (uploadStatus !== 0) {
                     throw new errors_1.NibusError(uploadStatus, this, 'Upload segment error');
                 }
@@ -562,15 +586,15 @@ class DevicePrototype extends events_1.EventEmitter {
         if (!connection)
             throw new Error('disconnected');
         const reqDownload = nms_1.createNmsRequestDomainDownload(this.address, domain.padEnd(8, '\0'));
-        const { id, value: max, status } = await connection.sendDatagram(reqDownload);
+        const { id, value: max, status } = (await connection.sendDatagram(reqDownload));
         if (status !== 0) {
-            throw new errors_1.NibusError(status, this, 'Request download domain error');
+            throw new errors_1.NibusError(status, this, `Request download domain "${domain}" error`);
         }
         const terminate = async (err) => {
             let termStat = 0;
             if (!noTerm) {
                 const req = nms_1.createNmsTerminateDownloadSequence(this.address, id);
-                const res = await connection.sendDatagram(req);
+                const res = (await connection.sendDatagram(req));
                 termStat = res.status;
             }
             if (err)
@@ -583,7 +607,7 @@ class DevicePrototype extends events_1.EventEmitter {
             throw new Error(`Buffer too large. Expected ${max - offset} bytes`);
         }
         const initDownload = nms_1.createNmsInitiateDownloadSequence(this.address, id);
-        const { status: initStat } = await connection.sendDatagram(initDownload);
+        const { status: initStat } = (await connection.sendDatagram(initDownload));
         if (initStat !== 0) {
             throw new errors_1.NibusError(initStat, this, 'Initiate download domain error');
         }
@@ -600,7 +624,7 @@ class DevicePrototype extends events_1.EventEmitter {
             await prev;
             const pos = i * chunkSize + offset;
             const segmentDownload = nms_1.createNmsDownloadSegment(this.address, id, pos, chunk);
-            const { status: downloadStat, } = await connection.sendDatagram(segmentDownload);
+            const { status: downloadStat } = (await connection.sendDatagram(segmentDownload));
             if (downloadStat !== 0) {
                 await terminate(new errors_1.NibusError(downloadStat, this, 'Download segment error'));
             }
@@ -610,7 +634,7 @@ class DevicePrototype extends events_1.EventEmitter {
             });
         }, Promise.resolve());
         const verify = nms_1.createNmsVerifyDomainChecksum(this.address, id, offset, buffer.length, crc);
-        const { status: verifyStat } = await connection.sendDatagram(verify);
+        const { status: verifyStat } = (await connection.sendDatagram(verify));
         if (verifyStat !== 0) {
             await terminate(new errors_1.NibusError(verifyStat, this, 'Download segment error'));
         }
@@ -649,7 +673,7 @@ class DevicePrototype extends events_1.EventEmitter {
         const ids = Object.entries(values)
             .filter(([, value]) => value != null)
             .map(([id]) => Number(id))
-            .filter((id => Reflect.getMetadata('isWritable', this, map[id][0])));
+            .filter(id => Reflect.getMetadata('isWritable', this, map[id][0]));
         return ids.length > 0 ? this.write(...ids) : Promise.resolve([]);
     }
     readAll() {
@@ -661,7 +685,9 @@ class DevicePrototype extends events_1.EventEmitter {
             .map(([id]) => Number(id))
             .sort();
         this.$read = ids.length > 0 ? this.read(...ids) : Promise.resolve([]);
-        const clear = () => { delete this.$read; };
+        const clear = () => {
+            delete this.$read;
+        };
         return this.$read.finally(clear);
     }
 }

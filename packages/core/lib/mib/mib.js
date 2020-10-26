@@ -1,15 +1,28 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
     return result;
 };
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.convertFrom = exports.convertTo = exports.evalConverter = exports.maxInclusiveConverter = exports.minInclusiveConverter = exports.getIntSize = exports.versionTypeConverter = exports.fixedPointNumber4Converter = exports.packed8floatConverter = exports.representationConverter = exports.percentConverter = exports.booleanConverter = exports.enumerationConverter = exports.MibDeviceV = exports.precisionConverter = exports.unitConverter = exports.toInt = exports.withValue = exports.validJsName = void 0;
 const t = __importStar(require("io-ts"));
 const printf_1 = __importDefault(require("printf"));
 function validJsName(name) {
@@ -23,8 +36,7 @@ exports.withValue = (value, writable = false, configurable = false) => ({
     enumerable: true,
 });
 const hex = /^0X[0-9A-F]+$/i;
-const isHex = (str) => hex.test(str)
-    || parseInt(str, 10).toString(10) !== str.toLowerCase().replace(/^[0 ]+/, '');
+const isHex = (str) => hex.test(str) || parseInt(str, 10).toString(10) !== str.toLowerCase().replace(/^[0 ]+/, '');
 exports.toInt = (value = 0) => {
     if (typeof value === 'number')
         return value;
@@ -59,6 +71,13 @@ const MibPropertyAppInfoV = t.intersection([
     }),
     t.partial({
         category: t.string,
+        rank: t.string,
+        zero: t.string,
+        units: t.string,
+        precision: t.string,
+        representation: t.string,
+        get: t.string,
+        set: t.string,
     }),
 ]);
 const MibPropertyV = t.type({
@@ -182,8 +201,8 @@ exports.booleanConverter = {
     },
 };
 exports.percentConverter = {
-    from: value => (typeof value === 'number' ? Math.max(Math.min(Math.round((value * 255) / 100), 255), 0) : value),
-    to: value => (typeof value === 'number' ? Math.max(Math.min(Math.round((value * 100) / 255), 100), 0) : value),
+    from: value => typeof value === 'number' ? Math.max(Math.min(Math.round((value * 255) / 100), 255), 0) : value,
+    to: value => typeof value === 'number' ? Math.max(Math.min(Math.round((value * 100) / 255), 100), 0) : value,
 };
 function representationConverter(format, size) {
     let from;
@@ -220,7 +239,7 @@ function packed8floatConverter(subtype) {
     return {
         from: value => {
             const val = typeof value === 'string' ? parseFloat(value) : value;
-            return typeof val === 'number' ? Math.floor((val - delta) * 100) & 0xFF : val;
+            return typeof val === 'number' ? Math.floor((val - delta) * 100) & 0xff : val;
         },
         to: value => (typeof value === 'number' ? value / 100 + delta : value),
     };
@@ -233,17 +252,17 @@ exports.fixedPointNumber4Converter = {
             return val;
         }
         const dec = Math.round(val * 1000) % 1000;
-        const hi = ((Math.floor(val) << 4) + Math.floor(dec / 100)) & 0xFF;
-        const low = ((dec % 10) + ((Math.floor(dec / 10) % 10) << 4)) & 0xFF;
+        const hi = ((Math.floor(val) << 4) + Math.floor(dec / 100)) & 0xff;
+        const low = ((dec % 10) + (Math.floor(dec / 10) % 10 << 4)) & 0xff;
         return (hi << 8) | low;
     },
     to: value => {
         if (typeof value !== 'number') {
             return value;
         }
-        const hi = (value >> 8) & 0xFF;
-        const low = value & 0xFF;
-        const dec = (hi & 0xF) * 100 + (low >> 4) * 10 + (low & 0xF);
+        const hi = (value >> 8) & 0xff;
+        const low = value & 0xff;
+        const dec = (hi & 0xf) * 100 + (low >> 4) * 10 + (low & 0xf);
         return (hi >> 4) + dec / 1000;
     },
 };
@@ -251,9 +270,9 @@ exports.versionTypeConverter = {
     from: () => {
         throw new Error('versionType is readonly property');
     },
-    to: value => (typeof value === 'number'
-        ? `${(value >> 8) & 0xFF}.${value & 0xFF} [0x${(value >>> 16).toString(16)}]`
-        : value),
+    to: value => typeof value === 'number'
+        ? `${(value >> 8) & 0xff}.${value & 0xff} [0x${(value >>> 16).toString(16)}]`
+        : value,
 };
 function getIntSize(type) {
     switch (type) {

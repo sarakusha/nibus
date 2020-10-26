@@ -3,23 +3,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getNmsType = exports.encodeValue = exports.writeValue = exports.decodeValue = exports.getSizeOf = void 0;
 const iconv_lite_1 = require("iconv-lite");
 const errors_1 = require("../errors");
 const nbconst_1 = require("../nbconst");
 const helper_1 = require("../nibus/helper");
 const NmsValueType_1 = __importDefault(require("./NmsValueType"));
-const packByte = (b) => (((b % 100) / 10) * 16) + (b % 10);
-const unpackByte = (byte) => (byte & 0x0f) + (((byte >> 4) & 0x0f) * 10);
+const packByte = (b) => ((b % 100) / 10) * 16 + (b % 10);
+const unpackByte = (byte) => (byte & 0x0f) + ((byte >> 4) & 0x0f) * 10;
 function getDateTime(buffer, offset = 0) {
     const day = unpackByte(buffer.readUInt8(offset));
     const month = unpackByte(buffer.readUInt8(1 + offset));
-    const year = unpackByte(buffer.readUInt8(3 + offset))
-        + (100 * unpackByte(buffer.readUInt8(2 + offset)));
+    const year = unpackByte(buffer.readUInt8(3 + offset)) + 100 * unpackByte(buffer.readUInt8(2 + offset));
     const hour = unpackByte(buffer.readUInt8(4 + offset));
     const minute = unpackByte(buffer.readUInt8(5 + offset));
     const second = unpackByte(buffer.readUInt8(6 + offset));
-    const ms = unpackByte(buffer.readUInt8(8 + offset))
-        + (100 * (buffer.readUInt8(7 + offset) & 0x0f));
+    const ms = unpackByte(buffer.readUInt8(8 + offset)) + 100 * (buffer.readUInt8(7 + offset) & 0x0f);
     return new Date(year, month, day, hour, minute, second, ms);
 }
 function getSizeOf(valueType, value) {
@@ -44,11 +43,11 @@ function getSizeOf(valueType, value) {
         case NmsValueType_1.default.DateTime:
             return 10;
         case NmsValueType_1.default.String:
-            return value ? (value.length + 1) : 0;
+            return value ? value.length + 1 : 0;
         default:
     }
     if ((valueType & NmsValueType_1.default.Array) === 0) {
-        throw new errors_1.MibError('Invalid ValueType');
+        throw new errors_1.MibError(`Invalid ValueType ${valueType} ${new Error().stack}`);
     }
     const arrayType = valueType & (NmsValueType_1.default.Array - 1);
     const itemSize = getSizeOf(arrayType) || 0;
@@ -71,7 +70,8 @@ function decodeValue(valueType, buffer, offset = 0) {
             return buffer
                 .toString('hex', offset, offset + 8)
                 .match(/.{2}/g)
-                .reverse().join('')
+                .reverse()
+                .join('')
                 .toUpperCase();
         case NmsValueType_1.default.UInt8:
             return buffer.readUInt8(offset);
@@ -101,7 +101,7 @@ function decodeValue(valueType, buffer, offset = 0) {
     const arrayLength = arraySize / itemSize;
     const array = [];
     for (let i = 0; i < arrayLength; i += 1) {
-        const value = decodeValue(arrayType, buffer, offset + (i * itemSize));
+        const value = decodeValue(arrayType, buffer, offset + i * itemSize);
         array.push(value);
     }
     return array;
@@ -125,18 +125,11 @@ function writeValue(valueType, value, buffer, offset = 0) {
         case NmsValueType_1.default.Int64:
             console.error('signedLong is not implemented');
             break;
-        case NmsValueType_1.default.UInt64:
-            if (typeof value === 'number') {
-                const int = Math.floor(value);
-                const low = int & 0xFFFFFFFF;
-                const hi = 0;
-                pos = buffer.writeUInt32LE(low, pos);
-                pos = buffer.writeUInt32LE(hi, pos);
-            }
-            if (typeof value === 'string') {
-                pos = buffer.write(helper_1.chunkArray(value.padStart(16, '0'), 2).reverse().join(''), pos, 8, 'hex');
-            }
+        case NmsValueType_1.default.UInt64: {
+            const strVal = typeof value === 'number' ? value.toString(16) : value.toString();
+            pos = buffer.write(helper_1.chunkArray(strVal.padStart(16, '0'), 2).reverse().join(''), pos, 8, 'hex');
             break;
+        }
         case NmsValueType_1.default.UInt8:
             pos = buffer.writeUInt8(value, pos);
             break;
@@ -162,17 +155,18 @@ function writeValue(valueType, value, buffer, offset = 0) {
             break;
         }
         case NmsValueType_1.default.DateTime: {
+            const dtValue = value;
             const dtbuffer = Buffer.from([
-                packByte(value.getDate()),
-                packByte(value.getMonth()),
-                packByte(value.getFullYear() % 100),
-                packByte(Math.floor(value.getFullYear() / 100)),
-                packByte(value.getHours()),
-                packByte(value.getMinutes()),
-                packByte(value.getSeconds()),
-                packByte(Math.floor(value.getMilliseconds() / 100) & 0x0f),
-                packByte(value.getMilliseconds() % 100),
-                packByte(value.getDay() + 1),
+                packByte(dtValue.getDate()),
+                packByte(dtValue.getMonth()),
+                packByte(dtValue.getFullYear() % 100),
+                packByte(Math.floor(dtValue.getFullYear() / 100)),
+                packByte(dtValue.getHours()),
+                packByte(dtValue.getMinutes()),
+                packByte(dtValue.getSeconds()),
+                packByte(Math.floor(dtValue.getMilliseconds() / 100) & 0x0f),
+                packByte(dtValue.getMilliseconds() % 100),
+                packByte(dtValue.getDay() + 1),
             ]);
             pos = offset + dtbuffer.copy(buffer, pos);
             break;
@@ -191,7 +185,7 @@ function writeValue(valueType, value, buffer, offset = 0) {
 exports.writeValue = writeValue;
 function encodeValue(valueType, value) {
     const buffer = Buffer.alloc(1 + getSizeOf(valueType, value));
-    buffer[0] = valueType & 0xFF;
+    buffer[0] = valueType & 0xff;
     writeValue(valueType, value, buffer, 1);
     return buffer;
 }

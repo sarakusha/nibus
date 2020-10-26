@@ -13,9 +13,7 @@ no-underscore-dangle,no-multi-assign,no-continue */
 import { crc16ccitt } from 'crc';
 import debugFactory from 'debug';
 import { Transform, TransformCallback, TransformOptions } from 'stream';
-import {
-  MAX_DATA_LENGTH, Offsets, PREAMBLE, SERVICE_INFO_LENGTH, States,
-} from '../nbconst';
+import { MAX_DATA_LENGTH, Offsets, PREAMBLE, SERVICE_INFO_LENGTH, States } from '../nbconst';
 import { NmsDatagram } from '../nms';
 import { SarpDatagram } from '../sarp';
 import { printBuffer } from './helper';
@@ -42,6 +40,7 @@ export default class NibusDecoder extends Transform {
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   public _transform(chunk: any, encoding: string, callback: TransformCallback): void {
     console.assert(encoding === 'buffer', 'Unexpected encoding');
     // console.log('@@@@@@@@', printBuffer(chunk));
@@ -89,7 +88,7 @@ export default class NibusDecoder extends Transform {
               continue;
             }
             state = States.DATA_READING;
-            expectedLength = (length + SERVICE_INFO_LENGTH + 2) - 1;
+            expectedLength = length + SERVICE_INFO_LENGTH + 2 - 1;
           }
           break;
         case States.DATA_READING:

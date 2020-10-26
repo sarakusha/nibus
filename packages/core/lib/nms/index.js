@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createExecuteProgramInvocation = exports.createNmsVerifyDomainChecksum = exports.createNmsTerminateDownloadSequence = exports.createNmsDownloadSegment = exports.createNmsInitiateDownloadSequence = exports.createNmsRequestDomainDownload = exports.createNmsUploadSegment = exports.createNmsRequestDomainUpload = exports.createNmsInitiateUploadSequence = exports.createNmsWrite = exports.createNmsRead = exports.getNmsType = exports.NmsDatagram = exports.NmsValueType = exports.NmsServiceType = void 0;
 const lodash_1 = __importDefault(require("lodash"));
 const nbconst_1 = require("../nbconst");
 const config_1 = __importDefault(require("../nibus/config"));
 const nms_1 = require("./nms");
-exports.getNmsType = nms_1.getNmsType;
+Object.defineProperty(exports, "getNmsType", { enumerable: true, get: function () { return nms_1.getNmsType; } });
 const NmsDatagram_1 = __importDefault(require("./NmsDatagram"));
 exports.NmsDatagram = NmsDatagram_1.default;
 const NmsServiceType_1 = __importDefault(require("./NmsServiceType"));
@@ -19,11 +20,7 @@ function createNmsRead(destination, ...ids) {
         throw new Error('To many properties (21)');
     }
     const [id, ...rest] = ids;
-    const nms = lodash_1.default.flatten(rest.map(next => [
-        (NmsServiceType_1.default.Read << 3) | (next >> 8),
-        next & 0xff,
-        0,
-    ]));
+    const nms = lodash_1.default.flatten(rest.map(next => [(NmsServiceType_1.default.Read << 3) | (next >> 8), next & 0xff, 0]));
     return new NmsDatagram_1.default({
         destination,
         id,

@@ -18,6 +18,7 @@ import debugFactory from '../debug';
 const debug = debugFactory('nibus:IPCServer');
 const noop = (): void => {};
 
+// eslint-disable-next-line no-shadow
 export enum Direction {
   in,
   out,
@@ -125,8 +126,8 @@ class IPCServer extends Duplex {
     debug('destroy connection on', this.path, this.clients.length);
   }
 
-  // eslint-disable-next-line no-underscore-dangle
-  _write(chunk: any, encoding: string, callback: (error?: (Error | null)) => void): void {
+  // eslint-disable-next-line no-underscore-dangle,@typescript-eslint/explicit-module-boundary-types
+  _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
     this.emit('raw', chunk as Buffer, Direction.out);
     this.clients.forEach(client => client.write(chunk, encoding, noop));
     callback();
@@ -155,8 +156,9 @@ class IPCServer extends Duplex {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   broadcast(event: string, ...args: any[]): Promise<void> {
-    return Promise.all(this.clients.map(client => this.send(client, event, ...args)))
-      .then(() => {});
+    return Promise.all(
+      this.clients.map(client => this.send(client, event, ...args))
+    ).then(() => {});
   }
 
   close = (): void => {

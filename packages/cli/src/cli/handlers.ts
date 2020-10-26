@@ -9,10 +9,7 @@
  */
 
 import { Arguments, Defined } from 'yargs';
-import session, {
-  devices, IDevice, Address, config, NibusConnection,
-} from '@nibus/core';
-
+import session, { devices, IDevice, Address, config, INibusConnection } from '@nibus/core';
 
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
@@ -24,85 +21,85 @@ interface ActionFunc<O> {
 }
 
 export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>(
-  action: ActionFunc<O>, breakout = false,
+  action: ActionFunc<O>,
+  breakout = false
 ): Handler<O> {
   return serviceWrapper(async (args: Arguments<O>) => {
     // На Windows сложнее метод определения и занимает больше времени
-    let count = await session.start() * (process.platform === 'win32' ? 3 : 1);
-    return new Promise(
-      resolve => {
-        let timeout: NodeJS.Timeout;
-        let hasFound = false;
-        const close = (err?: string): void => {
-          clearTimeout(timeout);
-          session.close();
-          if (err || !hasFound) {
-            console.error(err || 'Устройство не найдено');
-          }
-          resolve();
-        };
-        const mac = new Address(args.mac);
-        if (args.timeout && args.timeout !== config.timeout * 1000) {
-          config.timeout = args.timeout * 1000;
+    let count = (await session.start()) * (process.platform === 'win32' ? 3 : 1);
+    return new Promise(resolve => {
+      let timeout: NodeJS.Timeout;
+      let hasFound = false;
+      const close = (err?: string): void => {
+        clearTimeout(timeout);
+        session.close();
+        if (err || !hasFound) {
+          console.error(err || 'Устройство не найдено');
         }
+        resolve();
+      };
+      const mac = new Address(args.mac);
+      if (args.timeout && args.timeout !== config.timeout * 1000) {
+        config.timeout = args.timeout * 1000;
+      }
 
-        const perform = async (
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          connection: NibusConnection, mibOrType: any, version?: number,
-        ): Promise<void> => {
+      const perform = async (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        connection: INibusConnection,
+        mibOrType: any,
+        version?: number
+      ): Promise<void> => {
+        clearTimeout(timeout);
+        const device = devices.create(mac, mibOrType, version);
+        device.connection = connection;
+        await action(device, args);
+        hasFound = true;
+      };
+
+      const wait = (): void => {
+        count -= 1;
+        if (count > 0) {
+          timeout = setTimeout(wait, config.timeout);
+        } else {
+          close();
+        }
+      };
+
+      session.on('found', async ({ address, connection }) => {
+        try {
+          if (address.equals(mac) && connection.description.mib) {
+            if (!args.mib || args.mib === connection.description.mib) {
+              await perform(connection, connection.description.mib);
+              if (breakout) {
+                close();
+                return;
+              }
+              wait();
+            }
+          }
+          if ((address.equals(mac) && connection.description.type) || connection.description.link) {
+            count += 1;
+            const [version, type] = await connection.getVersion(mac);
+            if (type) {
+              await perform(connection, type, version);
+              if (breakout) {
+                close();
+                return;
+              }
+              wait();
+            }
+          }
+        } catch (e) {
+          close(e.message || e);
+        }
+        count -= 1;
+        if (count === 0) {
           clearTimeout(timeout);
-          const device = devices.create(mac, mibOrType, version);
-          device.connection = connection;
-          await action(device, args);
-          hasFound = true;
-        };
+          process.nextTick(close);
+        }
+      });
 
-        const wait = (): void => {
-          count -= 1;
-          if (count > 0) {
-            timeout = setTimeout(wait, config.timeout);
-          } else {
-            close();
-          }
-        };
-
-        session.on('found', async ({ address, connection }) => {
-          try {
-            if (address.equals(mac) && connection.description.mib) {
-              if (!args.mib || args.mib === connection.description.mib) {
-                await perform(connection, connection.description.mib);
-                if (breakout) {
-                  close();
-                  return;
-                }
-                wait();
-              }
-            }
-            if ((address.equals(mac) && connection.description.type)
-              || connection.description.link) {
-              count += 1;
-              const [version, type] = await connection.getVersion(mac);
-              if (type) {
-                await perform(connection, type, version);
-                if (breakout) {
-                  close();
-                  return;
-                }
-                wait();
-              }
-            }
-          } catch (e) {
-            close(e.message || e);
-          }
-          count -= 1;
-          if (count === 0) {
-            clearTimeout(timeout);
-            process.nextTick(close);
-          }
-        });
-
-        timeout = setTimeout(wait, config.timeout);
-      },
-    );
+      timeout = setTimeout(wait, config.timeout);
+    });
   });
 }

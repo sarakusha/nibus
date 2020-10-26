@@ -11,5 +11,5 @@
 // export { default as detector } from './detector';
 export * from './KnownPorts';
 export * from './common';
-export * from './session';
+export * from './NibusSession';
 export { default } from './session';

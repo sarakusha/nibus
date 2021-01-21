@@ -5751,10 +5751,10 @@ electron-webpack@^2.7.4:
     webpack-merge "^4.2.2"
     yargs "^15.3.1"
 
-electron@10.1.4:
-  version "10.1.4"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-10.1.4.tgz#5462c5fac5b4728691042d0f62133ea2c133e6fd"
-  integrity sha512-5wiiGsif8jd1lS3Qhe9j8oQvUMnoWCvqBwYzzn+BGXGDq8aN8oTdM+j/2NY35Ktt3JrJdjKWcu9b7pDo8kNjbw==
+electron@9.3.2:
+  version "9.3.2"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-9.3.2.tgz#afa2942e2642ee25b422b90f1497f7d9bbeec550"
+  integrity sha512-0lleEf9msAXGDi2GukAuiGdw3VDgSTlONOnJgqDEz1fuSEVsXz5RX+hNPKDsVDerLTFg/C34RuJf4LwHvkKcBA==
   dependencies:
     "@electron/get" "^1.0.1"
     "@types/node" "^12.0.12"
@@ -7718,10 +7718,10 @@ immediate@~3.0.5:
   resolved "https://registry.yarnpkg.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
   integrity sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=
 
-immer@^7.0.9:
-  version "7.0.14"
-  resolved "https://registry.yarnpkg.com/immer/-/immer-7.0.14.tgz#3e605f8584b15a9520d2f2f3fda9441cc9170d25"
-  integrity sha512-BxCs6pJwhgSEUEOZjywW7OA8DXVzfHjkBelSEl0A+nEu0+zS4cFVdNOONvt55N4WOm8Pu4xqSPYxhm1Lv2iBBA==
+immer@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/immer/-/immer-8.0.1.tgz#9c73db683e2b3975c424fb0572af5889877ae656"
+  integrity sha512-aqXhGP7//Gui2+UrEtvxZxSquQVXTpZ7KDxfCcKAF3Vysvw0CViVaW9RZ1j1xlIYqaaaipBoqdqeibkc18PNvA==
 
 import-fresh@^2.0.0:
   version "2.0.0"

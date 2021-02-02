@@ -199,7 +199,7 @@ async function convert(mibpath, dir) {
 exports.convert = convert;
 const xsdMibRe = /^\S+\.mib\.xsd$/i;
 const jsonMibRe = /^(\S+)\.mib\.json$/i;
-exports.convertDir = (dir) => new Promise((resolve, reject) => {
+const convertDir = (dir) => new Promise((resolve, reject) => {
     fs_1.default.readdir(dir, (err, files) => {
         if (err) {
             return reject(err);
@@ -212,6 +212,7 @@ exports.convertDir = (dir) => new Promise((resolve, reject) => {
         return resolve(Promise.all(promises).then(() => { }));
     });
 });
+exports.convertDir = convertDir;
 let mibs = [];
 const mibsDir = path.resolve(__dirname, '../../mibs');
 function filesToMibs(files) {

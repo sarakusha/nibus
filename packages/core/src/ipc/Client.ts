@@ -13,21 +13,22 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import { isLeft } from 'fp-ts/lib/Either';
 import xpipe from 'xpipe';
 
-import debugFactory from 'debug';
+import debugFactory from '../debug';
 import { EventFromString, PortArg } from './events';
 
 const debug = debugFactory('nibus:IPCClient');
 
+interface ClientEvents {
+  ports: (ports: PortArg[]) => void;
+  add: (port: PortArg) => void;
+  remove: (port: PortArg) => void;
+}
+
 export interface Client {
-  addListener(event: 'ports', listener: (ports: PortArg[]) => void): this;
-  addListener(event: 'add', listener: (port: PortArg) => void): this;
-  addListener(event: 'remove', listener: (port: PortArg) => void): this;
-  on(event: 'ports', listener: (ports: PortArg[]) => void): this;
-  on(event: 'add', listener: (port: PortArg) => void): this;
-  on(event: 'remove', listener: (port: PortArg) => void): this;
-  once(event: 'ports', listener: (ports: PortArg[]) => void): this;
-  once(event: 'add', listener: (port: PortArg) => void): this;
-  once(event: 'remove', listener: (port: PortArg) => void): this;
+  on<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;
+  once<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;
+  off<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;
+  emit<U extends keyof ClientEvents>(event: U, ...args: Parameters<ClientEvents[U]>): boolean;
 }
 
 export default class IPCClient extends Socket implements Client {
@@ -42,7 +43,9 @@ export default class IPCClient extends Socket implements Client {
       debug('<error>:', PathReporter.report(result));
       return;
     }
-    const { right: { event, args } } = result;
+    const {
+      right: { event, args },
+    } = result;
     this.emit(event, ...args);
   };
 

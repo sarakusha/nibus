@@ -24,21 +24,22 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Devices = exports.getMibPrototype = exports.findMibByType = exports.getMibTypes = exports.getMibFile = void 0;
 const crc_1 = require("crc");
-const debug_1 = __importDefault(require("debug"));
 const events_1 = require("events");
 const Either_1 = require("fp-ts/lib/Either");
 const fs_1 = __importDefault(require("fs"));
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));
 const path_1 = __importDefault(require("path"));
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const xdg_basedir_1 = require("xdg-basedir");
+const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importStar(require("../Address"));
 const errors_1 = require("../errors");
 const nbconst_1 = require("../nbconst");
 const helper_1 = require("../nibus/helper");
 const nms_1 = require("../nms");
 const NmsValueType_1 = __importDefault(require("../nms/NmsValueType"));
-const common_1 = require("../session/common");
+const common_1 = require("../common");
 const timeid_1 = __importDefault(require("../timeid"));
 const mib_1 = require("./mib");
 const pkgName = '@nata/nibus.js';
@@ -54,7 +55,6 @@ var PrivateProps;
 (function (PrivateProps) {
     PrivateProps[PrivateProps["connection"] = -1] = "connection";
 })(PrivateProps || (PrivateProps = {}));
-const deviceMap = {};
 const mibTypesCache = {};
 function getBaseType(types, type) {
     let base = type;
@@ -233,7 +233,7 @@ function getMibFile(mibname) {
     return path_1.default.resolve(__dirname, '../../mibs/', `${mibname}.mib.json`);
 }
 exports.getMibFile = getMibFile;
-class DevicePrototype extends events_1.EventEmitter {
+class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
     constructor(mibname) {
         super();
         this.$countRef = 1;
@@ -271,6 +271,10 @@ class DevicePrototype extends events_1.EventEmitter {
                 };
             }, {});
             Reflect.defineMetadata('subroutines', metasubs, this);
+        }
+        if (device.appinfo.disable_batch_reading) {
+            const disableBatchReading = Boolean(JSON.parse(device.appinfo.disable_batch_reading.toLowerCase()));
+            Reflect.defineMetadata('disableBatchReading', disableBatchReading, this);
         }
         const keys = Reflect.ownKeys(device.properties);
         Reflect.defineMetadata('mibProperties', keys.map(mib_1.validJsName), this);
@@ -392,10 +396,8 @@ class DevicePrototype extends events_1.EventEmitter {
             this.address.type === Address_1.AddressType.mac &&
             typeof this.serno === 'string') {
             const value = this.serno;
-            const prevAddress = this.address;
             const address = Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex');
             Reflect.defineProperty(this, 'address', mib_1.withValue(new Address_1.default(address), false, true));
-            devices.emit('serno', prevAddress, this.address);
         }
     }
     addref() {
@@ -406,12 +408,7 @@ class DevicePrototype extends events_1.EventEmitter {
     release() {
         this.$countRef -= 1;
         if (this.$countRef <= 0) {
-            const key = this.address.toString();
-            deviceMap[key] = lodash_1.default.without(deviceMap[key], this);
-            if (deviceMap[key].length === 0) {
-                delete deviceMap[key];
-            }
-            devices.emit('delete', this);
+            this.emit('release', this);
         }
         return this.$countRef;
     }
@@ -691,7 +688,7 @@ class DevicePrototype extends events_1.EventEmitter {
         return this.$read.finally(clear);
     }
 }
-exports.getMibTypes = () => {
+const getMibTypes = () => {
     const conf = path_1.default.resolve(xdg_basedir_1.config || '/tmp', 'configstore', pkgName);
     if (!fs_1.default.existsSync(`${conf}.json`))
         return {};
@@ -703,6 +700,7 @@ exports.getMibTypes = () => {
     const { mibTypes } = validate.right;
     return mibTypes;
 };
+exports.getMibTypes = getMibTypes;
 function findMibByType(type, version) {
     const mibTypes = exports.getMibTypes();
     const mibs = mibTypes[type];
@@ -740,40 +738,60 @@ function getMibPrototype(mib) {
     return getConstructor(mib).prototype;
 }
 exports.getMibPrototype = getMibPrototype;
-class Devices extends events_1.EventEmitter {
+class Devices extends tiny_typed_emitter_1.TypedEmitter {
     constructor() {
         super(...arguments);
-        this.get = () => lodash_1.default.flatten(lodash_1.default.values(deviceMap));
+        this.deviceMap = {};
+        this.get = () => lodash_1.default.flatten(lodash_1.default.values(this.deviceMap));
         this.find = (address) => {
+            var _a;
             const targetAddress = new Address_1.default(address);
-            return deviceMap[targetAddress.toString()];
+            return (_a = this.deviceMap[targetAddress.toString()]) !== null && _a !== void 0 ? _a : [];
         };
-        this.create = (address, mibOrType, version) => {
+        this.create = (address, mibOrType, versionOrOwned, ownedParam) => {
             let mib;
+            let owned;
             if (typeof mibOrType === 'number') {
-                mib = findMibByType(mibOrType, version);
+                mib = findMibByType(mibOrType, versionOrOwned);
                 if (mib === undefined)
                     throw new Error('Unknown mib type');
-            }
-            else if (typeof mibOrType === 'string') {
-                mib = String(mibOrType);
+                owned = ownedParam;
             }
             else {
-                throw new Error(`mib or type expected, got ${mibOrType}`);
+                mib = String(mibOrType);
+                owned = versionOrOwned;
             }
             const targetAddress = new Address_1.default(address);
             const constructor = getConstructor(mib);
             const device = Reflect.construct(constructor, [targetAddress]);
-            if (!targetAddress.isEmpty) {
-                const key = targetAddress.toString();
-                deviceMap[key] = (deviceMap[key] || []).concat(device);
-                process.nextTick(() => this.emit('new', device));
+            if (owned) {
+                device.connection = owned;
+                if (!owned.owner) {
+                    owned.owner = device;
+                    owned.description.mib = mib;
+                }
             }
+            const key = targetAddress.toString();
+            this.deviceMap[key] = (this.deviceMap[key] || []).concat(device);
+            device.on('release', this.onReleaseDevice);
+            process.nextTick(() => this.emit('new', device));
             return device;
         };
+        this.onReleaseDevice = (device) => {
+            if (!device)
+                return;
+            const key = device.address.toString();
+            this.deviceMap[key] = lodash_1.default.without(this.deviceMap[key], device);
+            device.off('release', this.onReleaseDevice);
+            if (this.deviceMap[key].length === 0) {
+                delete this.deviceMap[key];
+            }
+            this.emit('delete', device);
+        };
+    }
+    findById(id) {
+        return this.get().find(item => item.id === id);
     }
 }
 exports.Devices = Devices;
-const devices = new Devices();
-exports.default = devices;
 //# sourceMappingURL=devices.js.map

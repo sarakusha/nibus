@@ -7,7 +7,7 @@ const net_1 = require("net");
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const Either_1 = require("fp-ts/lib/Either");
 const xpipe_1 = __importDefault(require("xpipe"));
-const debug_1 = __importDefault(require("debug"));
+const debug_1 = __importDefault(require("../debug"));
 const events_1 = require("./events");
 const debug = debug_1.default('nibus:IPCClient');
 class IPCClient extends net_1.Socket {
@@ -19,7 +19,7 @@ class IPCClient extends net_1.Socket {
                 debug('<error>:', PathReporter_1.PathReporter.report(result));
                 return;
             }
-            const { right: { event, args } } = result;
+            const { right: { event, args }, } = result;
             this.emit(event, ...args);
         };
         this.on('data', this.parseEvents);

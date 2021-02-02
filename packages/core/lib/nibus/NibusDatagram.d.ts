@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import Address, { AddressParam } from '../Address';
+import { Datagram } from '../common';
 export interface INibusCommon {
     destination: AddressParam;
     priority?: number;
@@ -21,7 +22,7 @@ export interface INibusDatagramJSON {
     timeStamp: string;
     data?: Buffer;
 }
-export default class NibusDatagram implements INibusOptions {
+export default class NibusDatagram implements INibusOptions, Datagram {
     static defaultSource: AddressParam;
     readonly priority: number;
     readonly protocol: Protocol;

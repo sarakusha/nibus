@@ -33,12 +33,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
 const nbconst_1 = require("../nbconst");
+const nibus_1 = require("../nibus");
 const NibusDatagram_1 = __importStar(require("../nibus/NibusDatagram"));
 const nms_1 = require("./nms");
 const NmsServiceType_1 = __importDefault(require("./NmsServiceType"));
 const NmsValueType_1 = __importDefault(require("./NmsValueType"));
+const debug = debug_1.default('nibus:nms');
 const emptyBuffer = Buffer.alloc(0);
 class NmsDatagram extends NibusDatagram_1.default {
     constructor(frameOrOptions) {
@@ -109,7 +112,15 @@ class NmsDatagram extends NibusDatagram_1.default {
             return undefined;
         }
         const { length } = nms;
-        const safeDecode = (index, type = valueType) => length < index + nms_1.getSizeOf(type) ? undefined : nms_1.decodeValue(type, nms, index);
+        const safeDecode = (index, type = valueType) => {
+            try {
+                return length < index + nms_1.getSizeOf(type) ? undefined : nms_1.decodeValue(type, nms, index);
+            }
+            catch (e) {
+                debug(`${e.message}, id: ${this.id}, buffer: ${nibus_1.printBuffer(this.raw)}`);
+                return 0;
+            }
+        };
         switch (service) {
             case NmsServiceType_1.default.Read:
                 return safeDecode(2);

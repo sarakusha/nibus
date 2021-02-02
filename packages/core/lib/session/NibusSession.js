@@ -3,25 +3,24 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NibusSession = exports.delay = void 0;
-const debug_1 = __importDefault(require("debug"));
-const events_1 = require("events");
-const lodash_1 = __importDefault(require("lodash"));
+exports.NibusSession = void 0;
 const fs_1 = __importDefault(require("fs"));
+const lodash_1 = __importDefault(require("lodash"));
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
+const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
 const common_1 = require("../common");
 const ipc_1 = require("../ipc");
 const mib_1 = require("../mib");
-const NibusConnection_1 = __importDefault(require("../nibus/NibusConnection"));
+const nibus_1 = require("../nibus");
 const nms_1 = require("../nms");
-const common_2 = require("./common");
 const debug = debug_1.default('nibus:session');
-exports.delay = (seconds) => new Promise(resolve => setTimeout(resolve, seconds * 1000));
-class NibusSession extends events_1.EventEmitter {
+class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     constructor() {
-        super(...arguments);
+        super();
         this.connections = [];
         this.isStarted = false;
+        this.devices = new mib_1.Devices();
         this.reloadHandler = (ports) => {
             const prev = this.connections.splice(0, this.connections.length);
             ports.forEach(port => {
@@ -31,34 +30,40 @@ class NibusSession extends events_1.EventEmitter {
                     this.connections.push(prev.splice(index, 1)[0]);
                 }
                 else {
-                    this.addHandler(port);
+                    this.addHandler(port).catch(common_1.noop);
                 }
             });
             prev.forEach(connection => this.closeConnection(connection));
         };
         this.addHandler = async ({ portInfo: { path }, description }) => {
-            debug('add');
-            const connection = new NibusConnection_1.default(path, description);
-            this.connections.push(connection);
-            this.emit('add', connection);
-            if (process.platform === 'win32')
-                await exports.delay(2);
-            this.find(connection);
-            mib_1.devices
-                .get()
-                .filter(device => device.connection == null)
-                .reduce(async (promise, device) => {
-                await promise;
-                debug('start ping');
-                const time = await connection.ping(device.address);
-                debug(`ping ${time}`);
-                if (time !== -1) {
-                    device.connection = connection;
-                    this.emit('connected', device);
-                    debug(`mib-device ${device.address} was connected`);
-                }
-            }, Promise.resolve())
-                .catch(common_1.noop);
+            try {
+                debug('add');
+                const connection = new nibus_1.NibusConnection(path, description);
+                this.connections.push(connection);
+                this.emit('add', connection);
+                if (process.platform === 'win32')
+                    await common_1.delay(2000);
+                this.find(connection);
+                this.devices
+                    .get()
+                    .filter(device => device.connection == null)
+                    .reduce(async (promise, device) => {
+                    await promise;
+                    debug('start ping');
+                    const time = await connection.ping(device.address);
+                    debug(`ping ${time}`);
+                    if (time !== -1) {
+                        device.connection = connection;
+                        this.emit('connected', device);
+                        debug(`mib-device ${device.address} was connected`);
+                    }
+                }, Promise.resolve())
+                    .catch(common_1.noop);
+            }
+            catch (e) {
+                console.error(e);
+                debug(e);
+            }
         };
         this.removeHandler = ({ portInfo: { path: port } }) => {
             const index = this.connections.findIndex(({ path }) => port === path);
@@ -67,6 +72,17 @@ class NibusSession extends events_1.EventEmitter {
                 this.closeConnection(connection);
             }
         };
+        this.devices.on('new', device => {
+            if (!device.connection) {
+                this.pingDevice(device).catch();
+            }
+        });
+        this.devices.on('delete', device => {
+            if (device.connection) {
+                device.connection = undefined;
+                this.emit('disconnected', device);
+            }
+        });
     }
     get ports() {
         return this.connections.length;
@@ -78,7 +94,7 @@ class NibusSession extends events_1.EventEmitter {
                 return;
             }
             this.isStarted = true;
-            this.socket = ipc_1.Client.connect(common_2.PATH);
+            this.socket = ipc_1.Client.connect(common_1.PATH);
             this.socket.once('error', error => {
                 console.error('error while start nibus.service', error.message);
                 this.close();
@@ -123,14 +139,14 @@ class NibusSession extends events_1.EventEmitter {
             this.emit('disconnected', device);
         }
         const mib = Reflect.getMetadata('mib', device);
-        const occupied = mib_1.devices
+        const occupied = this.devices
             .get()
             .map(item => item.connection)
             .filter(connection => connection != null && !connection.description.link);
-        const acceptables = lodash_1.default.difference(connections, occupied).filter(({ description }) => description.link || description.mib === mib);
-        if (acceptables.length === 0)
+        const acceptable = lodash_1.default.difference(connections, occupied).filter(({ description }) => description.link || description.mib === mib);
+        if (acceptable.length === 0)
             return -1;
-        const [timeout, connection] = await Promise.race(acceptables.map(item => item.ping(device.address).then(t => [t, item])));
+        const [timeout, connection] = await Promise.race(acceptable.map(item => item.ping(device.address).then(t => [t, item])));
         if (timeout === -1) {
             return -1;
         }
@@ -144,9 +160,15 @@ class NibusSession extends events_1.EventEmitter {
             return Promise.resolve(-1);
         return Promise.race(connections.map(connection => connection.ping(addr)));
     }
+    reloadDevices() {
+        this.socket && this.socket.send('reloadDevices');
+    }
+    setLogLevel(logLevel) {
+        this.socket && this.socket.send('setLogLevel', logLevel);
+    }
     closeConnection(connection) {
         connection.close();
-        mib_1.devices
+        this.devices
             .get()
             .filter(device => device.connection === connection)
             .forEach(device => {
@@ -160,47 +182,53 @@ class NibusSession extends events_1.EventEmitter {
         const { description } = connection;
         const descriptions = Array.isArray(description.select) ? description.select : [description];
         const baseCategory = Array.isArray(description.select) ? description.category : null;
-        descriptions.forEach(descr => {
-            const { category } = descr;
-            switch (descr.find) {
+        common_1.promiseArray(descriptions, async (desc) => {
+            debug(`%o ${baseCategory}`, connection.description);
+            if (baseCategory && connection.description.category !== baseCategory)
+                return;
+            const { category } = desc;
+            switch (desc.find) {
                 case 'sarp': {
-                    let { type } = descr;
+                    let { type } = desc;
                     if (type === undefined) {
-                        const mib = JSON.parse(fs_1.default.readFileSync(mib_1.getMibFile(descr.mib)).toString());
+                        const mib = JSON.parse(fs_1.default.readFileSync(mib_1.getMibFile(desc.mib)).toString());
                         const { types } = mib;
                         const device = types[mib.device];
                         type = mib_1.toInt(device.appinfo.device_type);
                     }
-                    connection.once('sarp', (sarpDatagram) => {
-                        if (baseCategory && connection.description.category !== baseCategory)
-                            return;
-                        if (baseCategory && connection.description.category === baseCategory) {
-                            debug(`category was changed: ${connection.description.category} => ${category}`);
-                            connection.description = descr;
-                        }
+                    try {
+                        const sarpDatagram = await connection.findByType(type);
+                        debug(`category was changed: ${connection.description.category} => ${category}`);
+                        connection.description = desc;
                         const address = new Address_1.default(sarpDatagram.mac);
                         debug(`device ${category}[${address}] was found on ${connection.path}`);
                         this.emit('found', {
                             connection,
-                            category,
+                            category: category,
                             address,
                         });
-                    });
-                    connection.findByType(type).catch(common_1.noop);
+                        const devs = this.devices
+                            .find(address)
+                            .filter(dev => Reflect.getMetadata('deviceType', dev) === type);
+                        if ((devs === null || devs === void 0 ? void 0 : devs.length) === 1) {
+                            this.connectDevice(devs[0], connection);
+                        }
+                    }
+                    catch (e) {
+                        debug('SARP: %s, %o', e.message, connection.description);
+                    }
                     break;
                 }
                 case 'version':
                     connection.sendDatagram(nms_1.createNmsRead(Address_1.default.empty, 2)).then(datagram => {
                         if (!datagram || Array.isArray(datagram))
                             return;
-                        if (connection.description.category === 'ftdi') {
-                            debug(`category was changed: ${connection.description.category} => ${category}`);
-                            connection.description = descr;
-                        }
+                        debug(`category was changed: ${connection.description.category} => ${category}`);
+                        connection.description = desc;
                         const address = new Address_1.default(datagram.source.mac);
                         this.emit('found', {
                             connection,
-                            category,
+                            category: category,
                             address,
                         });
                         debug(`device ${category}[${address}] was found on ${connection.path}`);
@@ -212,7 +240,7 @@ class NibusSession extends events_1.EventEmitter {
                     this.emit('pureConnection', connection);
                     break;
             }
-        });
+        }).catch(e => debug(`error while find ${e.message}`));
     }
 }
 exports.NibusSession = NibusSession;

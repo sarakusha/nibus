@@ -3,18 +3,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const debug_1 = __importDefault(require("debug"));
-const events_1 = require("events");
-const devices_1 = __importDefault(require("../mib/devices"));
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
+const debug_1 = __importDefault(require("../debug"));
 const nms_1 = require("../nms");
 const nms_2 = require("../nms/nms");
 const NmsServiceType_1 = __importDefault(require("../nms/NmsServiceType"));
+const slip_1 = require("../slip");
 const helper_1 = require("./helper");
 const NibusDatagram_1 = require("./NibusDatagram");
 const debug = debug_1.default('nibus:mock-connection');
-class MockNibusConnection extends events_1.EventEmitter {
-    constructor() {
+class MockNibusConnection extends tiny_typed_emitter_1.TypedEmitter {
+    constructor(devices) {
         super();
+        this.devices = devices;
         this.path = 'mock-serial';
         this.description = { type: 0xabc6, find: 'sarp', category: 'minihost', mib: 'minihost3' };
     }
@@ -55,7 +56,7 @@ class MockNibusConnection extends events_1.EventEmitter {
     nmsReadResponse(nmsDatagram) {
         var _a;
         const { id, nms, source, destination } = nmsDatagram;
-        const [device] = (_a = devices_1.default.find(destination)) !== null && _a !== void 0 ? _a : [];
+        const [device] = (_a = this.devices.find(destination)) !== null && _a !== void 0 ? _a : [];
         if (!device)
             throw new Error(`Unknown device ${destination}`);
         const ids = [id];
@@ -83,6 +84,13 @@ class MockNibusConnection extends events_1.EventEmitter {
                 }));
             });
         });
+    }
+    slipStart() {
+        return Promise.resolve(false);
+    }
+    slipFinish() { }
+    execBootloader() {
+        return Promise.resolve(new slip_1.SlipDatagram(Buffer.alloc(0)));
     }
     static pingImpl() {
         return Promise.resolve(Math.round(Math.random() * 100));

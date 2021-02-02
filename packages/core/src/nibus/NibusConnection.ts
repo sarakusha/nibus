@@ -1,4 +1,4 @@
-/* eslint-disable max-classes-per-file */
+/* eslint-disable max-classes-per-file,no-plusplus,no-bitwise,no-await-in-loop */
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -10,38 +10,32 @@
  */
 
 import { isLeft } from 'fp-ts/lib/Either';
-/* eslint-disable max-classes-per-file,no-bitwise */
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import _ from 'lodash';
 import { Socket, connect } from 'net';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import xpipe from 'xpipe';
-import { EventEmitter } from 'events';
-import debugFactory from 'debug';
-import { AddressParam } from '../Address';
+import debugFactory from '../debug';
+import Address, { AddressParam } from '../Address';
 import { TimeoutError } from '../errors';
 import { getSocketPath } from '../ipc';
-// import { devices } from '../mib';
-import { createNmsRead, NmsDatagram } from '../nms';
+import { createExecuteProgramInvocation, createNmsRead, NmsDatagram } from '../nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import { createSarp, SarpQueryType, SarpDatagram } from '../sarp';
 import { MibDescriptionV, MibDescription } from '../MibDescription';
+import { BootloaderFunction, LikeArray, slipChunks, SlipDatagram } from '../slip';
 import NibusDatagram from './NibusDatagram';
 import NibusEncoder from './NibusEncoder';
 import NibusDecoder from './NibusDecoder';
 import config from './config';
+import { Datagram, delay } from '../common';
+import type { IDevice } from '../mib';
 
 export const MINIHOST_TYPE = 0xabc6;
 // const FIRMWARE_VERSION_ID = 0x85;
 const VERSION_ID = 2;
 
 const debug = debugFactory('nibus:connection');
-// let NIBUS_TIMEOUT = 1000;
-//
-// export const setNibusTimeout = (timeout: number): void => {
-//   NIBUS_TIMEOUT = timeout;
-// };
-//
-// export const getNibusTimeout = (): number => NIBUS_TIMEOUT;
 
 class WaitedNmsDatagram {
   readonly resolve: (datagram: NmsDatagram) => void;
@@ -72,7 +66,7 @@ class WaitedNmsDatagram {
       counter -= step;
       clearTimeout(timer);
       if (counter > 0) {
-        timer = setTimeout(timeout, req.timeout || config.timeout);
+        timer = global.setTimeout(timeout, req.timeout || config.timeout);
       } else if (counter === 0) {
         callback(this);
       }
@@ -88,31 +82,36 @@ class WaitedNmsDatagram {
   }
 }
 
-type SarpListener = (datagram: SarpDatagram) => void;
-type NmsListener = (datagram: NmsDatagram) => void;
+export interface NibusEvents {
+  sarp: (datagram: SarpDatagram) => void;
+  nms: (datagram: NmsDatagram) => void;
+  close: () => void;
+  chunk: (offset: number) => void;
+}
 
 export interface INibusConnection {
-  on(event: 'sarp', listener: SarpListener): this;
-  on(event: 'nms', listener: NmsListener): this;
-  once(event: 'sarp', listener: SarpListener): this;
-  once(event: 'nms', listener: NmsListener): this;
-  addListener(event: 'sarp', listener: SarpListener): this;
-  addListener(event: 'nms', listener: NmsListener): this;
-  off(event: 'sarp', listener: SarpListener): this;
-  off(event: 'nms', listener: NmsListener): this;
-  removeListener(event: 'sarp', listener: SarpListener): this;
-  removeListener(event: 'nms', listener: NmsListener): this;
+  on<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
+  once<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
+  off<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
   sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
   ping(address: AddressParam): Promise<number>;
-  findByType(type: number): Promise<NmsDatagram | NmsDatagram[] | undefined>;
+  findByType(type: number): Promise<SarpDatagram>;
   getVersion(address: AddressParam): Promise<[number?, number?]>;
   close(): void;
   readonly path: string;
   description: MibDescription;
+  slipStart(force?: boolean): Promise<boolean>;
+  slipFinish(): void;
+  execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram>;
+  owner?: IDevice;
 }
 
-class NibusConnection extends EventEmitter implements INibusConnection {
-  public readonly description: MibDescription;
+const empty = Buffer.alloc(0);
+
+export default class NibusConnection extends TypedEmitter<NibusEvents> implements INibusConnection {
+  public description: MibDescription;
+
+  public owner?: IDevice;
 
   private readonly socket: Socket;
 
@@ -125,6 +124,8 @@ class NibusConnection extends EventEmitter implements INibusConnection {
   private closed = false;
 
   private readonly waited: WaitedNmsDatagram[] = [];
+
+  private finishSlip: (() => void) | undefined;
 
   constructor(public readonly path: string, description: MibDescription) {
     super();
@@ -168,12 +169,22 @@ class NibusConnection extends EventEmitter implements INibusConnection {
       .catch(() => -1);
   }
 
-  public findByType(
-    type: number = MINIHOST_TYPE
-  ): Promise<NmsDatagram | NmsDatagram[] | undefined> {
+  public findByType(type: number = MINIHOST_TYPE): Promise<SarpDatagram> {
     debug(`findByType ${type} on ${this.path} (${this.description.category})`);
     const sarp = createSarp(SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xff, type & 0xff]);
-    return this.sendDatagram(sarp);
+    let sarpHandler: NibusEvents['sarp'] = () => {};
+    return new Promise<SarpDatagram>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new TimeoutError('Device not respond')),
+        config.timeout
+      );
+      sarpHandler = sarpDatagram => {
+        clearTimeout(timeout);
+        resolve(sarpDatagram);
+      };
+      this.once('sarp', sarpHandler);
+      return this.sendDatagram(sarp);
+    }).finally(() => this.off('sarp', sarpHandler));
   }
 
   public async getVersion(address: AddressParam): Promise<[number?, number?]> {
@@ -208,7 +219,7 @@ class NibusConnection extends EventEmitter implements INibusConnection {
     _.remove(this.waited, waited);
   };
 
-  private onDatagram = (datagram: NibusDatagram): void => {
+  private onDatagram = (datagram: Datagram): void => {
     let showLog = true;
     if (datagram instanceof NmsDatagram) {
       if (datagram.isResponse) {
@@ -225,6 +236,72 @@ class NibusConnection extends EventEmitter implements INibusConnection {
     }
     showLog && debug('datagram received', JSON.stringify(datagram.toJSON()));
   };
+
+  async execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram> {
+    const { finishSlip, encoder, decoder } = this;
+    if (!finishSlip) throw new Error('SLIP mode required');
+    const chunks = slipChunks(fn, data);
+    const wait = (): Promise<SlipDatagram> => {
+      let onData = (__: SlipDatagram): void => {};
+      return new Promise<SlipDatagram>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          reject(new TimeoutError(`execBootloader timeout ${fn}`));
+        }, 2000);
+        onData = (datagram: Datagram): void => {
+          if (datagram instanceof SlipDatagram) {
+            clearTimeout(timer);
+            resolve(datagram);
+          }
+        };
+        decoder.on('data', onData);
+      }).finally(() => decoder.off('data', onData));
+    };
+
+    let response = new SlipDatagram(empty);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const [chunk, offset] of chunks) {
+      this.emit('chunk', offset);
+      const datagram = new SlipDatagram(chunk);
+      encoder.write(datagram);
+      response = await wait();
+      if (response.errorCode !== undefined) {
+        chunks.throw(new Error(`error ${response.errorCode}`));
+        break;
+      }
+      // await delay(50);
+    }
+    return response;
+  }
+
+  slipStart(force = false): Promise<boolean> {
+    if (this.finishSlip) return Promise.resolve(true);
+    return new Promise<boolean>(resolve => {
+      this.ready.finally(async () => {
+        if (this.description.mib !== 'minihost3') return resolve(false);
+        if (!force) {
+          const readResp = await this.sendDatagram(createNmsRead(Address.empty, 0x3a8));
+          if (!readResp || Array.isArray(readResp) || readResp.value !== true)
+            return resolve(false);
+          await this.sendDatagram(createExecuteProgramInvocation(Address.empty, 12));
+        }
+        // Блокируем ready пока не вызовем slipFinish
+        this.ready = new Promise<void>(finishSlip => {
+          this.finishSlip = finishSlip;
+          this.decoder.setSlipMode(true);
+        });
+        force || (await delay(1000));
+        return resolve(true);
+      });
+    });
+  }
+
+  slipFinish(): void {
+    if (this.finishSlip) {
+      this.decoder.setSlipMode(false);
+      this.finishSlip();
+      this.finishSlip = undefined;
+    }
+  }
 }
 
-export default NibusConnection;
+// export default NibusConnection;

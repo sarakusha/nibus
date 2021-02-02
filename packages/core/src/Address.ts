@@ -20,8 +20,8 @@ export const MAC_LENGTH = 6;
  */
 const isHex = (str: string): boolean => /^(?:0X[0-9A-F]+)|(?:[0-9]*[A-F]+)/i.test(str);
 /**
- * Декодирование 16-ричной строки
- * @param str - 16-ричная строка
+ * Декодирование hex-строки
+ * @param str - hex-строка
  */
 const parseHex = (str: string): number => parseInt(str, 16);
 /**
@@ -108,9 +108,9 @@ export default class Address {
    * Идентификатор устройства
    *
    * @remarks
-   * для типа адреса 1
-   * Диапазон 0..FFFF
-   * FFFF - все устройства подсети
+   * для типа адреса 1.
+   * Диапазон 0..FFFF.
+   * FFFF - все устройства подсети.
    */
   public readonly device?: number;
 
@@ -118,7 +118,7 @@ export default class Address {
    * Физический адрес
    *
    * @remarks
-   * для типа адреса 0
+   * для типа адреса 0.
    */
   public readonly mac?: Buffer;
 

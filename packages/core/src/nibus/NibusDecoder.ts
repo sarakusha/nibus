@@ -11,11 +11,12 @@ no-underscore-dangle,no-multi-assign,no-continue */
  */
 
 import { crc16ccitt } from 'crc';
-import debugFactory from 'debug';
 import { Transform, TransformCallback, TransformOptions } from 'stream';
+import debugFactory from '../debug';
 import { MAX_DATA_LENGTH, Offsets, PREAMBLE, SERVICE_INFO_LENGTH, States } from '../nbconst';
 import { NmsDatagram } from '../nms';
 import { SarpDatagram } from '../sarp';
+import { END, SlipDatagram, trySlipDecode } from '../slip';
 import { printBuffer } from './helper';
 import NibusDatagram from './NibusDatagram';
 
@@ -33,11 +34,17 @@ export default class NibusDecoder extends Transform {
   // private expectedLength = 0;
   private buf: number[] = [];
 
+  private slipMode = false;
+
   constructor(options?: TransformOptions) {
     super({
       ...options,
       readableObjectMode: true,
     });
+  }
+
+  setSlipMode(value: boolean): void {
+    this.slipMode = value;
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
@@ -72,6 +79,20 @@ export default class NibusDecoder extends Transform {
       state = States.PREAMBLE_WAITING;
       return ret;
     };
+    if (this.slipMode) {
+      // Для SLIP актуален только последний ответ. Ищем один раз начиная с конца
+      const pos = data.lastIndexOf(END);
+      if (pos !== -1) {
+        const raw = data.slice(pos);
+        const slip = trySlipDecode(raw);
+        if (slip) {
+          this.push(new SlipDatagram(Buffer.from(raw), slip));
+        } else {
+          return raw;
+        }
+      }
+      return [];
+    }
     for (let i = 0; i < data.length; i += 1) {
       switch (state) {
         case States.PREAMBLE_WAITING:

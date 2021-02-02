@@ -10,7 +10,7 @@
 
 import 'reflect-metadata';
 
-export { default as Address, AddressType } from './Address';
+export { default as Address, AddressType, AddressParam } from './Address';
 export * from './errors';
 export * from './sarp';
 export * from './nms';
@@ -22,6 +22,7 @@ export * from './MibDescription';
 export * from './session';
 export { default } from './session';
 export * from './flash';
+export * from './common';
 
 // export {
 //   sarp, nibus, mib, nms, ipc, Address, NibusError,

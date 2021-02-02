@@ -38,6 +38,7 @@ declare const MibDeviceTypeV: t.TypeC<{
         loader_type: t.StringC;
         firmware: t.StringC;
         min_version: t.StringC;
+        disable_batch_reading: t.StringC;
     }>]>;
     properties: t.RecordC<t.StringC, t.TypeC<{
         type: t.StringC;
@@ -102,6 +103,7 @@ export declare const MibDeviceV: t.IntersectionC<[t.TypeC<{
             loader_type: t.StringC;
             firmware: t.StringC;
             min_version: t.StringC;
+            disable_batch_reading: t.StringC;
         }>]>;
         properties: t.RecordC<t.StringC, t.TypeC<{
             type: t.StringC;

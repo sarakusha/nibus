@@ -8,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+import 'reflect-metadata';
 import { crc16ccitt } from 'crc';
 import Address from '../Address';
 import { Offsets, PREAMBLE } from '../nbconst';

@@ -19,6 +19,9 @@
       ],
       "xpipe": [
         "@types/xpipe"
+      ],
+      "intel-hex": [
+        "@types/intel-hex"
       ]
     }
   },
@@ -27,8 +30,9 @@
   ],
   "exclude": [
     "node_modules/",
-    "**/*.spec.ts",
+//    "**/*.spec.ts",
     "lib/",
+    "bak/",
     "package.json"
   ]
 }

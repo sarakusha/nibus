@@ -8,9 +8,10 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-
+import debugFactory from '../debug';
 import Address from '../Address';
 import { NMS_MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
+import { printBuffer } from '../nibus';
 import NibusDatagram, {
   INibusCommon,
   INibusDatagramJSON,
@@ -20,6 +21,8 @@ import NibusDatagram, {
 import { decodeValue, getSizeOf } from './nms';
 import NmsServiceType from './NmsServiceType';
 import NmsValueType from './NmsValueType';
+
+const debug = debugFactory('nibus:nms');
 
 export interface INmsOptions extends INibusCommon {
   id: number;
@@ -148,8 +151,15 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
     }
     const { length } = nms;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const safeDecode = (index: number, type = valueType): any =>
-      length < index + getSizeOf(type) ? undefined : decodeValue(type, nms, index);
+    const safeDecode = (index: number, type = valueType): any => {
+      try {
+        return length < index + getSizeOf(type) ? undefined : decodeValue(type, nms, index);
+      } catch (e) {
+        // const v = nms.slice(index);
+        debug(`${e.message}, id: ${this.id}, buffer: ${printBuffer(this.raw)}`);
+        return 0;
+      }
+    };
     switch (service) {
       case NmsServiceType.Read:
         return safeDecode(2);

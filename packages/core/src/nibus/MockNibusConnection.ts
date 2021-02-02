@@ -1,7 +1,6 @@
-/* eslint-disable class-methods-use-this,no-bitwise */
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -9,27 +8,32 @@
  * the EULA file that was distributed with this source code.
  */
 
-import debugFactory from 'debug';
-import { EventEmitter } from 'events';
+/* eslint-disable class-methods-use-this,no-bitwise */
+import { TypedEmitter } from 'tiny-typed-emitter';
+import debugFactory from '../debug';
 import { AddressParam } from '../Address';
-import devices from '../mib/devices';
+import type { Devices } from '../mib';
 
 import { MibDescription } from '../MibDescription';
 import { getNmsType, NmsDatagram } from '../nms';
 import { getSizeOf } from '../nms/nms';
 import NmsServiceType from '../nms/NmsServiceType';
+import { SarpDatagram } from '../sarp';
+import { SlipDatagram } from '../slip';
 import { chunkArray } from './helper';
-import { INibusConnection } from './NibusConnection';
+import { NibusEvents, INibusConnection } from './NibusConnection';
 import NibusDatagram, { Protocol } from './NibusDatagram';
 
 const debug = debugFactory('nibus:mock-connection');
 
-export default class MockNibusConnection extends EventEmitter implements INibusConnection {
+export default class MockNibusConnection
+  extends TypedEmitter<NibusEvents>
+  implements INibusConnection {
   description: MibDescription;
 
   readonly path = 'mock-serial';
 
-  constructor() {
+  constructor(readonly devices: Devices) {
     super();
     this.description = { type: 0xabc6, find: 'sarp', category: 'minihost', mib: 'minihost3' };
   }
@@ -40,7 +44,7 @@ export default class MockNibusConnection extends EventEmitter implements INibusC
     this.emit('close');
   }
 
-  findByType(_type: number): Promise<NmsDatagram | NmsDatagram[] | undefined> {
+  findByType(_type: number): Promise<SarpDatagram> {
     throw new TypeError('NotImpl');
     // debug(`findByType ${type} on ${this.path} (${this.description.category})`);
     // return Promise.resolve(undefined);
@@ -83,7 +87,7 @@ export default class MockNibusConnection extends EventEmitter implements INibusC
 
   nmsReadResponse(nmsDatagram: NmsDatagram): Promise<NmsDatagram[]> {
     const { id, nms, source, destination } = nmsDatagram;
-    const [device] = devices.find(destination) ?? [];
+    const [device] = this.devices.find(destination) ?? [];
     if (!device) throw new Error(`Unknown device ${destination}`);
     const ids = [id];
     if (nms) {
@@ -112,6 +116,16 @@ export default class MockNibusConnection extends EventEmitter implements INibusC
         );
       });
     });
+  }
+
+  slipStart(): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
+  slipFinish(): void {}
+
+  execBootloader(): Promise<SlipDatagram> {
+    return Promise.resolve(new SlipDatagram(Buffer.alloc(0)));
   }
 
   static pingImpl(): Promise<number> {

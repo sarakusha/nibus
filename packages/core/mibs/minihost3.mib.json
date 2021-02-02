@@ -36,6 +36,12 @@
       "appinfo": {
         "nms_id": "11"
       }
+    },
+    "start_bootloader": {
+      "annotation": "Запустить загрузчик",
+      "appinfo": {
+        "nms_id": "12"
+      }
     }
   },
   "types": {
@@ -93,6 +99,15 @@
           "annotation": "Версия печатной платы(PCB)",
           "appinfo": {
             "nms_id": "0x87",
+            "access": "r",
+            "category": "Устройство"
+          }
+        },
+        "bootloader": {
+          "type": "xs:boolean",
+          "annotation": "Поддержка загрузчика",
+          "appinfo": {
+            "nms_id": "0x3A8",
             "access": "r",
             "category": "Устройство"
           }
@@ -312,11 +327,29 @@
         },
         "max_modules_h": {
           "type": "xs:unsignedByte",
-          "annotation": "Макс. количество модулей по горизонтали",
+          "annotation": "Макс. количество модулей по горизонтали в канале",
           "appinfo": {
             "nms_id": "0x37F",
             "access": "r",
-            "category": "Устройство"
+            "category": "Параметры FPGA"
+          }
+        },
+        "max_modules_v": {
+          "type": "xs:unsignedByte",
+          "annotation": "Макс. количество модулей по вертикали в канале",
+          "appinfo": {
+            "nms_id": "0x380",
+            "access": "r",
+            "category": "Параметры FPGA"
+          }
+        },
+        "max_channels": {
+          "type": "xs:unsignedByte",
+          "annotation": "Макс. количество каналов в устройстве",
+          "appinfo": {
+            "nms_id": "0x399",
+            "access": "r",
+            "category": "Параметры FPGA"
           }
         },
         "test_signal": {
@@ -679,7 +712,7 @@
         },
         "epcs_h": {
           "type": "xs:unsignedByte",
-          "annotation": "Логический адресс модуля по горизонтали",
+          "annotation": "Логический адрес модуля по горизонтали",
           "appinfo": {
             "nms_id": "0x39A",
             "access": "w",
@@ -688,11 +721,29 @@
         },
         "epcs_v": {
           "type": "xs:unsignedByte",
-          "annotation": "Логический адресс модуля по вертикали",
+          "annotation": "Логический адрес модуля по вертикали",
           "appinfo": {
             "nms_id": "0x39B",
             "access": "w",
             "category": "Параметры EPCS"
+          }
+        },
+        "sel_channel": {
+          "type": "xs:unsignedByte",
+          "annotation": "Текущий канал",
+          "appinfo": {
+            "nms_id": "0x398",
+            "access": "w\nr",
+            "category": "Параметры EPCS"
+          }
+        },
+        "nibus_mode": {
+          "type": "NibusModeType",
+          "annotation": "Режим работы Nibus",
+          "appinfo": {
+            "nms_id": "0x3AC",
+            "access": "r\nw",
+            "category": "NiBUS"
           }
         },
         "selector": {
@@ -1029,6 +1080,17 @@
         },
         "1": {
           "annotation": "произвольная"
+        }
+      }
+    },
+    "NibusModeType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "нормальный"
+        },
+        "1": {
+          "annotation": "мост"
         }
       }
     },

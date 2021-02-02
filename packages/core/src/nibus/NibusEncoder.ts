@@ -9,9 +9,9 @@
  */
 
 import { Transform, TransformCallback, TransformOptions } from 'stream';
+import { Datagram } from '../common';
 // import debugFactory from 'debug';
 // import { printBuffer } from './helper';
-import NibusDatagram from './NibusDatagram';
 
 // const debugSerial = debugFactory('nibus-serial:encoder');
 
@@ -26,7 +26,7 @@ export default class NibusEncoder extends Transform {
   // eslint-disable-next-line
   public _transform(chunk: any, _encoding: string, callback: TransformCallback): void {
     const chunks = Array.isArray(chunk) ? chunk : [chunk];
-    chunks.forEach((datagram: NibusDatagram) => {
+    chunks.forEach((datagram: Datagram) => {
       // debugSerial(printBuffer(datagram.raw));
       this.push(datagram.raw);
     });

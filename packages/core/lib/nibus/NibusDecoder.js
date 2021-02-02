@@ -4,11 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const crc_1 = require("crc");
-const debug_1 = __importDefault(require("debug"));
 const stream_1 = require("stream");
+const debug_1 = __importDefault(require("../debug"));
 const nbconst_1 = require("../nbconst");
 const nms_1 = require("../nms");
 const sarp_1 = require("../sarp");
+const slip_1 = require("../slip");
 const helper_1 = require("./helper");
 const NibusDatagram_1 = __importDefault(require("./NibusDatagram"));
 const debug = debug_1.default('nibus:decoder');
@@ -20,6 +21,10 @@ class NibusDecoder extends stream_1.Transform {
     constructor(options) {
         super(Object.assign(Object.assign({}, options), { readableObjectMode: true }));
         this.buf = [];
+        this.slipMode = false;
+    }
+    setSlipMode(value) {
+        this.slipMode = value;
     }
     _transform(chunk, encoding, callback) {
         console.assert(encoding === 'buffer', 'Unexpected encoding');
@@ -45,6 +50,20 @@ class NibusDecoder extends stream_1.Transform {
             state = nbconst_1.States.PREAMBLE_WAITING;
             return ret;
         };
+        if (this.slipMode) {
+            const pos = data.lastIndexOf(slip_1.END);
+            if (pos !== -1) {
+                const raw = data.slice(pos);
+                const slip = slip_1.trySlipDecode(raw);
+                if (slip) {
+                    this.push(new slip_1.SlipDatagram(Buffer.from(raw), slip));
+                }
+                else {
+                    return raw;
+                }
+            }
+            return [];
+        }
         for (let i = 0; i < data.length; i += 1) {
             switch (state) {
                 case nbconst_1.States.PREAMBLE_WAITING:

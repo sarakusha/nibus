@@ -7,19 +7,14 @@ exports.Protocol = void 0;
 const crc_1 = require("crc");
 const lodash_1 = __importDefault(require("lodash"));
 const Address_1 = __importDefault(require("../Address"));
+const common_1 = require("../common");
 const nbconst_1 = require("../nbconst");
-const helper_1 = require("./helper");
 var Protocol;
 (function (Protocol) {
     Protocol[Protocol["NMS"] = 1] = "NMS";
     Protocol[Protocol["SARP"] = 2] = "SARP";
 })(Protocol = exports.Protocol || (exports.Protocol = {}));
 const leadZero = (value) => value.toString().padStart(2, '0');
-const replaceBuffers = (obj) => Object.entries(obj).reduce((result, [name, value]) => (Object.assign(Object.assign({}, result), { [name]: Buffer.isBuffer(value)
-        ? helper_1.printBuffer(value)
-        : lodash_1.default.isPlainObject(value)
-            ? replaceBuffers(value)
-            : value })), {});
 class NibusDatagram {
     constructor(frameOrOptions) {
         if (Buffer.isBuffer(frameOrOptions)) {
@@ -72,7 +67,7 @@ ${leadZero(ts.getSeconds())}.${ts.getMilliseconds()}`,
         };
     }
     toString(opts) {
-        let self = replaceBuffers(this.toJSON());
+        let self = common_1.replaceBuffers(this.toJSON());
         if (opts) {
             if (opts.pick) {
                 self = lodash_1.default.pick(self, opts.pick);

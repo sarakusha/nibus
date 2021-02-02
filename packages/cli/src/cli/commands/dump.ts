@@ -14,7 +14,6 @@ import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
 import session, {
   Address,
-  devices,
   IDevice,
   INibusConnection,
   SarpQueryType,
@@ -40,6 +39,7 @@ type DumpOpts = CommonOpts;
 const debug = debugFactory('nibus:dump');
 let count = 0;
 
+const { devices } = session;
 async function dumpDevice(
   address: Address,
   connection: INibusConnection,

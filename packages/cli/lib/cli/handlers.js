@@ -33,6 +33,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = __importStar(require("@nibus/core"));
 const serviceWrapper_1 = __importDefault(require("./serviceWrapper"));
+const { devices } = core_1.default;
 function makeAddressHandler(action, breakout = false) {
     return serviceWrapper_1.default((args) => __awaiter(this, void 0, void 0, function* () {
         let count = (yield core_1.default.start()) * (process.platform === 'win32' ? 3 : 1);
@@ -53,7 +54,9 @@ function makeAddressHandler(action, breakout = false) {
             }
             const perform = (connection, mibOrType, version) => __awaiter(this, void 0, void 0, function* () {
                 clearTimeout(timeout);
-                const device = core_1.devices.create(mac, mibOrType, version);
+                const device = typeof mibOrType === 'string'
+                    ? devices.create(mac, mibOrType)
+                    : devices.create(mac, mibOrType, version);
                 device.connection = connection;
                 yield action(device, args);
                 hasFound = true;

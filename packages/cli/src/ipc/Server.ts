@@ -8,10 +8,10 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import net, { Socket, Server } from 'net';
-import { Duplex } from 'stream';
+import { Fields, LogLevel } from '@nibus/core';
 import fs from 'fs';
+import net, { Server, Socket } from 'net';
+import { Duplex } from 'stream';
 import xpipe from 'xpipe';
 import debugFactory from '../debug';
 
@@ -24,25 +24,27 @@ export enum Direction {
   out,
 }
 
+export type ClientEvent = `client:${string}`;
+
+interface IPCServerEvents {
+  connection: (socket: Socket) => void;
+  'client:error': (socket: Socket, err: Error) => void;
+  'client:setLogLevel': (
+    client: Socket,
+    logLevel: LogLevel | undefined,
+    pickFields: Fields,
+    omitFields: Fields,
+  ) => void;
+  'client:reloadDevices': () => void;
+  raw: (data: Buffer, dir: Direction) => void;
+}
+
 interface IPCServer {
-  on(event: 'connection', listener: (socket: Socket) => void): this;
-  on(event: 'client:error', listener: (err: Error) => void): this;
-  on(event: 'raw', listener: (data: Buffer, dir: Direction) => void): this;
-  on(event: string | symbol, listener: (...args: any[]) => void): this;
-
-  once(event: 'connection', listener: (socket: Socket) => void): this;
-  once(event: 'raw', listener: (data: Buffer, dir: Direction) => void): this;
-  once(event: string | symbol, listener: (...args: any[]) => void): this;
-
-  addListener(event: 'connection', listener: (socket: Socket) => void): this;
-  addListener(event: 'client:error', listener: (err: Error) => void): this;
-  addListener(event: 'raw', listener: (data: Buffer, dir: Direction) => void): this;
-  addListener(event: string | symbol, listener: (...args: any[]) => void): this;
-
-  emit(event: 'connection', socket: Socket): boolean;
-  emit(event: 'client:error', err: Error): boolean;
-  emit(event: 'raw', data: Buffer, dir: Direction): boolean;
-  emit(event: string | symbol, ...args: any[]): boolean;
+  on<U extends keyof IPCServerEvents>(event: U, listener: IPCServerEvents[U]): this;
+  once<U extends keyof IPCServerEvents>(event: U, listener: IPCServerEvents[U]): this;
+  off<U extends keyof IPCServerEvents>(event: U, listener: IPCServerEvents[U]): this;
+  emit<U extends keyof IPCServerEvents>(event: U, ...args: Parameters<IPCServerEvents[U]>): boolean;
+  emit(clientEvent: ClientEvent, socket: Socket, ...args: unknown[]): boolean;
 }
 
 class IPCServer extends Duplex {
@@ -69,66 +71,13 @@ class IPCServer extends Duplex {
     process.on('SIGTERM', () => this.close());
   }
 
-  private connectionHandler = (socket: Socket): void => {
-    this.emit('connection', socket);
-    this.clients.push(socket);
-    socket
-      .once('error', this.clientErrorHandler.bind(this, socket))
-      .on('data', this.clientDataHandler.bind(this, socket))
-      .once('close', () => this.removeClient(socket));
-    debug('new connection on', this.path, this.clients.length);
-  };
-
-  private errorHandler = (err: Error): void => {
-    if ((err as any).code === 'EADDRINUSE') {
-      const check = net.connect(xpipe.eq(this.path), () => {
-        debug('Server running, giving up...');
-        process.exit();
-      });
-      check.once('error', e => {
-        if ((e as any).code === 'ECONNREFUSED') {
-          fs.unlinkSync(xpipe.eq(this.path));
-          this.server.listen(xpipe.eq(this.path), () => {
-            debug('restart', this.server.address());
-          });
-        }
-      });
-    } else {
-      throw err;
-    }
-  };
-
-  private clientErrorHandler(client: Socket, err: Error): void {
-    debug('error on client', err.message);
-    this.emit('client:error', client, err);
-    this.removeClient(client);
+  public get path(): string {
+    return (this.server.address() || '').toString();
   }
 
-  private clientDataHandler(client: Socket, data: Buffer): void {
-    if (this.reading) {
-      this.reading = this.push(data);
-    }
-    if (this.raw) {
-      this.emit('raw', data, Direction.in);
-      return;
-    }
-    debug('data from', client.remoteAddress, data.toString());
-    const { event, args } = JSON.parse(data.toString());
-    this.emit(`client:${event}`, client, ...args);
-  }
-
-  private removeClient(client: Socket): void {
-    const index = this.clients.findIndex(item => item === client);
-    if (index !== -1) {
-      this.clients.splice(index, 1);
-    }
-    client.destroy();
-    debug('destroy connection on', this.path, this.clients.length);
-  }
-
-  // eslint-disable-next-line no-underscore-dangle,@typescript-eslint/explicit-module-boundary-types
-  _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
-    this.emit('raw', chunk as Buffer, Direction.out);
+  // eslint-disable-next-line no-underscore-dangle
+  _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void): void {
+    this.emit('raw', chunk, Direction.out);
     this.clients.forEach(client => client.write(chunk, encoding, noop));
     callback();
   }
@@ -138,12 +87,7 @@ class IPCServer extends Duplex {
     this.reading = true;
   }
 
-  public get path(): string {
-    return (this.server.address() || '').toString();
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  send(client: Socket, event: string, ...args: any[]): Promise<void> {
+  send(client: Socket, event: string, ...args: unknown[]): Promise<void> {
     if (this.closed) {
       return Promise.reject(new Error('Server is closed'));
     }
@@ -154,10 +98,9 @@ class IPCServer extends Duplex {
     return new Promise(resolve => client.write(JSON.stringify(data), () => resolve()));
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  broadcast(event: string, ...args: any[]): Promise<void> {
+  broadcast(event: string, ...args: unknown[]): Promise<void> {
     return Promise.all(
-      this.clients.map(client => this.send(client, event, ...args))
+      this.clients.map(client => this.send(client, event, ...args)),
     ).then(() => {});
   }
 
@@ -170,6 +113,69 @@ class IPCServer extends Duplex {
     this.raw && this.push(null);
     this.closed = true;
     debug(`${path} closed`);
+  };
+
+  private connectionHandler = (socket: Socket): void => {
+    this.emit('connection', socket);
+    this.clients.push(socket);
+    const clientErrorHandler = (err: Error): void => {
+      debug('error on client', err.message);
+      this.emit('client:error', socket, err);
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      removeClient();
+    };
+    const clientDataHandler = (data: Buffer): void => {
+      if (this.reading) {
+        this.reading = this.push(data);
+      }
+      if (this.raw) {
+        this.emit('raw', data, Direction.in);
+        return;
+      }
+      debug('event from', socket.remoteAddress ?? socket.localAddress, data.toString());
+      const {
+        event,
+        args,
+      } = JSON.parse(data.toString());
+      this.emit(`client:${event}` as ClientEvent, socket, ...args);
+    };
+    const removeClient = (): void => {
+      const index = this.clients.findIndex(item => item === socket);
+      if (index !== -1) {
+        this.clients.splice(index, 1);
+      }
+      socket.off('error', clientErrorHandler);
+      socket.off('data', clientDataHandler);
+      socket.off('close', removeClient);
+      socket.destroy();
+      debug('destroy connection on', this.path, this.clients.length);
+    };
+    socket
+      .once('error', clientErrorHandler)
+      .on('data', clientDataHandler)
+      .once('close', removeClient);
+    debug('new connection on', this.path, this.clients.length);
+  };
+
+  private errorHandler = (err: Error): void => {
+    const { code } = err as unknown as { code: string };
+    if (code === 'EADDRINUSE') {
+      const check = net.connect(xpipe.eq(this.path), () => {
+        debug('Server running, giving up...');
+        process.exit();
+      });
+      check.once('error', e => {
+        const { code: errCode } = e as unknown as { code: string };
+        if (errCode === 'ECONNREFUSED') {
+          fs.unlinkSync(xpipe.eq(this.path));
+          this.server.listen(xpipe.eq(this.path), () => {
+            debug('restart', this.server.address());
+          });
+        }
+      });
+    } else {
+      throw err;
+    }
   };
 }
 

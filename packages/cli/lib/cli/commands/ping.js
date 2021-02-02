@@ -35,7 +35,8 @@ exports.delay = void 0;
 const lodash_1 = __importDefault(require("lodash"));
 const core_1 = __importStar(require("@nibus/core"));
 const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
-exports.delay = (timeout) => new Promise(resolve => setTimeout(resolve, timeout * 1000));
+const delay = (timeout) => new Promise(resolve => setTimeout(resolve, timeout * 1000));
+exports.delay = delay;
 const round = (val) => Math.round(val * 10) / 10;
 const pingCommand = {
     command: 'ping',

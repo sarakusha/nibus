@@ -7,7 +7,7 @@ exports.isElectron = void 0;
 const debug_1 = __importDefault(require("debug"));
 const electron_log_1 = __importDefault(require("electron-log"));
 electron_log_1.default.transports.file.level = 'info';
-electron_log_1.default.transports.file.fileName = 'nibus-cli.log';
+electron_log_1.default.transports.file.fileName = process.env.NIBUS_LOG || 'nibus-cli.log';
 electron_log_1.default.transports.console.level = false;
 exports.isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
 exports.default = (namespace) => {

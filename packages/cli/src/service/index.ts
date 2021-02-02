@@ -8,35 +8,36 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* eslint-disable no-bitwise */
-import Configstore from 'configstore';
-import { isLeft } from 'fp-ts/lib/Either';
-import { Socket } from 'net';
-import _ from 'lodash';
 import {
+  Config,
+  Fields,
   getMibFile,
   getMibs,
-  toInt,
+  IKnownPort,
   IMibDeviceType,
+  LogLevel,
   MibDeviceV,
   NibusDatagram,
   NibusDecoder,
-  printBuffer,
-  Config,
-  LogLevel,
   PATH,
-  IKnownPort,
+  printBuffer,
+  toInt,
 } from '@nibus/core';
-import { createInterface } from 'readline';
+/* eslint-disable no-bitwise */
+import Configstore from 'configstore';
+import { isLeft } from 'fp-ts/lib/Either';
 
 import fs from 'fs';
-
-import detector from './detector';
+import _ from 'lodash';
+import { Socket } from 'net';
+import { createInterface } from 'readline';
 import debugFactory from '../debug';
+import { SerialTee, Server } from '../ipc';
+import { SerialLogger } from '../ipc/SerialTee';
 
 import { Direction } from '../ipc/Server';
-import { SerialLogger } from '../ipc/SerialTee';
-import { SerialTee, Server } from '../ipc';
+
+import detector from './detector';
 
 const pkgName = '@nata/nibus.js'; // = require('../../package.json');
 const conf = new Configstore(pkgName, {
@@ -61,8 +62,6 @@ if (process.platform === 'win32') {
 
   rl.on('SIGINT', () => process.emit('SIGINT', 'SIGINT'));
 }
-
-type Fields = string[] | undefined;
 
 const minVersionToInt = (str?: string): number => {
   if (!str) return 0;
@@ -158,6 +157,7 @@ export class NibusService {
     this.server = new Server(PATH);
     this.server.on('connection', this.connectionHandler);
     this.server.on('client:setLogLevel', this.logLevelHandler);
+    this.server.on('client:reloadDevices', this.reload);
   }
 
   get path(): string {
@@ -218,6 +218,7 @@ export class NibusService {
     pickFields: Fields,
     omitFields: Fields
   ): void => {
+    debug(`setLogLevel: ${logLevel}`);
     logLevel && conf.set('logLevel', logLevel);
     pickFields && conf.set('pick', pickFields);
     omitFields && conf.set('omit', omitFields);

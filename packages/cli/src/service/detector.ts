@@ -42,6 +42,13 @@ export const detectionPath =
 debug('Detection file', detectionPath);
 let knownPorts: Promise<IKnownPort[]> = Promise.resolve([]);
 
+interface DetectorEvents {
+  add: (port: IKnownPort) => void;
+  remove: (port: IKnownPort) => void;
+  plug: (port: IKnownPort) => void;
+  unplug: (port: IKnownPort) => void;
+}
+
 interface IDetectorItem {
   device: string;
   vid: HexOrNumber;
@@ -61,7 +68,7 @@ interface IDetection {
 const getRawDetection = (): IDetection => {
   // try {
   const data = fs.readFileSync(detectionPath, 'utf8');
-  return yaml.safeLoad(data) as IDetection;
+  return yaml.load(data) as IDetection;
   /*
   } catch (err) {
     debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
@@ -109,6 +116,10 @@ interface IDetector extends NodeJS.EventEmitter {
   getPorts: () => Promise<IKnownPort[]>;
   getDetection: () => IDetection | undefined;
   reload: () => void;
+  on<U extends keyof DetectorEvents>(event: U, listener: DetectorEvents[U]): this;
+  once<U extends keyof DetectorEvents>(event: U, listener: DetectorEvents[U]): this;
+  off<U extends keyof DetectorEvents>(event: U, listener: DetectorEvents[U]): this;
+  emit<U extends keyof DetectorEvents>(event: U, ...args: Parameters<DetectorEvents[U]>): boolean;
 }
 
 const detector = new EventEmitter() as IDetector;

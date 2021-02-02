@@ -9,8 +9,8 @@
  */
 
 import SerialPort, { OpenOptions } from 'serialport';
-import { EventEmitter } from 'events';
 import { getSocketPath, IKnownPort, MibDescription } from '@nibus/core';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from '../debug';
 import Server, { Direction } from './Server';
 
@@ -26,6 +26,10 @@ export interface SerialLogger {
   (data: Buffer, dir: Direction): void;
 }
 
+interface SerialTeeEvents {
+  close: (path: string) => void;
+}
+
 // declare module serialport {
 //   interface SerialPort {
 //     write(
@@ -39,7 +43,7 @@ export interface SerialLogger {
 //   }
 // }
 
-export default class SerialTee extends EventEmitter {
+export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
   private readonly serial: SerialPort;
 
   private closed = false;

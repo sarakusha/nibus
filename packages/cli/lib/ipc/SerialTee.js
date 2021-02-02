@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const serialport_1 = __importDefault(require("serialport"));
-const events_1 = require("events");
 const core_1 = require("@nibus/core");
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const debug_1 = __importDefault(require("../debug"));
 const Server_1 = __importDefault(require("./Server"));
 const debug = debug_1.default('nibus:serial-tee');
@@ -15,7 +15,7 @@ const portOptions = {
     parity: 'none',
     stopBits: 1,
 };
-class SerialTee extends events_1.EventEmitter {
+class SerialTee extends tiny_typed_emitter_1.TypedEmitter {
     constructor(portInfo, description) {
         super();
         this.portInfo = portInfo;

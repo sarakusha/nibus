@@ -54,7 +54,7 @@ debug('Detection file', exports.detectionPath);
 let knownPorts = Promise.resolve([]);
 const getRawDetection = () => {
     const data = fs_1.default.readFileSync(exports.detectionPath, 'utf8');
-    return js_yaml_1.default.safeLoad(data);
+    return js_yaml_1.default.load(data);
 };
 const loadDetection = () => {
     const result = getRawDetection();

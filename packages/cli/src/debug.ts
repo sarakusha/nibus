@@ -10,9 +10,8 @@
 import debugFactory, { Debugger } from 'debug';
 import log from 'electron-log';
 
-
 log.transports.file.level = 'info';
-log.transports.file.fileName = 'nibus-cli.log';
+log.transports.file.fileName = process.env.NIBUS_LOG || 'nibus-cli.log';
 log.transports.console.level = false;
 
 export const isElectron = {}.hasOwnProperty.call(process.versions, 'electron');

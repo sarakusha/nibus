@@ -39,16 +39,17 @@ const debug_1 = __importDefault(require("../../debug"));
 const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
 const debug = debug_1.default('nibus:dump');
 let count = 0;
+const { devices } = core_1.default;
 function dumpDevice(address, connection, argv, mib) {
     return __awaiter(this, void 0, void 0, function* () {
         const { raw, compact } = argv;
         let device;
         if (!mib) {
             const [version, type] = yield connection.getVersion(address);
-            device = core_1.devices.create(address, type, version);
+            device = devices.create(address, type, version);
         }
         else {
-            device = core_1.devices.create(address, mib);
+            device = devices.create(address, mib);
         }
         device.connection = connection;
         let ids = [];

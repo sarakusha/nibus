@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -40,19 +40,14 @@
     "@types/configstore": "^4.0.0",
     "@types/debug": "^4.1.0",
     "@types/jest-diff": "^24.3.0",
-    "@types/js-yaml": "^3.11.1",
+    "@types/js-yaml": "^4.0.0",
     "@types/lodash": "^4.14.149",
     "@types/progress": "^2.0.3",
     "@types/serialport": "^8.0.0",
     "@types/tail": "^2.0.0",
     "@types/xdg-basedir": "^4.0.2",
     "@types/yargs": "^15.0.0",
-    "babel-plugin-transform-imports": "^2.0.0",
-    "supports-color": "^7.0.0",
-    "@typescript-eslint/eslint-plugin": "^4.4.0",
-    "@typescript-eslint/parser": "^4.4.0",
-    "eslint": "^7.10.0",
-    "eslint-plugin-react": "^7.17.0"
+    "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
     "@nibus/core": "^2.1.0",
@@ -66,8 +61,7 @@
     "fp-ts": "^2.4.1",
     "io-ts": "^2.0.5",
     "io-ts-types": "^0.5.5",
-    "jest": "^26.5.2",
-    "js-yaml": "^3.13.1",
+    "js-yaml": "^4.0.0",
     "lodash": "^4.17.10",
     "monocle-ts": "^2.0.1",
     "newtype-ts": "^0.3.2",
@@ -76,6 +70,7 @@
     "serialport": "^9.0.1",
     "table-layout": "^1.0.0",
     "tail": "^2.0.2",
+    "tiny-typed-emitter": "^2.0.3",
     "usb-detection": "^4.5.0",
     "xpipe": "^1.0.5",
     "yargs": "^16.0.3"

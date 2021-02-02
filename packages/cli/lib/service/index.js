@@ -13,16 +13,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detectionPath = exports.NibusService = void 0;
+const core_1 = require("@nibus/core");
 const configstore_1 = __importDefault(require("configstore"));
 const Either_1 = require("fp-ts/lib/Either");
-const lodash_1 = __importDefault(require("lodash"));
-const core_1 = require("@nibus/core");
-const readline_1 = require("readline");
 const fs_1 = __importDefault(require("fs"));
-const detector_1 = __importDefault(require("./detector"));
+const lodash_1 = __importDefault(require("lodash"));
+const readline_1 = require("readline");
 const debug_1 = __importDefault(require("../debug"));
-const Server_1 = require("../ipc/Server");
 const ipc_1 = require("../ipc");
+const Server_1 = require("../ipc/Server");
+const detector_1 = __importDefault(require("./detector"));
 const pkgName = '@nata/nibus.js';
 const conf = new configstore_1.default(pkgName, {
     logLevel: 'none',
@@ -122,6 +122,7 @@ class NibusService {
         this.isStarted = false;
         this.connections = [];
         this.logLevelHandler = (client, logLevel, pickFields, omitFields) => {
+            debug(`setLogLevel: ${logLevel}`);
             logLevel && conf.set('logLevel', logLevel);
             pickFields && conf.set('pick', pickFields);
             omitFields && conf.set('omit', omitFields);
@@ -157,6 +158,7 @@ class NibusService {
         this.server = new ipc_1.Server(core_1.PATH);
         this.server.on('connection', this.connectionHandler);
         this.server.on('client:setLogLevel', this.logLevelHandler);
+        this.server.on('client:reloadDevices', this.reload);
     }
     get path() {
         return this.server.path;

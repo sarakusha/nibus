@@ -9,7 +9,7 @@
  */
 
 import { Arguments, Defined } from 'yargs';
-import session, { devices, IDevice, Address, config, INibusConnection } from '@nibus/core';
+import session, { IDevice, Address, config, INibusConnection } from '@nibus/core';
 
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
@@ -19,6 +19,8 @@ import serviceWrapper, { Handler } from './serviceWrapper';
 interface ActionFunc<O> {
   (device: IDevice, args: Arguments<O>): Promise<unknown>;
 }
+
+const { devices } = session;
 
 export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>(
   action: ActionFunc<O>,
@@ -46,11 +48,14 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
       const perform = async (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         connection: INibusConnection,
-        mibOrType: any,
+        mibOrType: number | string,
         version?: number
       ): Promise<void> => {
         clearTimeout(timeout);
-        const device = devices.create(mac, mibOrType, version);
+        const device =
+          typeof mibOrType === 'string'
+            ? devices.create(mac, mibOrType)
+            : devices.create(mac, mibOrType, version);
         device.connection = connection;
         await action(device, args);
         hasFound = true;

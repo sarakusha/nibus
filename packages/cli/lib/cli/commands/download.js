@@ -33,7 +33,7 @@ function readAllFromStdin() {
             .once('error', reject);
     }));
 }
-exports.convert = (buffer) => {
+const convert = (buffer) => {
     const lines = buffer.toString('ascii')
         .split(/\r?\n/g)
         .map(line => line.replace(/[\s:-=]/g, ''));
@@ -52,6 +52,7 @@ exports.convert = (buffer) => {
         throw new Error(`Invalid hex in lines ${invalidLines.join(',')}`);
     return [Buffer.from(lines.join('')), offset];
 };
+exports.convert = convert;
 function action(device, args) {
     return __awaiter(this, void 0, void 0, function* () {
         const { domain, offset, source, hex, } = args;

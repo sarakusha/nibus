@@ -95,7 +95,7 @@ class IPCServer extends Duplex {
       event,
       args,
     };
-    return new Promise(resolve => client.write(JSON.stringify(data), () => resolve()));
+    return new Promise(resolve => client.write(`${JSON.stringify(data)}\n`, () => resolve()));
   }
 
   broadcast(event: string, ...args: unknown[]): Promise<void> {
@@ -132,7 +132,7 @@ class IPCServer extends Duplex {
         this.emit('raw', data, Direction.in);
         return;
       }
-      debug('event from', socket.remoteAddress ?? socket.localAddress, data.toString());
+      // debug('event from', socket.remoteAddress ?? socket.localAddress, data.toString());
       const {
         event,
         args,

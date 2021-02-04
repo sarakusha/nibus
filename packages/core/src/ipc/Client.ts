@@ -12,6 +12,7 @@ import { Socket, SocketConstructorOpts } from 'net';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import { isLeft } from 'fp-ts/lib/Either';
 import xpipe from 'xpipe';
+import { LogLevel } from '../common';
 
 import debugFactory from '../debug';
 import { EventFromString, PortArg } from './events';
@@ -22,6 +23,7 @@ interface ClientEvents {
   ports: (ports: PortArg[]) => void;
   add: (port: PortArg) => void;
   remove: (port: PortArg) => void;
+  logLevel: (level: LogLevel) => void;
 }
 
 export interface Client {
@@ -38,15 +40,21 @@ export default class IPCClient extends Socket implements Client {
   }
 
   parseEvents = (data: Buffer): void => {
-    const result = EventFromString.decode(data.toString());
-    if (isLeft(result)) {
-      debug('<error>:', PathReporter.report(result));
-      return;
-    }
-    const {
-      right: { event, args },
-    } = result;
-    this.emit(event, ...args);
+    data
+      .toString()
+      .split('\n')
+      .filter(line => line && line.trim().length > 0)
+      .forEach(line => {
+        const result = EventFromString.decode(line);
+        if (isLeft(result)) {
+          debug(`Unknown event: ${PathReporter.report(result)}`);
+          return;
+        }
+        const {
+          right: { event, args },
+        } = result;
+        this.emit(event, ...args);
+      });
   };
 
   send(event: string, ...args: unknown[]): Promise<void> {

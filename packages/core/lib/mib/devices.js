@@ -396,8 +396,10 @@ class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
             this.address.type === Address_1.AddressType.mac &&
             typeof this.serno === 'string') {
             const value = this.serno;
-            const address = Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex');
-            Reflect.defineProperty(this, 'address', mib_1.withValue(new Address_1.default(address), false, true));
+            const prevAddress = this.address;
+            const address = new Address_1.default(Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex'));
+            Reflect.defineProperty(this, 'address', mib_1.withValue(address, false, true));
+            this.emit('addressChanged', prevAddress, address);
         }
     }
     addref() {

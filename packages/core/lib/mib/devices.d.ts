@@ -63,6 +63,7 @@ interface IDeviceEvents {
     downloadFinish: DownloadFinishListener;
     uploadError: (e: Error) => void;
     release: (device: IDevice) => void;
+    addressChanged: (prev: Address, address: Address) => void;
 }
 export interface IDevice {
     readonly id: DeviceId;
@@ -88,7 +89,6 @@ export interface IDevice {
     off<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
 }
 interface DevicesEvents {
-    serno: (prevAddress: Address, newAddress: Address) => void;
     new: (device: IDevice) => void;
     delete: (device: IDevice) => void;
 }

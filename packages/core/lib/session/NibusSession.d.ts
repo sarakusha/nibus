@@ -20,6 +20,7 @@ export interface NibusSessionEvents {
     connected: DeviceListener;
     disconnected: DeviceListener;
     pureConnection: (connection: INibusConnection) => void;
+    logLevel: (level: LogLevel) => void;
 }
 export interface INibusSession {
     on<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;

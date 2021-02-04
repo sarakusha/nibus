@@ -18,8 +18,7 @@ import { printBuffer } from './nibus/helper';
  */
 export const PATH = '/tmp/nibus.service.sock';
 
-/** @internal */
-const LogLevelV = t.keyof({
+export const LogLevelV = t.keyof({
   none: null,
   hex: null,
   nibus: null,

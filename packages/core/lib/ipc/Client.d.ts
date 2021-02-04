@@ -1,10 +1,12 @@
 /// <reference types="node" />
 import { Socket, SocketConstructorOpts } from 'net';
+import { LogLevel } from '../common';
 import { PortArg } from './events';
 interface ClientEvents {
     ports: (ports: PortArg[]) => void;
     add: (port: PortArg) => void;
     remove: (port: PortArg) => void;
+    logLevel: (level: LogLevel) => void;
 }
 export interface Client {
     on<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;

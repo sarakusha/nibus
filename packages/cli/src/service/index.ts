@@ -7,6 +7,7 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
+/* eslint-disable no-bitwise */
 
 import {
   Config,
@@ -23,7 +24,6 @@ import {
   printBuffer,
   toInt,
 } from '@nibus/core';
-/* eslint-disable no-bitwise */
 import Configstore from 'configstore';
 import { isLeft } from 'fp-ts/lib/Either';
 
@@ -219,7 +219,12 @@ export class NibusService {
     omitFields: Fields
   ): void => {
     debug(`setLogLevel: ${logLevel}`);
-    logLevel && conf.set('logLevel', logLevel);
+    if (logLevel) {
+      conf.set('logLevel', logLevel);
+      this.server
+        .broadcast('logLevel', logLevel)
+        .catch(e => debug(`error while broadcast: ${e.message}`));
+    }
     pickFields && conf.set('pick', pickFields);
     omitFields && conf.set('omit', omitFields);
     this.updateLogger();
@@ -233,9 +238,11 @@ export class NibusService {
         'ports',
         connections.map(connection => connection.toJSON())
       )
-      .catch(err => {
-        debug('<error>', err.stack);
-      });
+      .catch(err => debug(`<error> ${err.stack}`));
+    debug(`logLevel`, conf.get('logLevel'));
+    server
+      .send(socket, 'logLevel', conf.get('logLevel'))
+      .catch(e => debug(`error while send logLevel ${e.message}`));
   };
 
   private addHandler = (portInfo: IKnownPort): void => {

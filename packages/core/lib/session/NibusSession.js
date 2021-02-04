@@ -108,6 +108,9 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
                 this.emit('start');
             });
             this.socket.once('close', () => this.close());
+            this.socket.on('logLevel', level => {
+                this.emit('logLevel', level);
+            });
         });
     }
     connectDevice(device, connection) {

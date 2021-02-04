@@ -130,6 +130,7 @@ interface IDeviceEvents {
   downloadFinish: DownloadFinishListener;
   uploadError: (e: Error) => void;
   release: (device: IDevice) => void;
+  addressChanged: (prev: Address, address: Address) => void;
 }
 
 export interface IDevice {
@@ -162,7 +163,7 @@ export interface IDevice {
 }
 
 interface DevicesEvents {
-  serno: (prevAddress: Address, newAddress: Address) => void;
+  // serno: (prevAddress: Address, newAddress: Address) => void;
   new: (device: IDevice) => void;
   delete: (device: IDevice) => void;
 }
@@ -584,7 +585,6 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     const { [$dirties]: dirties } = this;
     if (isDirty) {
       dirties[id] = true;
-      // TODO: implement autosave
       // this.write(id).catch(() => {});
     } else {
       delete dirties[id];
@@ -601,9 +601,13 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       typeof this.serno === 'string'
     ) {
       const value = this.serno;
-      // const prevAddress = this.address;
-      const address = Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex');
-      Reflect.defineProperty(this, 'address', withValue(new Address(address), false, true));
+      const prevAddress = this.address;
+      const address = new Address(
+        Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex')
+      );
+      Reflect.defineProperty(this, 'address', withValue(address, false, true));
+      this.emit('addressChanged', prevAddress, address);
+      // console.log('DEFINE NEW ADDRESS', address, this.address.toString());
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       // devices.emit('serno', prevAddress, this.address);
     }

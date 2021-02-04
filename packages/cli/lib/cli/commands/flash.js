@@ -20,7 +20,7 @@ const write_1 = require("./write");
 function action(device, args) {
     return __awaiter(this, void 0, void 0, function* () {
         const isModule = (yield write_1.action(device, args)).includes('moduleSelect');
-        const flasher = new core_1.Flasher(device);
+        const flasher = new core_1.Flasher(device.id);
         const { total, offset } = flasher.flash(args.source, isModule ? device.moduleSelect : undefined);
         const dest = offset.toString(16).padStart(5, '0');
         const bar = new progress_1.default(`  flashing [:bar] to ${dest}h :rate/bps :percent :current/:total :etas`, {

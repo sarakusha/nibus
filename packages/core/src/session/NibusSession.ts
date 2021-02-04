@@ -43,6 +43,7 @@ export interface NibusSessionEvents {
   connected: DeviceListener;
   disconnected: DeviceListener;
   pureConnection: (connection: INibusConnection) => void;
+  logLevel: (level: LogLevel) => void;
 }
 // noinspection JSUnusedLocalSymbols
 export interface INibusSession {
@@ -111,6 +112,9 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
         this.emit('start');
       });
       this.socket.once('close', () => this.close());
+      this.socket.on('logLevel', level => {
+        this.emit('logLevel', level);
+      });
     });
   }
 

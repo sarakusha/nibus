@@ -123,7 +123,12 @@ class NibusService {
         this.connections = [];
         this.logLevelHandler = (client, logLevel, pickFields, omitFields) => {
             debug(`setLogLevel: ${logLevel}`);
-            logLevel && conf.set('logLevel', logLevel);
+            if (logLevel) {
+                conf.set('logLevel', logLevel);
+                this.server
+                    .broadcast('logLevel', logLevel)
+                    .catch(e => debug(`error while broadcast: ${e.message}`));
+            }
             pickFields && conf.set('pick', pickFields);
             omitFields && conf.set('omit', omitFields);
             this.updateLogger();
@@ -132,9 +137,11 @@ class NibusService {
             const { server, connections } = this;
             server
                 .send(socket, 'ports', connections.map(connection => connection.toJSON()))
-                .catch(err => {
-                debug('<error>', err.stack);
-            });
+                .catch(err => debug(`<error> ${err.stack}`));
+            debug(`logLevel`, conf.get('logLevel'));
+            server
+                .send(socket, 'logLevel', conf.get('logLevel'))
+                .catch(e => debug(`error while send logLevel ${e.message}`));
         };
         this.addHandler = (portInfo) => {
             const { category } = portInfo;

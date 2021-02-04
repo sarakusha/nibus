@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import * as t from 'io-ts';
 export declare const PATH = "/tmp/nibus.service.sock";
-declare const LogLevelV: t.KeyofC<{
+export declare const LogLevelV: t.KeyofC<{
     none: null;
     hex: null;
     nibus: null;
@@ -35,5 +35,4 @@ export interface Datagram {
 export declare const delay: (ms: number) => Promise<void>;
 export declare const replaceBuffers: (obj: any) => any;
 export declare function promiseArray<T, R>(array: ReadonlyArray<T>, action: (item: T, index: number, arr: ReadonlyArray<T>) => Promise<R | R[]>): Promise<R[]>;
-export {};
 //# sourceMappingURL=common.d.ts.map

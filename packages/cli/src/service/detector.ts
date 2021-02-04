@@ -240,7 +240,7 @@ async function reloadDevicesAsync(
     }
     const list: SerialPort.PortInfo[] = await SerialPort.list();
     const externalPorts = list.filter(port => !!port.productId);
-    debug('externalPorts', externalPorts);
+    debug('externalPorts', JSON.stringify(externalPorts));
     // const prevPorts = knownPorts.splice(0);
 
     await externalPorts.reduce(async (promise, port) => {

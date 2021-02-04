@@ -185,6 +185,20 @@ export declare const PortRemovedEventV: t.TypeC<{
 }>;
 export interface PortRemovedEvent extends t.TypeOf<typeof PortRemovedEventV> {
 }
+export declare const LogLevelEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>, t.Mixed]> | t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>]>;
+}>;
+export interface LogLevelEvent extends t.TypeOf<typeof LogLevelEventV> {
+}
 export declare const EventV: t.UnionC<[t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.ArrayC<t.TypeC<{
@@ -332,8 +346,19 @@ export declare const EventV: t.UnionC<[t.TypeC<{
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>, t.Mixed]> | t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>]>;
 }>]>;
-export declare type Event = PortsEvent | PortAddedEvent | PortRemovedEvent;
+export declare type Event = PortsEvent | PortAddedEvent | PortRemovedEvent | LogLevelEvent;
 declare class FromStringType<A> extends t.Type<A, string> {
     constructor(name: string, type: t.Mixed);
 }

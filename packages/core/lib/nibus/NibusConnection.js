@@ -86,22 +86,18 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
             lodash_1.default.remove(this.waited, waited);
         };
         this.onDatagram = (datagram) => {
-            let showLog = true;
             if (datagram instanceof nms_1.NmsDatagram) {
                 if (datagram.isResponse) {
                     const resp = this.waited.find(item => datagram.isResponseFor(item.req));
                     if (resp) {
                         resp.resolve(datagram);
-                        showLog = false;
                     }
                 }
                 this.emit('nms', datagram);
             }
             else if (datagram instanceof sarp_1.SarpDatagram) {
                 this.emit('sarp', datagram);
-                showLog = false;
             }
-            showLog && debug('datagram received', JSON.stringify(datagram.toJSON()));
         };
         const validate = MibDescription_1.MibDescriptionV.decode(description);
         if (Either_1.isLeft(validate)) {

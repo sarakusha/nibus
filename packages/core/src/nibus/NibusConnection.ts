@@ -220,21 +220,21 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
   };
 
   private onDatagram = (datagram: Datagram): void => {
-    let showLog = true;
+    // let showLog = true;
     if (datagram instanceof NmsDatagram) {
       if (datagram.isResponse) {
         const resp = this.waited.find(item => datagram.isResponseFor(item.req));
         if (resp) {
           resp.resolve(datagram);
-          showLog = false;
+          // showLog = false;
         }
       }
       this.emit('nms', datagram);
     } else if (datagram instanceof SarpDatagram) {
       this.emit('sarp', datagram);
-      showLog = false;
+      // showLog = false;
     }
-    showLog && debug('datagram received', JSON.stringify(datagram.toJSON()));
+    // showLog && debug('datagram received', JSON.stringify(datagram.toJSON()));
   };
 
   async execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram> {

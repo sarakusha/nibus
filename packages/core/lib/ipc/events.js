@@ -19,9 +19,10 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventFromString = exports.EventFromStringType = exports.EventV = exports.PortRemovedEventV = exports.PortAddedEventV = exports.PortsEventV = exports.PortArgV = void 0;
+exports.EventFromString = exports.EventFromStringType = exports.EventV = exports.LogLevelEventV = exports.PortRemovedEventV = exports.PortAddedEventV = exports.PortsEventV = exports.PortArgV = void 0;
 const Either_1 = require("fp-ts/lib/Either");
 const t = __importStar(require("io-ts"));
+const common_1 = require("../common");
 const MibDescription_1 = require("../MibDescription");
 const KnownPorts_1 = require("../session/KnownPorts");
 const eventType = (name, a, b) => t.type({
@@ -35,18 +36,21 @@ exports.PortArgV = t.type({
 exports.PortsEventV = eventType('ports', t.array(exports.PortArgV));
 exports.PortAddedEventV = eventType('add', exports.PortArgV);
 exports.PortRemovedEventV = eventType('remove', exports.PortArgV);
-exports.EventV = t.union([exports.PortsEventV, exports.PortAddedEventV, exports.PortRemovedEventV]);
+exports.LogLevelEventV = eventType('logLevel', common_1.LogLevelV);
+exports.EventV = t.union([exports.PortsEventV, exports.PortAddedEventV, exports.PortRemovedEventV, exports.LogLevelEventV]);
 class FromStringType extends t.Type {
     constructor(name, type) {
         super(name, type.is, (m, c) => {
             const sv = t.string.validate(m, c);
             if (Either_1.isLeft(sv))
                 return sv;
-            const jv = Either_1.parseJSON(sv.right, e => [{
+            const jv = Either_1.parseJSON(sv.right, e => [
+                {
                     value: sv.right,
                     context: c,
                     message: Either_1.toError(e).message,
-                }]);
+                },
+            ]);
             if (Either_1.isLeft(jv))
                 return jv;
             return type.validate(jv.right, c);

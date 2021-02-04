@@ -22,19 +22,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promiseArray = exports.replaceBuffers = exports.delay = exports.noop = exports.ConfigV = exports.PATH = void 0;
+exports.promiseArray = exports.replaceBuffers = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = exports.PATH = void 0;
 const t = __importStar(require("io-ts"));
 const lodash_1 = __importDefault(require("lodash"));
 const helper_1 = require("./nibus/helper");
 exports.PATH = '/tmp/nibus.service.sock';
-const LogLevelV = t.keyof({
+exports.LogLevelV = t.keyof({
     none: null,
     hex: null,
     nibus: null,
 });
 const MibTypeV = t.array(t.intersection([t.type({ mib: t.string }), t.partial({ minVersion: t.number })]));
 exports.ConfigV = t.partial({
-    logLevel: LogLevelV,
+    logLevel: exports.LogLevelV,
     omit: t.union([t.array(t.string), t.null]),
     pick: t.union([t.array(t.string), t.null]),
     mibs: t.array(t.string),

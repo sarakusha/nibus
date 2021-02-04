@@ -61,7 +61,6 @@ class IPCServer extends stream_1.Duplex {
                 removeClient();
             };
             const clientDataHandler = (data) => {
-                var _a;
                 if (this.reading) {
                     this.reading = this.push(data);
                 }
@@ -69,7 +68,6 @@ class IPCServer extends stream_1.Duplex {
                     this.emit('raw', data, Direction.in);
                     return;
                 }
-                debug('event from', (_a = socket.remoteAddress) !== null && _a !== void 0 ? _a : socket.localAddress, data.toString());
                 const { event, args, } = JSON.parse(data.toString());
                 this.emit(`client:${event}`, socket, ...args);
             };
@@ -142,7 +140,7 @@ class IPCServer extends stream_1.Duplex {
             event,
             args,
         };
-        return new Promise(resolve => client.write(JSON.stringify(data), () => resolve()));
+        return new Promise(resolve => client.write(`${JSON.stringify(data)}\n`, () => resolve()));
     }
     broadcast(event, ...args) {
         return Promise.all(this.clients.map(client => this.send(client, event, ...args))).then(() => { });

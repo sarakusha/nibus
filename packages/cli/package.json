@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -46,7 +46,7 @@
     "@types/serialport": "^8.0.0",
     "@types/tail": "^2.0.0",
     "@types/xdg-basedir": "^4.0.2",
-    "@types/yargs": "^15.0.0",
+    "@types/yargs": "^16.0.0",
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {

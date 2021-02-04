@@ -14,13 +14,19 @@ class IPCClient extends net_1.Socket {
     constructor(options) {
         super(options);
         this.parseEvents = (data) => {
-            const result = events_1.EventFromString.decode(data.toString());
-            if (Either_1.isLeft(result)) {
-                debug('<error>:', PathReporter_1.PathReporter.report(result));
-                return;
-            }
-            const { right: { event, args }, } = result;
-            this.emit(event, ...args);
+            data
+                .toString()
+                .split('\n')
+                .filter(line => line && line.trim().length > 0)
+                .forEach(line => {
+                const result = events_1.EventFromString.decode(line);
+                if (Either_1.isLeft(result)) {
+                    debug(`Unknown event: ${PathReporter_1.PathReporter.report(result)}`);
+                    return;
+                }
+                const { right: { event, args }, } = result;
+                this.emit(event, ...args);
+            });
         };
         this.on('data', this.parseEvents);
     }

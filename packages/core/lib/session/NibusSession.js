@@ -7,9 +7,9 @@ exports.NibusSession = void 0;
 const fs_1 = __importDefault(require("fs"));
 const lodash_1 = __importDefault(require("lodash"));
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
-const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
 const common_1 = require("../common");
+const debug_1 = __importDefault(require("../debug"));
 const ipc_1 = require("../ipc");
 const mib_1 = require("../mib");
 const nibus_1 = require("../nibus");
@@ -19,6 +19,7 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     constructor() {
         super();
         this.connections = [];
+        this.nmsListeners = new Map();
         this.isStarted = false;
         this.devices = new mib_1.Devices();
         this.reloadHandler = (ports) => {
@@ -39,6 +40,13 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
             try {
                 debug('add');
                 const connection = new nibus_1.NibusConnection(path, description);
+                const nmsListener = nms => {
+                    if (nms.service === nms_1.NmsServiceType.InformationReport) {
+                        this.emit('informationReport', connection, nms);
+                    }
+                };
+                this.nmsListeners.set(connection, nmsListener);
+                connection.on('nms', nmsListener);
                 this.connections.push(connection);
                 this.emit('add', connection);
                 if (process.platform === 'win32')
@@ -171,6 +179,8 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     }
     closeConnection(connection) {
         connection.close();
+        const nmsListener = this.nmsListeners.get(connection);
+        nmsListener && connection.off('nms', nmsListener);
         this.devices
             .get()
             .filter(device => device.connection === connection)

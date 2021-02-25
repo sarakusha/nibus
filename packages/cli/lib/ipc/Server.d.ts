@@ -27,6 +27,7 @@ declare class IPCServer extends Duplex {
     private readonly clients;
     private closed;
     private reading;
+    constructor(port: number, raw?: boolean);
     constructor(path: string, raw?: boolean);
     get path(): string;
     _write(chunk: Buffer, encoding: BufferEncoding, callback: (error?: Error | null) => void): void;

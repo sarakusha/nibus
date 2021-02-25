@@ -1,30 +1,11 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Direction = void 0;
 const fs_1 = __importDefault(require("fs"));
-const net_1 = __importStar(require("net"));
+const net_1 = __importDefault(require("net"));
 const stream_1 = require("stream");
 const xpipe_1 = __importDefault(require("xpipe"));
 const debug_1 = __importDefault(require("../debug"));
@@ -36,7 +17,7 @@ var Direction;
     Direction[Direction["out"] = 1] = "out";
 })(Direction = exports.Direction || (exports.Direction = {}));
 class IPCServer extends stream_1.Duplex {
-    constructor(path, raw = false) {
+    constructor(pathOrPort, raw = false) {
         super();
         this.raw = raw;
         this.closed = false;
@@ -110,12 +91,14 @@ class IPCServer extends stream_1.Duplex {
             }
         };
         this.clients = [];
-        this.server = new net_1.Server();
         this.server = net_1.default
             .createServer(this.connectionHandler)
             .on('error', this.errorHandler)
             .on('close', this.close)
-            .listen(xpipe_1.default.eq(path), () => {
+            .listen(typeof pathOrPort === 'string' ? xpipe_1.default.eq(pathOrPort) : {
+            host: 'localhost',
+            port: pathOrPort,
+        }, () => {
             debug('listening on', this.server.address());
         });
         process.on('SIGINT', () => this.close());

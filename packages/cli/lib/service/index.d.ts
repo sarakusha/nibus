@@ -3,16 +3,17 @@ export declare class NibusService {
     private readonly server;
     private isStarted;
     private connections;
+    private ad;
     constructor();
     get path(): string;
     updateLogger(connection?: SerialTee): void;
     start(): Promise<void>;
     stop(): void;
+    reload(): void;
     private logLevelHandler;
     private connectionHandler;
     private addHandler;
     private removeHandler;
-    reload(): void;
 }
 declare const service: NibusService;
 export { detectionPath } from './detector';

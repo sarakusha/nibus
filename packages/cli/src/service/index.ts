@@ -26,11 +26,12 @@ import {
 } from '@nibus/core';
 import Configstore from 'configstore';
 import { isLeft } from 'fp-ts/lib/Either';
-
 import fs from 'fs';
 import _ from 'lodash';
 import { Socket } from 'net';
 import { createInterface } from 'readline';
+import mdns from 'mdns';
+
 import debugFactory from '../debug';
 import { SerialTee, Server } from '../ipc';
 import { SerialLogger } from '../ipc/SerialTee';
@@ -153,6 +154,11 @@ export class NibusService {
 
   private connections: SerialTee[] = [];
 
+  private ad = mdns.createAdvertisement(mdns.tcp('nibus'), +(process.env.NIBUS_PORT ?? 9001), {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
+    txtRecord: { version: require('../../package.json').version },
+  });
+
   constructor() {
     this.server = new Server(PATH);
     this.server.on('connection', this.connectionHandler);
@@ -173,6 +179,7 @@ export class NibusService {
   public start(): Promise<void> {
     if (this.isStarted) return Promise.resolve();
     this.isStarted = true;
+    this.ad.start();
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');
     detector.on('add', this.addHandler);
@@ -197,6 +204,7 @@ export class NibusService {
 
   public stop(): void {
     if (!this.isStarted) return;
+    this.ad.stop();
     const connections = this.connections.splice(0, this.connections.length);
     if (connections.length) {
       // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
@@ -210,6 +218,11 @@ export class NibusService {
     this.server.close();
     this.isStarted = false;
     debug('stopped');
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  reload(): void {
+    detector.reload();
   }
 
   private logLevelHandler = (
@@ -267,11 +280,6 @@ export class NibusService {
       this.server.broadcast('remove', connection.toJSON()).catch(noop);
     }
   };
-
-  // eslint-disable-next-line class-methods-use-this
-  reload(): void {
-    detector.reload();
-  }
 }
 
 const service = new NibusService();

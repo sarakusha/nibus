@@ -56,15 +56,22 @@ class IPCServer extends Duplex {
 
   private reading = false;
 
-  constructor(path: string, private readonly raw = false) {
+  constructor(port: number, raw?: boolean)
+
+  constructor(path: string, raw?: boolean)
+
+  constructor(pathOrPort: number | string, private readonly raw = false) {
     super();
     this.clients = [];
-    this.server = new Server();
+    // this.server = new Server();
     this.server = net
       .createServer(this.connectionHandler)
       .on('error', this.errorHandler)
       .on('close', this.close)
-      .listen(xpipe.eq(path), () => {
+      .listen(typeof pathOrPort === 'string' ? xpipe.eq(pathOrPort) : {
+        host: 'localhost',
+        port: pathOrPort,
+      }, () => {
         debug('listening on', this.server.address());
       });
     process.on('SIGINT', () => this.close());

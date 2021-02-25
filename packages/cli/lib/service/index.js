@@ -19,6 +19,7 @@ const Either_1 = require("fp-ts/lib/Either");
 const fs_1 = __importDefault(require("fs"));
 const lodash_1 = __importDefault(require("lodash"));
 const readline_1 = require("readline");
+const mdns_1 = __importDefault(require("mdns"));
 const debug_1 = __importDefault(require("../debug"));
 const ipc_1 = require("../ipc");
 const Server_1 = require("../ipc/Server");
@@ -119,8 +120,12 @@ const loggers = {
 };
 class NibusService {
     constructor() {
+        var _a;
         this.isStarted = false;
         this.connections = [];
+        this.ad = mdns_1.default.createAdvertisement(mdns_1.default.tcp('nibus'), +((_a = process.env.NIBUS_PORT) !== null && _a !== void 0 ? _a : 9001), {
+            txtRecord: { version: require('../../package.json').version },
+        });
         this.logLevelHandler = (client, logLevel, pickFields, omitFields) => {
             debug(`setLogLevel: ${logLevel}`);
             if (logLevel) {
@@ -179,6 +184,7 @@ class NibusService {
         if (this.isStarted)
             return Promise.resolve();
         this.isStarted = true;
+        this.ad.start();
         const detection = detector_1.default.getDetection();
         if (detection == null)
             throw new Error('detection is N/A');
@@ -202,6 +208,7 @@ class NibusService {
     stop() {
         if (!this.isStarted)
             return;
+        this.ad.stop();
         const connections = this.connections.splice(0, this.connections.length);
         if (connections.length) {
             setTimeout(() => {

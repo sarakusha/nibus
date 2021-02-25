@@ -11,16 +11,16 @@
 
 import fs from 'fs';
 import _ from 'lodash';
-// import { Socket } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from '../debug';
 import Address, { AddressParam } from '../Address';
 import { delay, LogLevel, noop, PATH, promiseArray } from '../common';
+import debugFactory from '../debug';
 import { Client, PortArg } from '../ipc';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
-import { createNmsRead } from '../nms';
+import { NibusEvents } from '../nibus/NibusConnection';
+import { createNmsRead, NmsDatagram, NmsServiceType } from '../nms';
 import { Category } from './KnownPorts';
 
 const debug = debugFactory('nibus:session');
@@ -44,6 +44,7 @@ export interface NibusSessionEvents {
   disconnected: DeviceListener;
   pureConnection: (connection: INibusConnection) => void;
   logLevel: (level: LogLevel) => void;
+  informationReport: (connection: INibusConnection, info: NmsDatagram) => void;
 }
 // noinspection JSUnusedLocalSymbols
 export interface INibusSession {
@@ -64,6 +65,8 @@ export interface INibusSession {
 
 export class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
   private readonly connections: INibusConnection[] = [];
+
+  private readonly nmsListeners = new Map<INibusConnection, NibusEvents['nms']>();
 
   private isStarted = false;
 
@@ -227,6 +230,13 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     try {
       debug('add');
       const connection = new NibusConnection(path, description);
+      const nmsListener: NibusEvents['nms'] = nms => {
+        if (nms.service === NmsServiceType.InformationReport) {
+          this.emit('informationReport', connection, nms);
+        }
+      };
+      this.nmsListeners.set(connection, nmsListener);
+      connection.on('nms', nmsListener);
       this.connections.push(connection);
       this.emit('add', connection);
       if (process.platform === 'win32') await delay(2000);
@@ -255,6 +265,8 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
 
   private closeConnection(connection: INibusConnection): void {
     connection.close();
+    const nmsListener = this.nmsListeners.get(connection);
+    nmsListener && connection.off('nms', nmsListener);
     this.devices
       .get()
       .filter(device => device.connection === connection)

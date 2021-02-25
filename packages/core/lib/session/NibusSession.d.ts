@@ -3,6 +3,7 @@ import Address, { AddressParam } from '../Address';
 import { LogLevel } from '../common';
 import { Devices, IDevice } from '../mib';
 import { INibusConnection } from '../nibus';
+import { NmsDatagram } from '../nms';
 import { Category } from './KnownPorts';
 export declare type FoundListener = (arg: {
     connection: INibusConnection;
@@ -21,6 +22,7 @@ export interface NibusSessionEvents {
     disconnected: DeviceListener;
     pureConnection: (connection: INibusConnection) => void;
     logLevel: (level: LogLevel) => void;
+    informationReport: (connection: INibusConnection, info: NmsDatagram) => void;
 }
 export interface INibusSession {
     on<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
@@ -37,6 +39,7 @@ export interface INibusSession {
 }
 export declare class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
     private readonly connections;
+    private readonly nmsListeners;
     private isStarted;
     private socket?;
     readonly devices: Devices;

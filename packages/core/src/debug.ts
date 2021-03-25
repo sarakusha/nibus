@@ -7,9 +7,13 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-import debugFactory, { Debugger } from 'debug';
+import debugFactory, { Debugger } from 'debug/src/node';
 
 export const isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
+
+type WrappedDebugger = Debugger & {
+  useColors: true;
+};
 
 export default (namespace: string): Debugger => {
   const debug = debugFactory(namespace);
@@ -20,6 +24,8 @@ export default (namespace: string): Debugger => {
       log.transports.console.level = false;
       debug.log = log.log.bind(log);
     });
+    (debug as WrappedDebugger).useColors = true;
+    debug.enabled = true;
   }
   return debug;
 };

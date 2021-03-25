@@ -11,12 +11,11 @@
 /* tslint:disable:variable-name */
 import * as t from 'io-ts';
 import _ from 'lodash';
-import { printBuffer } from './nibus/helper';
 
 /**
  * Путь к сокету для обмена данными IPC
  */
-export const PATH = '/tmp/nibus.service.sock';
+// export const PATH = '/tmp/nibus.service.sock';
 
 export const LogLevelV = t.keyof({
   none: null,
@@ -56,19 +55,61 @@ export interface Datagram {
   toString(): string;
 }
 export const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
-// eslint-disable-next-line @typescript-eslint/no-explicit-any,@typescript-eslint/explicit-module-boundary-types
-export const replaceBuffers = (obj: any): any =>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Arrayable = any[] | Buffer | string;
+
+export function chunkArray<T extends Arrayable>(array: T, len: number): T[] {
+  const ret: T[] = [];
+  const size = Math.ceil(array.length / len);
+  ret.length = size;
+  let offset;
+
+  for (let i = 0; i < size; i += 1) {
+    offset = i * len;
+    ret[i] = array.slice(offset, offset + len) as T;
+  }
+
+  return ret;
+}
+
+export function printBuffer(buffer: Buffer): string {
+  return chunkArray(chunkArray(buffer.toString('hex'), 2), 16)
+    .map(chunk => chunk.join('-'))
+    .join('=');
+}
+
+type FilterFlags<Base, Condition> = {
+  [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
+};
+
+type ExcludeFlags<Base, Condition> = {
+  [Key in keyof Base]: Base[Key] extends Condition ? never : Key;
+};
+
+type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
+
+type ExcludeNames<Base, Condition> = ExcludeFlags<Base, Condition>[keyof Base];
+
+export type SubType<Base, Condition> = Pick<Base, AllowedNames<Base, Condition>>;
+
+export type ReplaceType<Base, Condition, Type> = Pick<Base, ExcludeNames<Base, Condition>> &
+  Record<AllowedNames<Base, Condition>, Type>;
+
+// const x: ReplaceType<{ a: string | undefined, b: boolean | undefined }, string | undefined, number | undefined> = { a: 1, b: 1 }
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const replaceBuffers = <T extends object>(obj: T): ReplaceType<T, Buffer, string> =>
   Object.entries(obj).reduce(
     (result, [name, value]) => ({
       ...result,
       [name]: Buffer.isBuffer(value)
         ? printBuffer(value)
         : _.isPlainObject(value)
-        ? replaceBuffers(value)
+        ? replaceBuffers(value as ObjectType)
         : value,
     }),
     {}
-  );
+  ) as ReplaceType<T, Buffer, string>;
 
 export function promiseArray<T, R>(
   array: ReadonlyArray<T>,
@@ -83,3 +124,5 @@ export function promiseArray<T, R>(
     Promise.resolve<R[]>([])
   );
 }
+
+export const MSG_DELIMITER = '\n';

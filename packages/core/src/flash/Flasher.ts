@@ -29,7 +29,8 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import { delay } from '../common';
 
 import { IDevice, DownloadDataListener } from '../mib';
-import session from '../session';
+import { getDefaultSession } from '../session';
+// import session from '../session';
 import { BootloaderFunction, CHUNK_SIZE, encode, FLASH_SIZE, uint32ToBytes } from '../slip';
 
 const crcPrev = 0xaa55;
@@ -265,7 +266,9 @@ export class Flasher extends TypedEmitter<FlasherEvents> {
 
   constructor(deviceId: string) {
     super();
-    const device = session.devices.get().find(({ id }) => deviceId === id);
+    const device = getDefaultSession()
+      .devices.get()
+      .find(({ id }) => deviceId === id);
     if (!device) throw new Error(`Unknown device ${deviceId}`);
     this.device = device;
   }

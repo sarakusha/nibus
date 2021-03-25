@@ -19,6 +19,7 @@ var AddressType;
 })(AddressType = exports.AddressType || (exports.AddressType = {}));
 const isEmpty = (array) => lodash_1.default.every(array, b => b === 0);
 const isBroadcast = (array) => lodash_1.default.every(array, b => b === 255);
+const validNumbers = (...values) => values.reduce((res, value) => res && Number.isInteger(value), true);
 class Address {
     constructor(address = '') {
         this.raw = Buffer.alloc(exports.MAC_LENGTH);
@@ -51,6 +52,8 @@ class Address {
                                 const [domain, group] = parts;
                                 this.domain = parseInt(domain, radix);
                                 this.group = parseInt(group, radix);
+                                if (!validNumbers(this.domain, this.group))
+                                    throw new Error('Invalid address');
                                 this.type = AddressType.group;
                                 pos = this.raw.writeUInt16LE(this.domain || 0, 0);
                                 this.raw.writeUInt8(this.group || 0, pos);
@@ -61,6 +64,8 @@ class Address {
                                 this.domain = parseInt(domain, radix);
                                 this.subnet = parseInt(subnet, radix);
                                 this.device = parseInt(device, radix);
+                                if (!validNumbers(this.domain, this.subnet, this.device))
+                                    throw new Error('Invalid address');
                                 this.type = AddressType.net;
                                 pos = this.raw.writeUInt16LE(this.domain || 0, 0);
                                 pos = this.raw.writeUInt8(this.subnet || 0, pos);

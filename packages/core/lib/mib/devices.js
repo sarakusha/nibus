@@ -36,7 +36,6 @@ const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importStar(require("../Address"));
 const errors_1 = require("../errors");
 const nbconst_1 = require("../nbconst");
-const helper_1 = require("../nibus/helper");
 const nms_1 = require("../nms");
 const NmsValueType_1 = __importDefault(require("../nms/NmsValueType"));
 const common_1 = require("../common");
@@ -486,7 +485,7 @@ class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
             return this.readAll();
         const disableBatchReading = Reflect.getMetadata('disableBatchReading', this);
         const map = Reflect.getMetadata('map', this);
-        const chunks = helper_1.chunkArray(ids, disableBatchReading ? 1 : 21);
+        const chunks = common_1.chunkArray(ids, disableBatchReading ? 1 : 21);
         debug(`read [${chunks.map(chunk => `[${chunk.join()}]`).join()}] from [${this.address}]`);
         const requests = chunks.map(chunk => [
             nms_1.createNmsRead(this.address, ...chunk),
@@ -618,7 +617,7 @@ class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
         });
         const crc = crc_1.crc16ccitt(buffer, 0);
         const chunkSize = nbconst_1.NMS_MAX_DATA_LENGTH - 4;
-        const chunks = helper_1.chunkArray(buffer, chunkSize);
+        const chunks = common_1.chunkArray(buffer, chunkSize);
         await chunks.reduce(async (prev, chunk, i) => {
             await prev;
             const pos = i * chunkSize + offset;

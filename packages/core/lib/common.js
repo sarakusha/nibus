@@ -22,11 +22,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.promiseArray = exports.replaceBuffers = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = exports.PATH = void 0;
+exports.MSG_DELIMITER = exports.promiseArray = exports.replaceBuffers = exports.printBuffer = exports.chunkArray = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = void 0;
 const t = __importStar(require("io-ts"));
 const lodash_1 = __importDefault(require("lodash"));
-const helper_1 = require("./nibus/helper");
-exports.PATH = '/tmp/nibus.service.sock';
 exports.LogLevelV = t.keyof({
     none: null,
     hex: null,
@@ -44,8 +42,26 @@ const noop = () => { };
 exports.noop = noop;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 exports.delay = delay;
+function chunkArray(array, len) {
+    const ret = [];
+    const size = Math.ceil(array.length / len);
+    ret.length = size;
+    let offset;
+    for (let i = 0; i < size; i += 1) {
+        offset = i * len;
+        ret[i] = array.slice(offset, offset + len);
+    }
+    return ret;
+}
+exports.chunkArray = chunkArray;
+function printBuffer(buffer) {
+    return chunkArray(chunkArray(buffer.toString('hex'), 2), 16)
+        .map(chunk => chunk.join('-'))
+        .join('=');
+}
+exports.printBuffer = printBuffer;
 const replaceBuffers = (obj) => Object.entries(obj).reduce((result, [name, value]) => (Object.assign(Object.assign({}, result), { [name]: Buffer.isBuffer(value)
-        ? helper_1.printBuffer(value)
+        ? printBuffer(value)
         : lodash_1.default.isPlainObject(value)
             ? exports.replaceBuffers(value)
             : value })), {});
@@ -57,4 +73,5 @@ function promiseArray(array, action) {
     }), Promise.resolve([]));
 }
 exports.promiseArray = promiseArray;
+exports.MSG_DELIMITER = '\n';
 //# sourceMappingURL=common.js.map

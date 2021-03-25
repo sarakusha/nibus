@@ -9,12 +9,13 @@ var __createBinding = (this && this.__createBinding) || (Object.create ? (functi
 var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = void 0;
+exports.findDeviceById = exports.getSessions = exports.setDefaultSession = exports.getDefaultSession = exports.getNibusSession = void 0;
 __exportStar(require("./KnownPorts"), exports);
-var session_1 = require("./session");
-Object.defineProperty(exports, "default", { enumerable: true, get: function () { return __importDefault(session_1).default; } });
+var NibusSession_1 = require("./NibusSession");
+Object.defineProperty(exports, "getNibusSession", { enumerable: true, get: function () { return NibusSession_1.getNibusSession; } });
+Object.defineProperty(exports, "getDefaultSession", { enumerable: true, get: function () { return NibusSession_1.getDefaultSession; } });
+Object.defineProperty(exports, "setDefaultSession", { enumerable: true, get: function () { return NibusSession_1.setDefaultSession; } });
+Object.defineProperty(exports, "getSessions", { enumerable: true, get: function () { return NibusSession_1.getSessions; } });
+Object.defineProperty(exports, "findDeviceById", { enumerable: true, get: function () { return NibusSession_1.findDeviceById; } });
 //# sourceMappingURL=index.js.map

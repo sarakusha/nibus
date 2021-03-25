@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require("reflect-metadata");
-const __1 = __importDefault(require(".."));
+const MockNibusSession_1 = __importDefault(require("../session/MockNibusSession"));
 const mib2json_1 = require("./mib2json");
-const { devices } = __1.default;
+const { devices } = MockNibusSession_1.default;
 describe('Device', () => {
     test('one mib - one prototype', () => {
         const device1 = devices.create('::34:56', 'mcdvi');

@@ -2,9 +2,10 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import { AddressParam } from '../Address';
 import { Devices, IDevice } from '../mib';
 import { NibusSessionEvents, INibusSession } from './NibusSession';
-export default class MockNibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
+export declare class MockNibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
     readonly ports = 1;
     readonly devices: Devices;
+    readonly port = 9001;
     private connection;
     private isStarted;
     start(): Promise<number>;
@@ -14,5 +15,8 @@ export default class MockNibusSession extends TypedEmitter<NibusSessionEvents> i
     ping(_address: AddressParam): Promise<number>;
     reloadDevices(): void;
     setLogLevel(): void;
+    saveConfig(): void;
 }
+declare const session: MockNibusSession;
+export default session;
 //# sourceMappingURL=MockNibusSession.d.ts.map

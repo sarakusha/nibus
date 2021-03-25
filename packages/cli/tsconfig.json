@@ -11,7 +11,11 @@
     "paths": {
       "usb-detection": ["@types/usb-detection"],
       "sax": ["@types/sax"],
-      "xpipe": ["@types/xpipe"]
+      "xpipe": ["@types/xpipe"],
+      "bonjour-hap": ["@types/bonjour-hap"],
+      "debug/src/node": [
+        "../../node_modules/@types/debug"
+      ]
     }
   },
   "include": [

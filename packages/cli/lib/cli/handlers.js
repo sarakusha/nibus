@@ -1,23 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -31,18 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const core_1 = __importStar(require("@nibus/core"));
+const core_1 = require("@nibus/core");
 const serviceWrapper_1 = __importDefault(require("./serviceWrapper"));
-const { devices } = core_1.default;
+const session = core_1.getDefaultSession();
+const { devices } = session;
 function makeAddressHandler(action, breakout = false) {
     return serviceWrapper_1.default((args) => __awaiter(this, void 0, void 0, function* () {
-        let count = (yield core_1.default.start()) * (process.platform === 'win32' ? 3 : 1);
+        let count = (yield session.start()) * (process.platform === 'win32' ? 3 : 1);
         return new Promise(resolve => {
             let timeout;
             let hasFound = false;
             const close = (err) => {
                 clearTimeout(timeout);
-                core_1.default.close();
+                session.close();
                 if (err || !hasFound) {
                     console.error(err || 'Устройство не найдено');
                 }
@@ -70,7 +52,7 @@ function makeAddressHandler(action, breakout = false) {
                     close();
                 }
             };
-            core_1.default.on('found', ({ address, connection }) => __awaiter(this, void 0, void 0, function* () {
+            session.on('found', ({ address, connection }) => __awaiter(this, void 0, void 0, function* () {
                 try {
                     if (address.equals(mac) && connection.description.mib) {
                         if (!args.mib || args.mib === connection.description.mib) {

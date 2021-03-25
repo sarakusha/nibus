@@ -12,13 +12,14 @@ import chalk from 'chalk';
 import Table, { HorizontalTableRow, GenericTable } from 'cli-table3';
 import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
-import session, {
+import {
   Address,
   IDevice,
   INibusConnection,
   SarpQueryType,
   config,
   getMibPrototype,
+  getDefaultSession,
 } from '@nibus/core';
 
 import debugFactory from '../../debug';
@@ -39,6 +40,7 @@ type DumpOpts = CommonOpts;
 const debug = debugFactory('nibus:dump');
 let count = 0;
 
+const session = getDefaultSession();
 const { devices } = session;
 async function dumpDevice(
   address: Address,
@@ -73,9 +75,9 @@ async function dumpDevice(
   device.release();
   const categories = _.groupBy(
     rows,
-    ({ key }) => Reflect.getMetadata('category', proto, key) || ''
+    ({ key }) => Reflect.getMetadata('category', proto!, key) || ''
   );
-  console.info(` Устройство ${Reflect.getMetadata('mib', proto)} [${address.toString()}]`);
+  console.info(` Устройство ${Reflect.getMetadata('mib', proto!)} [${address.toString()}]`);
   const table = new Table({
     head: ['Название', 'Значение', 'Имя'],
     style: { compact },
@@ -89,7 +91,7 @@ async function dumpDevice(
       val = chalk.red(`errcode: ${value.errcode}`);
     } else {
       val = JSON.stringify(value);
-      if (!Reflect.getMetadata('isWritable', proto, key)) {
+      if (!Reflect.getMetadata('isWritable', proto!, key)) {
         val = chalk.grey(val);
       }
     }

@@ -23,7 +23,6 @@ import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import { INibusConnection } from '../nibus';
-import { chunkArray } from '../nibus/helper';
 import {
   createExecuteProgramInvocation,
   createNmsDownloadSegment,
@@ -41,7 +40,7 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { Config, ConfigV } from '../common';
+import { chunkArray, Config, ConfigV } from '../common';
 import timeid from '../timeid';
 import {
   booleanConverter,
@@ -157,6 +156,7 @@ export interface IDevice {
   on<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
   once<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
   off<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+  toJSON(): unknown;
   // addListener<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
   // removeListener<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
   // emit<U extends keyof IDeviceEvents>(event: U, ...args: Parameters<IDeviceEvents[U]>): boolean;
@@ -1026,7 +1026,7 @@ export class Devices extends TypedEmitter<DevicesEvents> {
 
   get = (): IDevice[] => _.flatten(_.values(this.deviceMap));
 
-  findById(id: string): IDevice | undefined {
+  findById(id: DeviceId): IDevice | undefined {
     return this.get().find(item => item.id === id);
   }
 

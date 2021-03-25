@@ -10,9 +10,9 @@
  */
 
 import { decode, encode } from 'iconv-lite';
+import { chunkArray } from '../common';
 import { MibError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
-import { chunkArray } from '../nibus/helper';
 import NmsValueType from './NmsValueType';
 
 const packByte = (b: number): number => ((b % 100) / 10) * 16 + (b % 10);

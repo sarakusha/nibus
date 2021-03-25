@@ -28,31 +28,94 @@ export const PortArgV = t.type({
   portInfo: KnownPortV,
   description: MibDescriptionV,
 });
-
 export interface PortArg extends t.TypeOf<typeof PortArgV> {
   portInfo: IKnownPort;
   description: MibDescription;
 }
 
-export const PortsEventV = eventType('ports', t.array(PortArgV));
+export const HostV = t.type({
+  name: t.string,
+  platform: t.string,
+  arch: t.string,
+  version: t.string,
+});
+export interface Host extends t.TypeOf<typeof HostV> {}
 
+export const PortsEventV = eventType('ports', t.array(PortArgV));
 export interface PortsEvent extends t.TypeOf<typeof PortsEventV> {}
 
 export const PortAddedEventV = eventType('add', PortArgV);
-
 export interface PortAddedEvent extends t.TypeOf<typeof PortAddedEventV> {}
 
 export const PortRemovedEventV = eventType('remove', PortArgV);
-
 export interface PortRemovedEvent extends t.TypeOf<typeof PortRemovedEventV> {}
 
 export const LogLevelEventV = eventType('logLevel', LogLevelV);
-
 export interface LogLevelEvent extends t.TypeOf<typeof LogLevelEventV> {}
 
-export const EventV = t.union([PortsEventV, PortAddedEventV, PortRemovedEventV, LogLevelEventV]);
+export const ConfigEventV = eventType('config', t.UnknownRecord);
+export interface ConfigEvent extends t.TypeOf<typeof ConfigEventV> {}
 
-export type Event = PortsEvent | PortAddedEvent | PortRemovedEvent | LogLevelEvent;
+export const HostEventV = eventType('host', HostV);
+export interface HostEvent extends t.TypeOf<typeof HostEventV> {}
+
+export const LogLineEventV = eventType('log', t.string);
+export interface LogLineEvent extends t.TypeOf<typeof LogLineEventV> {}
+
+export const PongEventV = eventType('pong', t.void);
+
+export interface PongEvent extends t.TypeOf<typeof PongEventV> {}
+
+export const RectV = t.type({
+  x: t.number,
+  y: t.number,
+  width: t.number,
+  height: t.number,
+});
+
+export interface Rect extends t.TypeOf<typeof RectV> {}
+
+export const DisplayV = t.intersection([
+  t.type({
+    id: t.number,
+    bounds: RectV,
+    workArea: RectV,
+    displayFrequency: t.number,
+    internal: t.boolean,
+  }),
+  t.partial({
+    primary: t.boolean,
+  }),
+]);
+
+export interface Display extends t.TypeOf<typeof DisplayV> {}
+
+export const DisplaysEventV = eventType('displays', t.array(DisplayV));
+
+export interface DisplaysEvent extends t.TypeOf<typeof DisplaysEventV> {}
+
+export const EventV = t.union([
+  PortsEventV,
+  PortAddedEventV,
+  PortRemovedEventV,
+  LogLevelEventV,
+  ConfigEventV,
+  HostEventV,
+  LogLineEventV,
+  PongEventV,
+  DisplaysEventV,
+]);
+
+export type Event =
+  | PortsEvent
+  | PortAddedEvent
+  | PortRemovedEvent
+  | LogLevelEvent
+  | ConfigEvent
+  | HostEvent
+  | LogLineEvent
+  | PongEvent
+  | DisplaysEvent;
 
 class FromStringType<A> extends t.Type<A, string> {
   constructor(name: string, type: t.Mixed) {

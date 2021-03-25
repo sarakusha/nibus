@@ -37,6 +37,7 @@ const padHex = (val: number): string => val.toString(16).padStart(2, '0');
  * broadcast = FF:FF:FF:FF:FF:FF
  * empty = 00:00:00:00:00:00
  */
+
 // eslint-disable-next-line no-shadow
 export enum AddressType {
   broadcast = 'broadcast',
@@ -48,6 +49,8 @@ export enum AddressType {
 
 const isEmpty = (array: number[] | Uint8Array): boolean => _.every(array, b => b === 0);
 const isBroadcast = (array: number[] | Uint8Array): boolean => _.every(array, b => b === 255);
+const validNumbers = (...values: number[]): boolean =>
+  values.reduce<boolean>((res, value) => res && Number.isInteger(value), true);
 
 /**
  * Представление адреса
@@ -161,6 +164,7 @@ export default class Address {
                 const [domain, group] = parts;
                 this.domain = parseInt(domain, radix);
                 this.group = parseInt(group, radix);
+                if (!validNumbers(this.domain, this.group)) throw new Error('Invalid address');
                 this.type = AddressType.group;
                 pos = this.raw.writeUInt16LE(this.domain || 0, 0);
                 this.raw.writeUInt8(this.group || 0, pos);
@@ -171,6 +175,8 @@ export default class Address {
                 this.domain = parseInt(domain, radix);
                 this.subnet = parseInt(subnet, radix);
                 this.device = parseInt(device, radix);
+                if (!validNumbers(this.domain, this.subnet, this.device))
+                  throw new Error('Invalid address');
                 this.type = AddressType.net;
                 pos = this.raw.writeUInt16LE(this.domain || 0, 0);
                 pos = this.raw.writeUInt8(this.subnet || 0, pos);

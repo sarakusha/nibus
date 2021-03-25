@@ -10,6 +10,7 @@
 
 /* eslint-disable class-methods-use-this,no-bitwise */
 import { TypedEmitter } from 'tiny-typed-emitter';
+import { chunkArray } from '../common';
 import debugFactory from '../debug';
 import { AddressParam } from '../Address';
 import type { Devices } from '../mib';
@@ -18,9 +19,9 @@ import { MibDescription } from '../MibDescription';
 import { getNmsType, NmsDatagram } from '../nms';
 import { getSizeOf } from '../nms/nms';
 import NmsServiceType from '../nms/NmsServiceType';
-import { SarpDatagram } from '../sarp';
+import type { SarpDatagram } from '../sarp';
+import type { INibusSession } from '../session';
 import { SlipDatagram } from '../slip';
-import { chunkArray } from './helper';
 import { NibusEvents, INibusConnection } from './NibusConnection';
 import NibusDatagram, { Protocol } from './NibusDatagram';
 
@@ -33,7 +34,9 @@ export default class MockNibusConnection
 
   readonly path = 'mock-serial';
 
-  constructor(readonly devices: Devices) {
+  private closed = false;
+
+  constructor(public readonly session: INibusSession, readonly devices: Devices) {
     super();
     this.description = { type: 0xabc6, find: 'sarp', category: 'minihost', mib: 'minihost3' };
   }
@@ -41,6 +44,7 @@ export default class MockNibusConnection
   close(): void {
     const { path, description } = this;
     debug(`close connection on ${path} (${description.category})`);
+    this.closed = true;
     this.emit('close');
   }
 
@@ -83,6 +87,10 @@ export default class MockNibusConnection
       }
     }
     return Promise.resolve(undefined);
+  }
+
+  get isClosed(): boolean {
+    return this.closed;
   }
 
   nmsReadResponse(nmsDatagram: NmsDatagram): Promise<NmsDatagram[]> {

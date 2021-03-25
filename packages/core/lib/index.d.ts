@@ -8,7 +8,7 @@ export * from './mib';
 export * from './ipc';
 export * from './MibDescription';
 export * from './session';
-export { default } from './session';
 export * from './flash';
 export * from './common';
+export { default as debugFactory } from './debug';
 //# sourceMappingURL=index.d.ts.map

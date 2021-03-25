@@ -7,25 +7,26 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-import { PATH } from '@nibus/core';
 import { Arguments } from 'yargs';
-import fs from 'fs';
+import type { NibusService } from '../service';
 
 export type Handler<U> = (args: Arguments<U>) => Promise<void>;
 
-const delay = (sec: number): Promise<void> => new Promise(
-  resolve => setTimeout(resolve, sec * 1000),
-);
+const delay = (sec: number): Promise<void> =>
+  new Promise(resolve => setTimeout(resolve, sec * 1000));
 
 export default function serviceWrapper<U>(handler: Handler<U>): Handler<U> {
   return async (args: Arguments<U>) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let nibus: any;
-    if (!fs.existsSync(PATH)) {
+    let nibus: NibusService | undefined;
+    try {
       const { default: service } = await import('../service');
       nibus = service;
       await service.start();
       await delay(1);
+    } catch (err) {
+      const { code } = (err as unknown) as { code: string };
+      if (code !== 'EADDRINUSE') throw err;
     }
     handler(args)
       .catch(err => console.error(err.message))

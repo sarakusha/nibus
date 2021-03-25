@@ -3,6 +3,7 @@ import { AddressParam } from '../Address';
 import { NmsDatagram } from '../nms';
 import { SarpDatagram } from '../sarp';
 import { MibDescription } from '../MibDescription';
+import type { INibusSession } from '../session';
 import { BootloaderFunction, LikeArray, SlipDatagram } from '../slip';
 import NibusDatagram from './NibusDatagram';
 import type { IDevice } from '../mib';
@@ -22,15 +23,20 @@ export interface INibusConnection {
     findByType(type: number): Promise<SarpDatagram>;
     getVersion(address: AddressParam): Promise<[number?, number?]>;
     close(): void;
+    readonly isClosed: boolean;
     readonly path: string;
     description: MibDescription;
     slipStart(force?: boolean): Promise<boolean>;
     slipFinish(): void;
     execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram>;
     owner?: IDevice;
+    readonly session: INibusSession;
 }
 export default class NibusConnection extends TypedEmitter<NibusEvents> implements INibusConnection {
+    readonly session: INibusSession;
     readonly path: string;
+    readonly port: number;
+    readonly host?: string | undefined;
     description: MibDescription;
     owner?: IDevice;
     private readonly socket;
@@ -40,7 +46,8 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     private closed;
     private readonly waited;
     private finishSlip;
-    constructor(path: string, description: MibDescription);
+    constructor(session: INibusSession, path: string, description: MibDescription, port: number, host?: string | undefined);
+    get isClosed(): boolean;
     sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
     ping(address: AddressParam): Promise<number>;
     findByType(type?: number): Promise<SarpDatagram>;

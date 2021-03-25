@@ -12,12 +12,12 @@ no-underscore-dangle,no-multi-assign,no-continue */
 
 import { crc16ccitt } from 'crc';
 import { Transform, TransformCallback, TransformOptions } from 'stream';
+import { printBuffer } from '../common';
 import debugFactory from '../debug';
 import { MAX_DATA_LENGTH, Offsets, PREAMBLE, SERVICE_INFO_LENGTH, States } from '../nbconst';
 import { NmsDatagram } from '../nms';
 import { SarpDatagram } from '../sarp';
 import { END, SlipDatagram, trySlipDecode } from '../slip';
-import { printBuffer } from './helper';
 import NibusDatagram from './NibusDatagram';
 
 const debug = debugFactory('nibus:decoder');

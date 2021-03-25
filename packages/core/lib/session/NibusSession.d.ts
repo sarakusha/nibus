@@ -1,7 +1,9 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { LogLevel } from '../common';
-import { Devices, IDevice } from '../mib';
+import { Host } from '../ipc';
+import { Display } from '../ipc/events';
+import { Devices, IDevice, DeviceId } from '../mib';
 import { INibusConnection } from '../nibus';
 import { NmsDatagram } from '../nms';
 import { Category } from './KnownPorts';
@@ -23,27 +25,37 @@ export interface NibusSessionEvents {
     pureConnection: (connection: INibusConnection) => void;
     logLevel: (level: LogLevel) => void;
     informationReport: (connection: INibusConnection, info: NmsDatagram) => void;
+    config: (config: Record<string, unknown>) => void;
+    host: (host: Host) => void;
+    log: (line: string) => void;
+    online: (isOnline: boolean) => void;
+    displays: (value: Display[]) => void;
 }
 export interface INibusSession {
     on<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
     once<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
     off<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
     readonly ports: number;
-    start(): Promise<number>;
+    start(port?: number, host?: string): Promise<number>;
     close(): void;
     pingDevice(device: IDevice): Promise<number>;
     ping(address: AddressParam): Promise<number>;
     reloadDevices(): void;
     setLogLevel(logLevel: LogLevel): void;
+    saveConfig(config: Record<string, unknown>): void;
     readonly devices: Devices;
+    readonly host?: string;
+    readonly port: number;
 }
 export declare class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
+    readonly port: number;
+    readonly host?: string | undefined;
     private readonly connections;
     private readonly nmsListeners;
     private isStarted;
     private socket?;
     readonly devices: Devices;
-    constructor();
+    constructor(port: number, host?: string | undefined);
     get ports(): number;
     start(): Promise<number>;
     private connectDevice;
@@ -52,10 +64,16 @@ export declare class NibusSession extends TypedEmitter<NibusSessionEvents> imple
     ping(address: AddressParam): Promise<number>;
     reloadDevices(): void;
     setLogLevel(logLevel: LogLevel): void;
+    saveConfig(config: Record<string, unknown>): void;
     private reloadHandler;
     private addHandler;
     private closeConnection;
     private removeHandler;
     private find;
 }
+export declare const getNibusSession: (port?: number, host?: string | undefined) => INibusSession;
+export declare const getDefaultSession: () => INibusSession;
+export declare const getSessions: () => INibusSession[];
+export declare const findDeviceById: (id: DeviceId) => IDevice | undefined;
+export declare const setDefaultSession: (port: number, host?: string | undefined) => INibusSession;
 //# sourceMappingURL=NibusSession.d.ts.map

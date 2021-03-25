@@ -9,7 +9,7 @@
  */
 
 import { Arguments, Defined } from 'yargs';
-import session, { IDevice, Address, config, INibusConnection } from '@nibus/core';
+import { getDefaultSession, IDevice, Address, config, INibusConnection } from '@nibus/core';
 
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
@@ -19,7 +19,7 @@ import serviceWrapper, { Handler } from './serviceWrapper';
 interface ActionFunc<O> {
   (device: IDevice, args: Arguments<O>): Promise<unknown>;
 }
-
+const session = getDefaultSession();
 const { devices } = session;
 
 export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>(

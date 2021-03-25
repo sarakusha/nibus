@@ -13,20 +13,19 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from '../debug';
 import Address, { AddressParam } from '../Address';
 import { Devices, IDevice } from '../mib';
-// import { INibusConnection } from '../nibus';
 import MockNibusConnection from '../nibus/MockNibusConnection';
 import { NibusSessionEvents, INibusSession } from './NibusSession';
 
 const debug = debugFactory('nibus:mock-session');
 
-export default class MockNibusSession
-  extends TypedEmitter<NibusSessionEvents>
-  implements INibusSession {
+export class MockNibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
   readonly ports = 1;
 
   readonly devices = new Devices();
 
-  private connection = new MockNibusConnection(this.devices);
+  readonly port = 9001;
+
+  private connection = new MockNibusConnection(this, this.devices);
 
   private isStarted = false;
 
@@ -71,4 +70,10 @@ export default class MockNibusSession
   reloadDevices(): void {}
 
   setLogLevel(): void {}
+
+  saveConfig(): void {}
 }
+
+const session = new MockNibusSession();
+
+export default session;

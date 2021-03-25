@@ -13,9 +13,12 @@ import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import Table from 'table-layout';
-import { PATH, Client, PortArg } from '@nibus/core';
+import { Client, PortArg } from '@nibus/core';
 import { CommonOpts } from '../options';
 import serviceWrapper from '../serviceWrapper';
+import debugFactory from '../../debug';
+
+const debug = debugFactory('nibus:list');
 
 type ListOpts = CommonOpts;
 const listCommand: CommandModule<CommonOpts, ListOpts> = {
@@ -25,14 +28,14 @@ const listCommand: CommandModule<CommonOpts, ListOpts> = {
   handler: serviceWrapper(
     () =>
       new Promise((resolve, reject) => {
-        const socket = Client.connect(PATH);
+        const socket = Client.connect({ port: +(process.env.NIBUS_PORT ?? 9001) });
         let resolved = false;
         let error: Error;
         socket.once('close', () => {
           resolved ? resolve() : reject(error && error.message);
         });
         socket.on('ports', (ports: PortArg[]) => {
-          // debug('ports', ports);
+          debug('ports', ports);
           const rows = _.sortBy(ports, [_.property('description.category')]).map(
             ({ portInfo: { manufacturer, category, device, path } }) => ({
               manufacturer,
@@ -49,6 +52,7 @@ const listCommand: CommandModule<CommonOpts, ListOpts> = {
           socket.destroy();
         });
         socket.on('error', err => {
+          debug(`<error> ${err.message}`);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           if ((err as any)?.code === 'ENOENT') {
             error = new Error('Сервис не запущен');

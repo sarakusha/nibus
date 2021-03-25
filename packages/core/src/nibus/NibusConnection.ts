@@ -14,15 +14,16 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import _ from 'lodash';
 import { Socket, connect } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import xpipe from 'xpipe';
+// import xpipe from 'xpipe';
 import debugFactory from '../debug';
 import Address, { AddressParam } from '../Address';
 import { TimeoutError } from '../errors';
-import { getSocketPath } from '../ipc';
+// import { getSocketPath } from '../ipc';
 import { createExecuteProgramInvocation, createNmsRead, NmsDatagram } from '../nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import { createSarp, SarpQueryType, SarpDatagram } from '../sarp';
 import { MibDescriptionV, MibDescription } from '../MibDescription';
+import type { INibusSession } from '../session';
 import { BootloaderFunction, LikeArray, slipChunks, SlipDatagram } from '../slip';
 import NibusDatagram from './NibusDatagram';
 import NibusEncoder from './NibusEncoder';
@@ -98,12 +99,14 @@ export interface INibusConnection {
   findByType(type: number): Promise<SarpDatagram>;
   getVersion(address: AddressParam): Promise<[number?, number?]>;
   close(): void;
+  readonly isClosed: boolean;
   readonly path: string;
   description: MibDescription;
   slipStart(force?: boolean): Promise<boolean>;
   slipFinish(): void;
   execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram>;
   owner?: IDevice;
+  readonly session: INibusSession;
 }
 
 const empty = Buffer.alloc(0);
@@ -127,7 +130,13 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
 
   private finishSlip: (() => void) | undefined;
 
-  constructor(public readonly path: string, description: MibDescription) {
+  constructor(
+    public readonly session: INibusSession,
+    public readonly path: string,
+    description: MibDescription,
+    readonly port: number,
+    readonly host?: string
+  ) {
     super();
     const validate = MibDescriptionV.decode(description);
     if (isLeft(validate)) {
@@ -136,12 +145,22 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
       throw new TypeError(msg);
     }
     this.description = validate.right;
-    this.socket = connect(xpipe.eq(getSocketPath(path)));
-    this.socket.pipe(this.decoder);
-    this.encoder.pipe(this.socket);
+    // this.socket = connect(xpipe.eq(getSocketPath(path)));
+    this.socket = connect(port, host, () => {
+      this.socket.write(path);
+      window.setTimeout(() => {
+        this.socket.pipe(this.decoder);
+        this.encoder.pipe(this.socket);
+      }, 100);
+    });
     this.decoder.on('data', this.onDatagram);
+    // this.encoder.on('data', datagram => debug('datagram send', JSON.stringify(datagram.toJSON())));
     this.socket.once('close', this.close);
     debug(`new connection on ${path} (${description.category})`);
+  }
+
+  get isClosed(): boolean {
+    return this.closed;
   }
 
   public sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined> {
@@ -175,7 +194,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     let sarpHandler: NibusEvents['sarp'] = () => {};
     return new Promise<SarpDatagram>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new TimeoutError('Device not respond')),
+        () => reject(new TimeoutError("Device didn't respond")),
         config.timeout
       );
       sarpHandler = sarpDatagram => {

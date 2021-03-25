@@ -22,6 +22,9 @@
       ],
       "intel-hex": [
         "@types/intel-hex"
+      ],
+      "debug/src/node": [
+        "../../node_modules/@types/debug"
       ]
     }
   },

@@ -33,10 +33,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const common_1 = require("../common");
 const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
 const nbconst_1 = require("../nbconst");
-const nibus_1 = require("../nibus");
 const NibusDatagram_1 = __importStar(require("../nibus/NibusDatagram"));
 const nms_1 = require("./nms");
 const NmsServiceType_1 = __importDefault(require("./NmsServiceType"));
@@ -117,7 +117,7 @@ class NmsDatagram extends NibusDatagram_1.default {
                 return length < index + nms_1.getSizeOf(type) ? undefined : nms_1.decodeValue(type, nms, index);
             }
             catch (e) {
-                debug(`${e.message}, id: ${this.id}, buffer: ${nibus_1.printBuffer(this.raw)}`);
+                debug(`${e.message}, id: ${this.id}, buffer: ${common_1.printBuffer(this.raw)}`);
                 return 0;
             }
         };

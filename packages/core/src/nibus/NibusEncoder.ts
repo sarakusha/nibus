@@ -10,10 +10,9 @@
 
 import { Transform, TransformCallback, TransformOptions } from 'stream';
 import { Datagram } from '../common';
-// import debugFactory from 'debug';
-// import { printBuffer } from './helper';
+// import debugFactory from '../debug';
 
-// const debugSerial = debugFactory('nibus-serial:encoder');
+// const debug = debugFactory('nibus:encoder');
 
 export default class NibusEncoder extends Transform {
   constructor(options?: TransformOptions) {
@@ -27,6 +26,7 @@ export default class NibusEncoder extends Transform {
   public _transform(chunk: any, _encoding: string, callback: TransformCallback): void {
     const chunks = Array.isArray(chunk) ? chunk : [chunk];
     chunks.forEach((datagram: Datagram) => {
+      // debug('datagram send', JSON.stringify(datagram.toJSON()));
       // debugSerial(printBuffer(datagram.raw));
       this.push(datagram.raw);
     });

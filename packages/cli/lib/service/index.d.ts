@@ -1,9 +1,9 @@
-import { SerialTee } from '../ipc';
+import { SerialTee, Server } from '../ipc';
 export declare class NibusService {
-    private readonly server;
+    readonly port: number;
+    readonly server: Server;
     private isStarted;
-    private connections;
-    private ad;
+    private ad?;
     constructor();
     get path(): string;
     updateLogger(connection?: SerialTee): void;

@@ -9,11 +9,9 @@ const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));
 const net_1 = require("net");
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
-const xpipe_1 = __importDefault(require("xpipe"));
 const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
 const errors_1 = require("../errors");
-const ipc_1 = require("../ipc");
 const nms_1 = require("../nms");
 const NmsServiceType_1 = __importDefault(require("../nms/NmsServiceType"));
 const sarp_1 = require("../sarp");
@@ -63,9 +61,12 @@ class WaitedNmsDatagram {
 }
 const empty = Buffer.alloc(0);
 class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
-    constructor(path, description) {
+    constructor(session, path, description, port, host) {
         super();
+        this.session = session;
         this.path = path;
+        this.port = port;
+        this.host = host;
         this.encoder = new NibusEncoder_1.default();
         this.decoder = new NibusDecoder_1.default();
         this.ready = Promise.resolve();
@@ -106,12 +107,19 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
             throw new TypeError(msg);
         }
         this.description = validate.right;
-        this.socket = net_1.connect(xpipe_1.default.eq(ipc_1.getSocketPath(path)));
-        this.socket.pipe(this.decoder);
-        this.encoder.pipe(this.socket);
+        this.socket = net_1.connect(port, host, () => {
+            this.socket.write(path);
+            window.setTimeout(() => {
+                this.socket.pipe(this.decoder);
+                this.encoder.pipe(this.socket);
+            }, 100);
+        });
         this.decoder.on('data', this.onDatagram);
         this.socket.once('close', this.close);
         debug(`new connection on ${path} (${description.category})`);
+    }
+    get isClosed() {
+        return this.closed;
     }
     sendDatagram(datagram) {
         const { encoder, stopWaiting, waited, closed } = this;
@@ -141,7 +149,7 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
         const sarp = sarp_1.createSarp(sarp_1.SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xff, type & 0xff]);
         let sarpHandler = () => { };
         return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new errors_1.TimeoutError('Device not respond')), config_1.default.timeout);
+            const timeout = setTimeout(() => reject(new errors_1.TimeoutError("Device didn't respond")), config_1.default.timeout);
             sarpHandler = sarpDatagram => {
                 clearTimeout(timeout);
                 resolve(sarpDatagram);

@@ -3,6 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MockNibusSession = void 0;
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
@@ -14,7 +15,8 @@ class MockNibusSession extends tiny_typed_emitter_1.TypedEmitter {
         super(...arguments);
         this.ports = 1;
         this.devices = new mib_1.Devices();
-        this.connection = new MockNibusConnection_1.default(this.devices);
+        this.port = 9001;
+        this.connection = new MockNibusConnection_1.default(this, this.devices);
         this.isStarted = false;
     }
     start() {
@@ -51,6 +53,9 @@ class MockNibusSession extends tiny_typed_emitter_1.TypedEmitter {
     }
     reloadDevices() { }
     setLogLevel() { }
+    saveConfig() { }
 }
-exports.default = MockNibusSession;
+exports.MockNibusSession = MockNibusSession;
+const session = new MockNibusSession();
+exports.default = session;
 //# sourceMappingURL=MockNibusSession.js.map

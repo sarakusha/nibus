@@ -9,7 +9,8 @@
  */
 
 export { default as Client } from './Client';
-export { PortArg } from './events';
+export { PortArg, Host, Display } from './events';
+export * from './clientEvents';
 
 export function getSocketPath(path: string): string {
   return `/tmp/nibus.${path.replace(/^(\/dev\/)/, '')}`;

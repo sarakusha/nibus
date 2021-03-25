@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventFromString = exports.EventFromStringType = exports.EventV = exports.LogLevelEventV = exports.PortRemovedEventV = exports.PortAddedEventV = exports.PortsEventV = exports.PortArgV = void 0;
+exports.EventFromString = exports.EventFromStringType = exports.EventV = exports.DisplaysEventV = exports.DisplayV = exports.RectV = exports.PongEventV = exports.LogLineEventV = exports.HostEventV = exports.ConfigEventV = exports.LogLevelEventV = exports.PortRemovedEventV = exports.PortAddedEventV = exports.PortsEventV = exports.HostV = exports.PortArgV = void 0;
 const Either_1 = require("fp-ts/lib/Either");
 const t = __importStar(require("io-ts"));
 const common_1 = require("../common");
@@ -33,11 +33,50 @@ exports.PortArgV = t.type({
     portInfo: KnownPorts_1.KnownPortV,
     description: MibDescription_1.MibDescriptionV,
 });
+exports.HostV = t.type({
+    name: t.string,
+    platform: t.string,
+    arch: t.string,
+    version: t.string,
+});
 exports.PortsEventV = eventType('ports', t.array(exports.PortArgV));
 exports.PortAddedEventV = eventType('add', exports.PortArgV);
 exports.PortRemovedEventV = eventType('remove', exports.PortArgV);
 exports.LogLevelEventV = eventType('logLevel', common_1.LogLevelV);
-exports.EventV = t.union([exports.PortsEventV, exports.PortAddedEventV, exports.PortRemovedEventV, exports.LogLevelEventV]);
+exports.ConfigEventV = eventType('config', t.UnknownRecord);
+exports.HostEventV = eventType('host', exports.HostV);
+exports.LogLineEventV = eventType('log', t.string);
+exports.PongEventV = eventType('pong', t.void);
+exports.RectV = t.type({
+    x: t.number,
+    y: t.number,
+    width: t.number,
+    height: t.number,
+});
+exports.DisplayV = t.intersection([
+    t.type({
+        id: t.number,
+        bounds: exports.RectV,
+        workArea: exports.RectV,
+        displayFrequency: t.number,
+        internal: t.boolean,
+    }),
+    t.partial({
+        primary: t.boolean,
+    }),
+]);
+exports.DisplaysEventV = eventType('displays', t.array(exports.DisplayV));
+exports.EventV = t.union([
+    exports.PortsEventV,
+    exports.PortAddedEventV,
+    exports.PortRemovedEventV,
+    exports.LogLevelEventV,
+    exports.ConfigEventV,
+    exports.HostEventV,
+    exports.LogLineEventV,
+    exports.PongEventV,
+    exports.DisplaysEventV,
+]);
 class FromStringType extends t.Type {
     constructor(name, type) {
         super(name, type.is, (m, c) => {

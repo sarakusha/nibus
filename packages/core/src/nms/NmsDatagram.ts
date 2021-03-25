@@ -1,4 +1,5 @@
 /* eslint-disable no-bitwise */
+import { printBuffer } from '../common';
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -11,7 +12,6 @@
 import debugFactory from '../debug';
 import Address from '../Address';
 import { NMS_MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
-import { printBuffer } from '../nibus';
 import NibusDatagram, {
   INibusCommon,
   INibusDatagramJSON,

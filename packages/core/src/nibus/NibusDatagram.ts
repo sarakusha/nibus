@@ -124,7 +124,7 @@ ${leadZero(ts.getSeconds())}.${ts.getMilliseconds()}`,
   }
 
   toString(opts?: { pick?: string[]; omit?: string[] }): string {
-    let self = replaceBuffers(this.toJSON());
+    let self = replaceBuffers(this.toJSON()) as Record<string, unknown>;
     if (opts) {
       if (opts.pick) {
         self = _.pick(self, opts.pick);

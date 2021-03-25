@@ -1,6 +1,5 @@
 /// <reference types="node" />
 import * as t from 'io-ts';
-export declare const PATH = "/tmp/nibus.service.sock";
 export declare const LogLevelV: t.KeyofC<{
     none: null;
     hex: null;
@@ -33,6 +32,21 @@ export interface Datagram {
     toString(): string;
 }
 export declare const delay: (ms: number) => Promise<void>;
-export declare const replaceBuffers: (obj: any) => any;
+declare type Arrayable = any[] | Buffer | string;
+export declare function chunkArray<T extends Arrayable>(array: T, len: number): T[];
+export declare function printBuffer(buffer: Buffer): string;
+declare type FilterFlags<Base, Condition> = {
+    [Key in keyof Base]: Base[Key] extends Condition ? Key : never;
+};
+declare type ExcludeFlags<Base, Condition> = {
+    [Key in keyof Base]: Base[Key] extends Condition ? never : Key;
+};
+declare type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
+declare type ExcludeNames<Base, Condition> = ExcludeFlags<Base, Condition>[keyof Base];
+export declare type SubType<Base, Condition> = Pick<Base, AllowedNames<Base, Condition>>;
+export declare type ReplaceType<Base, Condition, Type> = Pick<Base, ExcludeNames<Base, Condition>> & Record<AllowedNames<Base, Condition>, Type>;
+export declare const replaceBuffers: <T extends object>(obj: T) => ReplaceType<T, Buffer, string>;
 export declare function promiseArray<T, R>(array: ReadonlyArray<T>, action: (item: T, index: number, arr: ReadonlyArray<T>) => Promise<R | R[]>): Promise<R[]>;
+export declare const MSG_DELIMITER = "\n";
+export {};
 //# sourceMappingURL=common.d.ts.map

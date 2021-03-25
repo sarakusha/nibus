@@ -12,7 +12,7 @@ const fast_xml_parser_1 = __importDefault(require("fast-xml-parser"));
 const path_1 = __importDefault(require("path"));
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const common_1 = require("../common");
-const session_1 = __importDefault(require("../session"));
+const session_1 = require("../session");
 const slip_1 = require("../slip");
 const crcPrev = 0xaa55;
 exports.FlashKinds = ['fpga', 'mcu', 'rbf', 'ttc', 'ctrl', 'tca', 'tcc'];
@@ -179,7 +179,9 @@ const echo = 'TestString';
 class Flasher extends tiny_typed_emitter_1.TypedEmitter {
     constructor(deviceId) {
         super();
-        const device = session_1.default.devices.get().find(({ id }) => deviceId === id);
+        const device = session_1.getDefaultSession()
+            .devices.get()
+            .find(({ id }) => deviceId === id);
         if (!device)
             throw new Error(`Unknown device ${deviceId}`);
         this.device = device;

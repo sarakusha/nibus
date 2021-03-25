@@ -23,10 +23,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.isElectron = void 0;
-const debug_1 = __importDefault(require("debug"));
+const node_1 = __importDefault(require("debug/src/node"));
 exports.isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
 exports.default = (namespace) => {
-    const debug = debug_1.default(namespace);
+    const debug = node_1.default(namespace);
     if (exports.isElectron) {
         Promise.resolve().then(() => __importStar(require('electron-log'))).then(({ default: log }) => {
             log.transports.file.level = 'info';
@@ -34,6 +34,8 @@ exports.default = (namespace) => {
             log.transports.console.level = false;
             debug.log = log.log.bind(log);
         });
+        debug.useColors = true;
+        debug.enabled = true;
     }
     return debug;
 };

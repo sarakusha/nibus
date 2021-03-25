@@ -87,6 +87,7 @@ export interface IDevice {
     on<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
     once<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
     off<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+    toJSON(): unknown;
 }
 interface DevicesEvents {
     new: (device: IDevice) => void;
@@ -103,7 +104,7 @@ export interface CreateDevice {
 export declare class Devices extends TypedEmitter<DevicesEvents> {
     private deviceMap;
     get: () => IDevice[];
-    findById(id: string): IDevice | undefined;
+    findById(id: DeviceId): IDevice | undefined;
     find: (address: AddressParam) => IDevice[];
     create: CreateDevice;
     private onReleaseDevice;

@@ -13,16 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detectionPath = exports.NibusService = void 0;
+const core_1 = require("@nibus/core");
 const configstore_1 = __importDefault(require("configstore"));
 const Either_1 = require("fp-ts/lib/Either");
-const lodash_1 = __importDefault(require("lodash"));
-const core_1 = require("@nibus/core");
-const readline_1 = require("readline");
 const fs_1 = __importDefault(require("fs"));
-const detector_1 = __importDefault(require("./detector"));
+const lodash_1 = __importDefault(require("lodash"));
+const os_1 = __importDefault(require("os"));
+const readline_1 = require("readline");
+const bonjour_hap_1 = __importDefault(require("bonjour-hap"));
 const debug_1 = __importDefault(require("../debug"));
-const Server_1 = require("../ipc/Server");
 const ipc_1 = require("../ipc");
+const detector_1 = __importDefault(require("./detector"));
+const bonjour = bonjour_hap_1.default();
 const pkgName = '@nata/nibus.js';
 const conf = new configstore_1.default(pkgName, {
     logLevel: 'none',
@@ -92,10 +94,10 @@ const loggers = {
     none: null,
     hex: (data, dir) => {
         switch (dir) {
-            case Server_1.Direction.in:
+            case ipc_1.Direction.in:
                 debugIn(core_1.printBuffer(data));
                 break;
-            case Server_1.Direction.out:
+            case ipc_1.Direction.out:
                 debugOut(core_1.printBuffer(data));
                 break;
             default:
@@ -105,10 +107,10 @@ const loggers = {
     },
     nibus: (data, dir) => {
         switch (dir) {
-            case Server_1.Direction.in:
+            case ipc_1.Direction.in:
                 decoderIn.write(data);
                 break;
-            case Server_1.Direction.out:
+            case ipc_1.Direction.out:
                 decoderOut.write(data);
                 break;
             default:
@@ -119,86 +121,103 @@ const loggers = {
 };
 class NibusService {
     constructor() {
+        var _a;
+        this.port = +((_a = process.env.NIBUS_PORT) !== null && _a !== void 0 ? _a : 9001);
         this.isStarted = false;
-        this.connections = [];
-        this.logLevelHandler = (client, logLevel, pickFields, omitFields) => {
-            logLevel && conf.set('logLevel', logLevel);
-            pickFields && conf.set('pick', pickFields);
-            omitFields && conf.set('omit', omitFields);
+        this.logLevelHandler = (client, logLevel) => {
+            debug(`setLogLevel: ${logLevel}`);
+            if (logLevel) {
+                conf.set('logLevel', logLevel);
+                this.server
+                    .broadcast('logLevel', logLevel)
+                    .catch(e => debug(`error while broadcast: ${e.message}`));
+            }
             this.updateLogger();
         };
         this.connectionHandler = (socket) => {
-            const { server, connections } = this;
+            const { server } = this;
             server
-                .send(socket, 'ports', connections.map(connection => connection.toJSON()))
-                .catch(err => {
-                debug('<error>', err.stack);
-            });
+                .send(socket, 'ports', Object.values(server.ports).map(port => port.toJSON()))
+                .catch(err => debug(`<error> while send 'ports': ${err.message}`));
+            server
+                .send(socket, 'host', {
+                name: os_1.default.hostname(),
+                platform: os_1.default.platform(),
+                arch: os_1.default.arch(),
+                version: os_1.default.version(),
+            })
+                .catch(err => debug(`<error> while send 'host': ${err.message}`));
+            debug(`logLevel`, conf.get('logLevel'));
+            server
+                .send(socket, 'logLevel', conf.get('logLevel'))
+                .catch(e => debug(`error while send logLevel ${e.message}`));
         };
         this.addHandler = (portInfo) => {
             const { category } = portInfo;
             const mibCategory = detector_1.default.getDetection().mibCategories[category];
             if (mibCategory) {
-                const connection = new ipc_1.SerialTee(portInfo, mibCategory);
-                connection.on('close', (path) => this.removeHandler({ path }));
-                this.connections.push(connection);
-                this.server.broadcast('add', connection.toJSON()).catch(noop);
-                this.updateLogger(connection);
+                const serial = new ipc_1.SerialTee(portInfo, mibCategory);
+                serial.on('close', (path) => this.removeHandler({ path }));
+                this.server.ports[serial.path] = serial;
+                this.server.broadcast('add', serial.toJSON()).catch(noop);
+                this.updateLogger(serial);
             }
         };
         this.removeHandler = ({ path }) => {
-            const index = this.connections.findIndex(({ portInfo: { path: port } }) => port === path);
-            if (index !== -1) {
-                const [connection] = this.connections.splice(index, 1);
-                connection.close();
-                this.server.broadcast('remove', connection.toJSON()).catch(noop);
+            const serial = this.server.ports[path];
+            if (serial) {
+                delete this.server.ports[path];
+                serial.close();
+                this.server.broadcast('remove', serial.toJSON()).catch(noop);
             }
         };
-        this.server = new ipc_1.Server(core_1.PATH);
+        this.server = new ipc_1.Server();
         this.server.on('connection', this.connectionHandler);
         this.server.on('client:setLogLevel', this.logLevelHandler);
+        this.server.on('client:reloadDevices', this.reload);
     }
     get path() {
         return this.server.path;
     }
     updateLogger(connection) {
         const logger = loggers[conf.get('logLevel')];
-        const connections = connection ? [connection] : this.connections;
+        const connections = connection ? [connection] : Object.values(this.server.ports);
         connections.forEach(con => con.setLogger(logger));
     }
     start() {
-        if (this.isStarted)
-            return Promise.resolve();
-        this.isStarted = true;
-        const detection = detector_1.default.getDetection();
-        if (detection == null)
-            throw new Error('detection is N/A');
-        detector_1.default.on('add', this.addHandler);
-        detector_1.default.on('remove', this.removeHandler);
-        const promise = new Promise((resolve, reject) => {
-            detector_1.default
-                .getPorts()
-                .then(() => resolve())
-                .catch(err => {
-                console.error('error while get ports', err.stack);
-                reject(err);
+        return __awaiter(this, void 0, void 0, function* () {
+            if (this.isStarted)
+                return;
+            yield this.server.listen(this.port, process.env.NIBUS_HOST);
+            this.isStarted = true;
+            this.ad = bonjour.publish({
+                name: os_1.default.hostname().replace(/\.local\.?$/, ''),
+                type: 'nibus',
+                port: this.port,
+                txt: {
+                    version: require('../../package.json').version,
+                },
             });
+            const detection = detector_1.default.getDetection();
+            if (detection == null)
+                throw new Error('detection is N/A');
+            detector_1.default.on('add', this.addHandler);
+            detector_1.default.on('remove', this.removeHandler);
+            detector_1.default.start();
+            process.once('SIGINT', () => this.stop());
+            process.once('SIGTERM', () => this.stop());
+            debug('started');
+            yield detector_1.default.getPorts();
         });
-        detector_1.default.start();
-        process.once('SIGINT', () => this.stop());
-        process.once('SIGTERM', () => this.stop());
-        debug('started');
-        return promise;
     }
     stop() {
         if (!this.isStarted)
             return;
-        const connections = this.connections.splice(0, this.connections.length);
-        if (connections.length) {
-            setTimeout(() => {
-                connections.forEach(connection => connection.close());
-            }, 0);
+        if (this.ad) {
+            this.ad.stop();
+            this.ad = undefined;
         }
+        this.server.close();
         detector_1.default.removeListener('add', this.addHandler);
         detector_1.default.removeListener('remove', this.removeHandler);
         detector_1.default.stop();

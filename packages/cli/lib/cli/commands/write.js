@@ -16,9 +16,8 @@ exports.action = void 0;
 const handlers_1 = __importDefault(require("../handlers"));
 function action(device, args) {
     return __awaiter(this, void 0, void 0, function* () {
-        const vars = args._
-            .slice(1)
-            .map(arg => arg.split('=', 2))
+        const vars = args._.slice(1)
+            .map(arg => String(arg).split('=', 2))
             .filter(([name, value]) => name !== '' && value !== '')
             .map(([name, value]) => [device.getName(name), device.getId(name), value]);
         vars.forEach(([name, , value]) => {
@@ -27,7 +26,8 @@ function action(device, args) {
         if (vars.length === 0) {
             return [];
         }
-        args.quiet || console.info(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
+        args.quiet ||
+            console.info(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
         return device.write(...vars.map(([, id]) => id)).then(ids => {
             const names = ids.map(id => device.getName(id));
             if (!args.quiet) {
@@ -41,9 +41,7 @@ exports.action = action;
 const writeCommand = {
     command: 'write',
     describe: 'запись переменных в устройство',
-    builder: argv => argv
-        .demandOption(['mac'])
-        .example('$0 write -m ::ab:cd hofs=100 vofs=300 brightness=34', `записать в переменные: hofs<-100, vofs<-300, brightness<-34 на устройстве с адресом ::ab:cd
+    builder: argv => argv.demandOption(['mac']).example('$0 write -m ::ab:cd hofs=100 vofs=300 brightness=34', `записать в переменные: hofs<-100, vofs<-300, brightness<-34 на устройстве с адресом ::ab:cd
       mib указывать не обязательно, если у устройства есть firmware_version`),
     handler: handlers_1.default(action, true),
 };

@@ -29,6 +29,14 @@ export interface PortArg extends t.TypeOf<typeof PortArgV> {
     portInfo: IKnownPort;
     description: MibDescription;
 }
+export declare const HostV: t.TypeC<{
+    name: t.StringC;
+    platform: t.StringC;
+    arch: t.StringC;
+    version: t.StringC;
+}>;
+export interface Host extends t.TypeOf<typeof HostV> {
+}
 export declare const PortsEventV: t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.ArrayC<t.TypeC<{
@@ -185,6 +193,125 @@ export declare const PortRemovedEventV: t.TypeC<{
 }>;
 export interface PortRemovedEvent extends t.TypeOf<typeof PortRemovedEventV> {
 }
+export declare const LogLevelEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>, t.Mixed]> | t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>]>;
+}>;
+export interface LogLevelEvent extends t.TypeOf<typeof LogLevelEventV> {
+}
+export declare const ConfigEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.UnknownRecordC, t.Mixed]> | t.TupleC<[t.UnknownRecordC]>;
+}>;
+export interface ConfigEvent extends t.TypeOf<typeof ConfigEventV> {
+}
+export declare const HostEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.TypeC<{
+        name: t.StringC;
+        platform: t.StringC;
+        arch: t.StringC;
+        version: t.StringC;
+    }>, t.Mixed]> | t.TupleC<[t.TypeC<{
+        name: t.StringC;
+        platform: t.StringC;
+        arch: t.StringC;
+        version: t.StringC;
+    }>]>;
+}>;
+export interface HostEvent extends t.TypeOf<typeof HostEventV> {
+}
+export declare const LogLineEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.StringC, t.Mixed]> | t.TupleC<[t.StringC]>;
+}>;
+export interface LogLineEvent extends t.TypeOf<typeof LogLineEventV> {
+}
+export declare const PongEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.VoidC, t.Mixed]> | t.TupleC<[t.VoidC]>;
+}>;
+export interface PongEvent extends t.TypeOf<typeof PongEventV> {
+}
+export declare const RectV: t.TypeC<{
+    x: t.NumberC;
+    y: t.NumberC;
+    width: t.NumberC;
+    height: t.NumberC;
+}>;
+export interface Rect extends t.TypeOf<typeof RectV> {
+}
+export declare const DisplayV: t.IntersectionC<[t.TypeC<{
+    id: t.NumberC;
+    bounds: t.TypeC<{
+        x: t.NumberC;
+        y: t.NumberC;
+        width: t.NumberC;
+        height: t.NumberC;
+    }>;
+    workArea: t.TypeC<{
+        x: t.NumberC;
+        y: t.NumberC;
+        width: t.NumberC;
+        height: t.NumberC;
+    }>;
+    displayFrequency: t.NumberC;
+    internal: t.BooleanC;
+}>, t.PartialC<{
+    primary: t.BooleanC;
+}>]>;
+export interface Display extends t.TypeOf<typeof DisplayV> {
+}
+export declare const DisplaysEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        id: t.NumberC;
+        bounds: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        workArea: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        displayFrequency: t.NumberC;
+        internal: t.BooleanC;
+    }>, t.PartialC<{
+        primary: t.BooleanC;
+    }>]>>, t.Mixed]> | t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        id: t.NumberC;
+        bounds: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        workArea: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        displayFrequency: t.NumberC;
+        internal: t.BooleanC;
+    }>, t.PartialC<{
+        primary: t.BooleanC;
+    }>]>>]>;
+}>;
+export interface DisplaysEvent extends t.TypeOf<typeof DisplaysEventV> {
+}
 export declare const EventV: t.UnionC<[t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.ArrayC<t.TypeC<{
@@ -332,8 +459,80 @@ export declare const EventV: t.UnionC<[t.TypeC<{
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
     }>]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>, t.Mixed]> | t.TupleC<[t.KeyofC<{
+        none: null;
+        hex: null;
+        nibus: null;
+    }>]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.UnknownRecordC, t.Mixed]> | t.TupleC<[t.UnknownRecordC]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.TypeC<{
+        name: t.StringC;
+        platform: t.StringC;
+        arch: t.StringC;
+        version: t.StringC;
+    }>, t.Mixed]> | t.TupleC<[t.TypeC<{
+        name: t.StringC;
+        platform: t.StringC;
+        arch: t.StringC;
+        version: t.StringC;
+    }>]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.StringC, t.Mixed]> | t.TupleC<[t.StringC]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.VoidC, t.Mixed]> | t.TupleC<[t.VoidC]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        id: t.NumberC;
+        bounds: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        workArea: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        displayFrequency: t.NumberC;
+        internal: t.BooleanC;
+    }>, t.PartialC<{
+        primary: t.BooleanC;
+    }>]>>, t.Mixed]> | t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        id: t.NumberC;
+        bounds: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        workArea: t.TypeC<{
+            x: t.NumberC;
+            y: t.NumberC;
+            width: t.NumberC;
+            height: t.NumberC;
+        }>;
+        displayFrequency: t.NumberC;
+        internal: t.BooleanC;
+    }>, t.PartialC<{
+        primary: t.BooleanC;
+    }>]>>]>;
 }>]>;
-export declare type Event = PortsEvent | PortAddedEvent | PortRemovedEvent;
+export declare type Event = PortsEvent | PortAddedEvent | PortRemovedEvent | LogLevelEvent | ConfigEvent | HostEvent | LogLineEvent | PongEvent | DisplaysEvent;
 declare class FromStringType<A> extends t.Type<A, string> {
     constructor(name: string, type: t.Mixed);
 }

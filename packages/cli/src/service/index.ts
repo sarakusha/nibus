@@ -7,37 +7,36 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-
 /* eslint-disable no-bitwise */
-import Configstore from 'configstore';
-import { isLeft } from 'fp-ts/lib/Either';
-import { Socket } from 'net';
-import _ from 'lodash';
 import {
+  Config,
+  Fields,
   getMibFile,
   getMibs,
-  toInt,
+  IKnownPort,
   IMibDeviceType,
+  LogLevel,
   MibDeviceV,
   NibusDatagram,
   NibusDecoder,
   printBuffer,
-  Config,
-  LogLevel,
-  PATH,
-  IKnownPort,
+  toInt,
 } from '@nibus/core';
-import { createInterface } from 'readline';
-
+import Configstore from 'configstore';
+import { isLeft } from 'fp-ts/lib/Either';
 import fs from 'fs';
+import _ from 'lodash';
+import { Socket } from 'net';
+import os from 'os';
+import { createInterface } from 'readline';
+import Bonjour from 'bonjour-hap';
+
+import debugFactory from '../debug';
+import { SerialTee, Server, Direction, SerialLogger } from '../ipc';
 
 import detector from './detector';
-import debugFactory from '../debug';
 
-import { Direction } from '../ipc/Server';
-import { SerialLogger } from '../ipc/SerialTee';
-import { SerialTee, Server } from '../ipc';
-
+const bonjour = Bonjour();
 const pkgName = '@nata/nibus.js'; // = require('../../package.json');
 const conf = new Configstore(pkgName, {
   logLevel: 'none',
@@ -61,8 +60,6 @@ if (process.platform === 'win32') {
 
   rl.on('SIGINT', () => process.emit('SIGINT', 'SIGINT'));
 }
-
-type Fields = string[] | undefined;
 
 const minVersionToInt = (str?: string): number => {
   if (!str) return 0;
@@ -148,16 +145,23 @@ const loggers = {
 };
 
 export class NibusService {
-  private readonly server: Server;
+  readonly port = +(process.env.NIBUS_PORT ?? 9001);
+
+  public readonly server: Server;
 
   private isStarted = false;
 
-  private connections: SerialTee[] = [];
+  private ad?: Bonjour.Service;
+  // private ad = mdns.createAdvertisement(mdns.tcp('nibus'), this.port, {
+  //   // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
+  //   txtRecord: { version: require('../../package.json').version },
+  // });
 
   constructor() {
-    this.server = new Server(PATH);
+    this.server = new Server();
     this.server.on('connection', this.connectionHandler);
     this.server.on('client:setLogLevel', this.logLevelHandler);
+    this.server.on('client:reloadDevices', this.reload);
   }
 
   get path(): string {
@@ -166,44 +170,52 @@ export class NibusService {
 
   updateLogger(connection?: SerialTee): void {
     const logger: SerialLogger | null = loggers[conf.get('logLevel') as LogLevel];
-    const connections = connection ? [connection] : this.connections;
+    const connections = connection ? [connection] : Object.values(this.server.ports);
     connections.forEach(con => con.setLogger(logger));
   }
 
-  public start(): Promise<void> {
-    if (this.isStarted) return Promise.resolve();
+  public async start(): Promise<void> {
+    if (this.isStarted) return;
+    await this.server.listen(this.port, process.env.NIBUS_HOST);
     this.isStarted = true;
+    this.ad = bonjour.publish({
+      name: os.hostname().replace(/\.local\.?$/, ''),
+      type: 'nibus',
+      port: this.port,
+      txt: {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
+        version: require('../../package.json').version,
+      },
+    });
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');
     detector.on('add', this.addHandler);
     detector.on('remove', this.removeHandler);
 
-    const promise = new Promise<void>((resolve, reject) => {
-      detector
-        .getPorts()
-        .then(() => resolve())
-        .catch(err => {
-          console.error('error while get ports', err.stack);
-          reject(err);
-        });
-    });
-
     detector.start();
     process.once('SIGINT', () => this.stop());
     process.once('SIGTERM', () => this.stop());
     debug('started');
-    return promise;
+    await detector.getPorts();
   }
 
   public stop(): void {
     if (!this.isStarted) return;
-    const connections = this.connections.splice(0, this.connections.length);
-    if (connections.length) {
-      // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
-      setTimeout(() => {
-        connections.forEach(connection => connection.close());
-      }, 0);
+    if (this.ad) {
+      this.ad.stop();
+      this.ad = undefined;
     }
+    // Нельзя сразу уничтожать иначе не отправится event:down
+    // bonjour.unpublishAll();
+    // bonjour.destroy();
+    this.server.close();
+    // const connections = this.connections.splice(0, this.connections.length);
+    // if (connections.length) {
+    //   // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
+    //   setTimeout(() => {
+    //     connections.forEach(connection => connection.close());
+    //   }, 0);
+    // }
     detector.removeListener('add', this.addHandler);
     detector.removeListener('remove', this.removeHandler);
     detector.stop();
@@ -212,58 +224,73 @@ export class NibusService {
     debug('stopped');
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  reload(): void {
+    detector.reload();
+  }
+
   private logLevelHandler = (
     client: Socket,
-    logLevel: LogLevel | undefined,
-    pickFields: Fields,
-    omitFields: Fields
+    logLevel: LogLevel | undefined
+    // pickFields: Fields,
+    // omitFields: Fields
   ): void => {
-    logLevel && conf.set('logLevel', logLevel);
-    pickFields && conf.set('pick', pickFields);
-    omitFields && conf.set('omit', omitFields);
+    debug(`setLogLevel: ${logLevel}`);
+    if (logLevel) {
+      conf.set('logLevel', logLevel);
+      this.server
+        .broadcast('logLevel', logLevel)
+        .catch(e => debug(`error while broadcast: ${e.message}`));
+    }
+    // pickFields && conf.set('pick', pickFields);
+    // omitFields && conf.set('omit', omitFields);
     this.updateLogger();
   };
 
   private connectionHandler = (socket: Socket): void => {
-    const { server, connections } = this;
+    const { server } = this;
     server
       .send(
         socket,
         'ports',
-        connections.map(connection => connection.toJSON())
+        Object.values(server.ports).map(port => port.toJSON())
       )
-      .catch(err => {
-        debug('<error>', err.stack);
-      });
+      .catch(err => debug(`<error> while send 'ports': ${err.message}`));
+    server
+      .send(socket, 'host', {
+        name: os.hostname(),
+        platform: os.platform(),
+        arch: os.arch(),
+        version: os.version(),
+      })
+      .catch(err => debug(`<error> while send 'host': ${err.message}`));
+    debug(`logLevel`, conf.get('logLevel'));
+    server
+      .send(socket, 'logLevel', conf.get('logLevel'))
+      .catch(e => debug(`error while send logLevel ${e.message}`));
   };
 
   private addHandler = (portInfo: IKnownPort): void => {
     const { category } = portInfo;
     const mibCategory = detector.getDetection()!.mibCategories[category!];
     if (mibCategory) {
-      const connection = new SerialTee(portInfo, mibCategory);
-      connection.on('close', (path: string) => this.removeHandler({ path }));
-      this.connections.push(connection);
-      this.server.broadcast('add', connection.toJSON()).catch(noop);
-      this.updateLogger(connection);
+      const serial = new SerialTee(portInfo, mibCategory);
+      serial.on('close', (path: string) => this.removeHandler({ path }));
+      this.server.ports[serial.path] = serial;
+      this.server.broadcast('add', serial.toJSON()).catch(noop);
+      this.updateLogger(serial);
       // this.find(connection);
     }
   };
 
   private removeHandler = ({ path }: { path: string }): void => {
-    const index = this.connections.findIndex(({ portInfo: { path: port } }) => port === path);
-    if (index !== -1) {
-      const [connection] = this.connections.splice(index, 1);
-      // debug(`nibus-connection was closed ${connection.description.category}`);
-      connection.close();
-      this.server.broadcast('remove', connection.toJSON()).catch(noop);
+    const serial = this.server.ports[path];
+    if (serial) {
+      delete this.server.ports[path];
+      serial.close();
+      this.server.broadcast('remove', serial.toJSON()).catch(noop);
     }
   };
-
-  // eslint-disable-next-line class-methods-use-this
-  reload(): void {
-    detector.reload();
-  }
 }
 
 const service = new NibusService();

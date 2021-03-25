@@ -6,6 +6,7 @@ mibCategories:
   minihost:
     type: 0xabc6
     find: sarp
+    link: true
   fancontrol:
     mib: fan_control
     find: version
@@ -24,8 +25,8 @@ mibCategories:
     disableBatchReading: true
   ftdi:
     select:
-      - siolynx
       - minihost
+      - siolynx
 knownDevices:
   - vid: '2047'
     pid: '0a3d'

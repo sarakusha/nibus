@@ -98,6 +98,7 @@ const MibDeviceAppInfoV = t.intersection([
     loader_type: t.string,
     firmware: t.string,
     min_version: t.string,
+    disable_batch_reading: t.string,
   }),
 ]);
 const MibDeviceTypeV = t.type({

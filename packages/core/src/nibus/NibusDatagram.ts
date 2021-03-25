@@ -12,8 +12,8 @@
 import { crc16ccitt } from 'crc';
 import _ from 'lodash';
 import Address, { AddressParam } from '../Address';
+import { Datagram, replaceBuffers } from '../common';
 import { MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
-import { printBuffer } from './helper';
 
 // import {timeStamp} from '../utils';
 
@@ -45,22 +45,8 @@ export interface INibusDatagramJSON {
   data?: Buffer;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const replaceBuffers = (obj: any): any =>
-  Object.entries(obj).reduce(
-    (result, [name, value]) => ({
-      ...result,
-      [name]: Buffer.isBuffer(value)
-        ? printBuffer(value)
-        : _.isPlainObject(value)
-        ? replaceBuffers(value)
-        : value,
-    }),
-    {}
-  );
-
 // @timeStamp
-export default class NibusDatagram implements INibusOptions {
+export default class NibusDatagram implements INibusOptions, Datagram {
   public static defaultSource: AddressParam = Address.empty;
 
   public readonly priority: number;
@@ -138,7 +124,7 @@ ${leadZero(ts.getSeconds())}.${ts.getMilliseconds()}`,
   }
 
   toString(opts?: { pick?: string[]; omit?: string[] }): string {
-    let self = replaceBuffers(this.toJSON());
+    let self = replaceBuffers(this.toJSON()) as Record<string, unknown>;
     if (opts) {
       if (opts.pick) {
         self = _.pick(self, opts.pick);

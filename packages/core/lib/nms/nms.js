@@ -5,9 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getNmsType = exports.encodeValue = exports.writeValue = exports.decodeValue = exports.getSizeOf = void 0;
 const iconv_lite_1 = require("iconv-lite");
+const common_1 = require("../common");
 const errors_1 = require("../errors");
 const nbconst_1 = require("../nbconst");
-const helper_1 = require("../nibus/helper");
 const NmsValueType_1 = __importDefault(require("./NmsValueType"));
 const packByte = (b) => ((b % 100) / 10) * 16 + (b % 10);
 const unpackByte = (byte) => (byte & 0x0f) + ((byte >> 4) & 0x0f) * 10;
@@ -127,7 +127,7 @@ function writeValue(valueType, value, buffer, offset = 0) {
             break;
         case NmsValueType_1.default.UInt64: {
             const strVal = typeof value === 'number' ? value.toString(16) : value.toString();
-            pos = buffer.write(helper_1.chunkArray(strVal.padStart(16, '0'), 2).reverse().join(''), pos, 8, 'hex');
+            pos = buffer.write(common_1.chunkArray(strVal.padStart(16, '0'), 2).reverse().join(''), pos, 8, 'hex');
             break;
         }
         case NmsValueType_1.default.UInt8:

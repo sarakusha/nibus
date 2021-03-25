@@ -1,45 +1,30 @@
 /// <reference types="node" />
+import { LogLevel } from '@nibus/core';
 import { Socket } from 'net';
-import { Duplex } from 'stream';
-export declare enum Direction {
-    in = 0,
-    out = 1
+import { TypedEmitter } from 'tiny-typed-emitter';
+import type SerialTee from './SerialTee';
+import { Direction } from './SerialTee';
+interface IPCServerEvents {
+    connection: (socket: Socket) => void;
+    'client:error': (socket: Socket, err: Error) => void;
+    'client:setLogLevel': (client: Socket, logLevel: LogLevel | undefined) => void;
+    'client:reloadDevices': (socket: Socket) => void;
+    'client:config': (socket: Socket, config: Record<string, unknown>) => void;
+    raw: (data: Buffer, dir: Direction) => void;
 }
-interface IPCServer {
-    on(event: 'connection', listener: (socket: Socket) => void): this;
-    on(event: 'client:error', listener: (err: Error) => void): this;
-    on(event: 'raw', listener: (data: Buffer, dir: Direction) => void): this;
-    on(event: string | symbol, listener: (...args: any[]) => void): this;
-    once(event: 'connection', listener: (socket: Socket) => void): this;
-    once(event: 'raw', listener: (data: Buffer, dir: Direction) => void): this;
-    once(event: string | symbol, listener: (...args: any[]) => void): this;
-    addListener(event: 'connection', listener: (socket: Socket) => void): this;
-    addListener(event: 'client:error', listener: (err: Error) => void): this;
-    addListener(event: 'raw', listener: (data: Buffer, dir: Direction) => void): this;
-    addListener(event: string | symbol, listener: (...args: any[]) => void): this;
-    emit(event: 'connection', socket: Socket): boolean;
-    emit(event: 'client:error', err: Error): boolean;
-    emit(event: 'raw', data: Buffer, dir: Direction): boolean;
-    emit(event: string | symbol, ...args: any[]): boolean;
-}
-declare class IPCServer extends Duplex {
-    private readonly raw;
-    private readonly server;
+declare class IPCServer extends TypedEmitter<IPCServerEvents> {
+    ports: Record<string, SerialTee>;
     private readonly clients;
+    private readonly server;
     private closed;
-    private reading;
-    constructor(path: string, raw?: boolean);
-    private connectionHandler;
-    private errorHandler;
-    private clientErrorHandler;
-    private clientDataHandler;
-    private removeClient;
-    _write(chunk: any, encoding: BufferEncoding, callback: (error?: Error | null) => void): void;
-    _read(_size: number): void;
+    private tail;
+    constructor();
     get path(): string;
-    send(client: Socket, event: string, ...args: any[]): Promise<void>;
-    broadcast(event: string, ...args: any[]): Promise<void>;
+    listen(port: number, host?: string): Promise<void>;
+    send(client: Socket, event: string, ...args: unknown[]): Promise<void>;
+    broadcast(event: string, ...args: unknown[]): Promise<void>;
     close: () => void;
+    private connectionHandler;
 }
 export default IPCServer;
 //# sourceMappingURL=Server.d.ts.map

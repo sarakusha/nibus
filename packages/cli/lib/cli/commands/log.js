@@ -21,7 +21,7 @@ const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
 const debug = debug_1.default('nibus:log');
 const logCommand = {
     command: 'log',
-    describe: 'задать уровень логгирования',
+    describe: 'задать уровень логирования',
     builder: argv => argv
         .option('level', {
         alias: ['l', 'lev'],
@@ -33,7 +33,7 @@ const logCommand = {
         array: true,
     })
         .option('omit', {
-        desc: 'выдавть поля кроме указанных в логах nibus',
+        desc: 'выдавать поля кроме указанных в логах nibus',
         array: true,
     })
         .option('begin', {
@@ -41,8 +41,9 @@ const logCommand = {
         describe: 'вывод с начала',
         boolean: true,
     }),
-    handler: serviceWrapper_1.default(({ level, pick, omit, begin, }) => new Promise((resolve, reject) => {
-        const socket = core_1.Client.connect(core_1.PATH);
+    handler: serviceWrapper_1.default(({ level, begin }) => new Promise((resolve, reject) => {
+        var _a;
+        const socket = core_1.Client.connect({ port: +((_a = process.env.NIBUS_PORT) !== null && _a !== void 0 ? _a : 9001) });
         let resolved = false;
         socket.once('close', () => {
             resolved ? resolve() : reject();
@@ -52,14 +53,16 @@ const logCommand = {
         });
         socket.on('connect', () => __awaiter(void 0, void 0, void 0, function* () {
             try {
-                yield socket.send('setLogLevel', level, pick, omit);
+                yield socket.send('setLogLevel', (level !== null && level !== void 0 ? level : 'none'));
                 resolved = true;
             }
             finally {
                 socket.destroy();
             }
         }));
-        const log = new tail_1.Tail(path_1.default.resolve(os_1.homedir(), '.pm2', 'logs', 'nibus.service-error.log'), { fromBeginning: !!begin });
+        const log = new tail_1.Tail(path_1.default.resolve(os_1.homedir(), '.pm2', 'logs', 'nibus.service-error.log'), {
+            fromBeginning: !!begin,
+        });
         process.on('SIGINT', () => log.unwatch());
         log.watch();
         log.on('line', console.info.bind(console));

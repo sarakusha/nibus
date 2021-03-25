@@ -8,10 +8,13 @@
  * the EULA file that was distributed with this source code.
  */
 
-// import 'reflect-metadata';
-import devices from './devices';
+import 'reflect-metadata';
+// import devices from './devices';
+import session from '../session/MockNibusSession';
 import { getMibs } from './mib2json';
 // import {inspect} from 'util';
+
+const { devices } = session;
 
 describe('Device', () => {
   test('one mib - one prototype', () => {

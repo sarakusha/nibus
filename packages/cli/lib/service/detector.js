@@ -54,7 +54,7 @@ debug('Detection file', exports.detectionPath);
 let knownPorts = Promise.resolve([]);
 const getRawDetection = () => {
     const data = fs_1.default.readFileSync(exports.detectionPath, 'utf8');
-    return js_yaml_1.default.safeLoad(data);
+    return js_yaml_1.default.load(data);
 };
 const loadDetection = () => {
     const result = getRawDetection();
@@ -167,7 +167,7 @@ function reloadDevicesAsync(prevPorts, lastAdded) {
             }
             const list = yield serialport_1.default.list();
             const externalPorts = list.filter(port => !!port.productId);
-            debug('externalPorts', externalPorts);
+            debug('externalPorts', JSON.stringify(externalPorts));
             yield externalPorts.reduce((promise, port) => __awaiter(this, void 0, void 0, function* () {
                 const nextPorts = yield promise;
                 const prev = lodash_1.default.findIndex(prevPorts, { path: port.path });

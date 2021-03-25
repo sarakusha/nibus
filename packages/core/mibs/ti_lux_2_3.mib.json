@@ -15,7 +15,8 @@
         "mib_version": "1.0",
         "device_type": "0x0043",
         "loader_type": "0x26",
-        "firmware": "ti_lux_23.txt"
+        "firmware": "ti_lux_23.txt",
+        "disable_batch_reading": "true"
       },
       "properties": {
         "version": {

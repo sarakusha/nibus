@@ -29,15 +29,16 @@ function validJsName(name) {
     return name.replace(/(_\w)/g, (_, s) => s[1].toUpperCase());
 }
 exports.validJsName = validJsName;
-exports.withValue = (value, writable = false, configurable = false) => ({
+const withValue = (value, writable = false, configurable = false) => ({
     value,
     writable,
     configurable,
     enumerable: true,
 });
+exports.withValue = withValue;
 const hex = /^0X[0-9A-F]+$/i;
 const isHex = (str) => hex.test(str) || parseInt(str, 10).toString(10) !== str.toLowerCase().replace(/^[0 ]+/, '');
-exports.toInt = (value = 0) => {
+const toInt = (value = 0) => {
     if (typeof value === 'number')
         return value;
     if (typeof value === 'boolean')
@@ -48,6 +49,7 @@ exports.toInt = (value = 0) => {
         return 0;
     return parseInt(value, isHex(value) ? 16 : 10);
 };
+exports.toInt = toInt;
 function unitConverter(unit) {
     const fromRe = new RegExp(`(\\s*${unit}\\s*)$`, 'i');
     return {
@@ -94,6 +96,7 @@ const MibDeviceAppInfoV = t.intersection([
         loader_type: t.string,
         firmware: t.string,
         min_version: t.string,
+        disable_batch_reading: t.string,
     }),
 ]);
 const MibDeviceTypeV = t.type({
@@ -308,10 +311,13 @@ function maxInclusiveConverter(max) {
     };
 }
 exports.maxInclusiveConverter = maxInclusiveConverter;
-exports.evalConverter = (get, set) => ({
+const evalConverter = (get, set) => ({
     from: eval(set),
     to: eval(get),
 });
-exports.convertTo = (converters) => (value) => converters.reduceRight((result, converter) => result !== undefined && converter.to(result), value);
-exports.convertFrom = (converters) => (value) => converters.reduce((present, converter) => converter.from(present), value);
+exports.evalConverter = evalConverter;
+const convertTo = (converters) => (value) => converters.reduceRight((result, converter) => result !== undefined && converter.to(result), value);
+exports.convertTo = convertTo;
+const convertFrom = (converters) => (value) => converters.reduce((present, converter) => converter.from(present), value);
+exports.convertFrom = convertFrom;
 //# sourceMappingURL=mib.js.map

@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "2.1.2",
+  "version": "3.0.4",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -44,14 +44,16 @@
     "@types/xdg-basedir": "^4.0.2",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-tsdoc": "^0.2.0",
-    "typedoc": "^0.19.2"
+    "typedoc": "^0.20.20"
   },
   "dependencies": {
     "crc": "^3.8.0",
     "debug": "^4.1.1",
+    "electron-log": "^4.3.1",
     "fast-xml-parser": "^3.17.4",
     "fp-ts": "^2.4.1",
     "iconv-lite": "^0.6.2",
+    "intel-hex": "^0.1.2",
     "io-ts": "^2.0.5",
     "io-ts-types": "^0.5.5",
     "lodash": "^4.17.11",
@@ -60,6 +62,7 @@
     "printf": "^0.6.0",
     "reflect-metadata": "^0.1.13",
     "sax": "^1.2.4",
+    "tiny-typed-emitter": "^2.0.3",
     "xdg-basedir": "^4.0.0",
     "xpipe": "^1.0.5"
   },

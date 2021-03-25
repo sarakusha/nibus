@@ -1,10 +1,12 @@
-/// <reference types="node" />
-import { EventEmitter } from 'events';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
-import { IDevice } from '../mib';
+import { LogLevel } from '../common';
+import { Host } from '../ipc';
+import { Display } from '../ipc/events';
+import { Devices, IDevice, DeviceId } from '../mib';
 import { INibusConnection } from '../nibus';
+import { NmsDatagram } from '../nms';
 import { Category } from './KnownPorts';
-export declare const delay: (seconds: number) => Promise<void>;
 export declare type FoundListener = (arg: {
     connection: INibusConnection;
     category: Category;
@@ -12,48 +14,66 @@ export declare type FoundListener = (arg: {
 }) => void;
 export declare type ConnectionListener = (connection: INibusConnection) => void;
 export declare type DeviceListener = (device: IDevice) => void;
-export interface INibusSession extends EventEmitter {
-    on(event: 'start' | 'close', listener: () => void): this;
-    on(event: 'found', listener: FoundListener): this;
-    on(event: 'add' | 'remove', listener: ConnectionListener): this;
-    on(event: 'connected' | 'disconnected', listener: DeviceListener): this;
-    on(event: 'pureConnection', listener: (connection: INibusConnection) => void): this;
-    once(event: 'start' | 'close', listener: () => void): this;
-    once(event: 'found', listener: FoundListener): this;
-    once(event: 'add' | 'remove', listener: ConnectionListener): this;
-    once(event: 'connected' | 'disconnected', listener: DeviceListener): this;
-    once(event: 'pureConnection', listener: (connection: INibusConnection) => void): this;
-    off(event: 'start' | 'close', listener: () => void): this;
-    off(event: 'found', listener: FoundListener): this;
-    off(event: 'add' | 'remove', listener: ConnectionListener): this;
-    off(event: 'connected' | 'disconnected', listener: DeviceListener): this;
-    off(event: 'pureConnection', listener: (connection: INibusConnection) => void): this;
-    removeListener(event: 'start' | 'close', listener: () => void): this;
-    removeListener(event: 'found', listener: FoundListener): this;
-    removeListener(event: 'add' | 'remove', listener: ConnectionListener): this;
-    removeListener(event: 'connected' | 'disconnected', listener: DeviceListener): this;
-    removeListener(event: 'pureConnection', listener: (connection: INibusConnection) => void): this;
+export interface NibusSessionEvents {
+    start: () => void;
+    close: () => void;
+    found: FoundListener;
+    add: ConnectionListener;
+    remove: ConnectionListener;
+    connected: DeviceListener;
+    disconnected: DeviceListener;
+    pureConnection: (connection: INibusConnection) => void;
+    logLevel: (level: LogLevel) => void;
+    informationReport: (connection: INibusConnection, info: NmsDatagram) => void;
+    config: (config: Record<string, unknown>) => void;
+    host: (host: Host) => void;
+    log: (line: string) => void;
+    online: (isOnline: boolean) => void;
+    displays: (value: Display[]) => void;
+}
+export interface INibusSession {
+    on<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
+    once<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
+    off<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
     readonly ports: number;
-    start(): Promise<number>;
-    connectDevice(device: IDevice, connection: INibusConnection): void;
+    start(port?: number, host?: string): Promise<number>;
     close(): void;
     pingDevice(device: IDevice): Promise<number>;
     ping(address: AddressParam): Promise<number>;
+    reloadDevices(): void;
+    setLogLevel(logLevel: LogLevel): void;
+    saveConfig(config: Record<string, unknown>): void;
+    readonly devices: Devices;
+    readonly host?: string;
+    readonly port: number;
 }
-export declare class NibusSession extends EventEmitter implements INibusSession {
+export declare class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
+    readonly port: number;
+    readonly host?: string | undefined;
     private readonly connections;
+    private readonly nmsListeners;
     private isStarted;
     private socket?;
+    readonly devices: Devices;
+    constructor(port: number, host?: string | undefined);
     get ports(): number;
     start(): Promise<number>;
-    connectDevice(device: IDevice, connection: INibusConnection): void;
+    private connectDevice;
     close(): void;
     pingDevice(device: IDevice): Promise<number>;
     ping(address: AddressParam): Promise<number>;
+    reloadDevices(): void;
+    setLogLevel(logLevel: LogLevel): void;
+    saveConfig(config: Record<string, unknown>): void;
     private reloadHandler;
     private addHandler;
     private closeConnection;
     private removeHandler;
     private find;
 }
+export declare const getNibusSession: (port?: number, host?: string | undefined) => INibusSession;
+export declare const getDefaultSession: () => INibusSession;
+export declare const getSessions: () => INibusSession[];
+export declare const findDeviceById: (id: DeviceId) => IDevice | undefined;
+export declare const setDefaultSession: (port: number, host?: string | undefined) => INibusSession;
 //# sourceMappingURL=NibusSession.d.ts.map

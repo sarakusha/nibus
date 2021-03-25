@@ -28,7 +28,7 @@ export async function action(
   args: Arguments<FlashOpts & WriteOptions>
 ): Promise<void> {
   const isModule = (await writeAction(device, args)).includes('moduleSelect');
-  const flasher = new Flasher(device);
+  const flasher = new Flasher(device.id);
   const { total, offset } = flasher.flash(args.source, isModule ? device.moduleSelect : undefined);
   const dest = offset.toString(16).padStart(5, '0');
   const bar = new Progress(

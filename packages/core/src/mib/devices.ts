@@ -10,19 +10,19 @@
 
 /* eslint-disable max-classes-per-file,@typescript-eslint/no-explicit-any */
 import { crc16ccitt } from 'crc';
-import debugFactory from 'debug';
 import { EventEmitter } from 'events';
 import { isLeft } from 'fp-ts/lib/Either';
 import fs from 'fs';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import _, { Dictionary } from 'lodash';
 import path from 'path';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import { config as configDir } from 'xdg-basedir';
+import debugFactory from '../debug';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import { INibusConnection } from '../nibus';
-import { chunkArray } from '../nibus/helper';
 import {
   createExecuteProgramInvocation,
   createNmsDownloadSegment,
@@ -40,7 +40,7 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { Config, ConfigV } from '../session/common';
+import { chunkArray, Config, ConfigV } from '../common';
 import timeid from '../timeid';
 import {
   booleanConverter,
@@ -95,92 +95,44 @@ interface DeviceConstructor extends Function {
   prototype: DevicePrototype;
 }
 
-const deviceMap: { [address: string]: IDevice[] } = {};
-
 const mibTypesCache: { [mibname: string]: DeviceConstructor } = {};
 
 // interface IMibPropertyAppInfo extends t.TypeOf<typeof MibPropertyAppInfoV> {}
 
 type Listener<T> = (arg: T) => void;
 type ChangeArg = { id: number; names: string[] };
-export type ChangeListener = Listener<ChangeArg>;
+type ChangeListener = Listener<ChangeArg>;
 type UploadStartArg = { domain: string; domainSize: number; offset: number; size: number };
-export type UploadStartListener = Listener<UploadStartArg>;
+type UploadStartListener = Listener<UploadStartArg>;
 type UploadDataArg = { domain: string; data: Buffer; pos: number };
 export type UploadDataListener = Listener<UploadDataArg>;
 type UploadFinishArg = { domain: string; offset: number; data: Buffer };
-export type UploadFinishListener = Listener<UploadFinishArg>;
+type UploadFinishListener = Listener<UploadFinishArg>;
 type DownloadStartArg = { domain: string; domainSize: number; offset: number; size: number };
-export type DownloadStartListener = Listener<DownloadStartArg>;
+type DownloadStartListener = Listener<DownloadStartArg>;
 type DownloadDataArg = { domain: string; length: number };
 export type DownloadDataListener = Listener<DownloadDataArg>;
 type DownloadFinishArg = { domain: string; offset: number; size: number };
-export type DownloadFinishListener = Listener<DownloadFinishArg>;
+type DownloadFinishListener = Listener<DownloadFinishArg>;
 export type DeviceId = string & { __brand: 'DeviceId' };
 
-interface IDeviceEvents extends EventEmitter {
-  on(event: 'connected' | 'disconnected', listener: () => void): this;
-  // on(event: 'serno', listener: () => void): this;
-  on(event: 'changing' | 'changed', listener: ChangeListener): this;
-  on(event: 'uploadStart', listener: UploadStartListener): this;
-  on(event: 'uploadData', listener: UploadDataListener): this;
-  on(event: 'uploadFinish', listener: UploadFinishListener): this;
-  on(event: 'downloadStart', listener: DownloadStartListener): this;
-  on(event: 'downloadData', listener: DownloadDataListener): this;
-  on(event: 'downloadFinish', listener: DownloadFinishListener): this;
-
-  once(event: 'connected' | 'disconnected', listener: () => void): this;
-  // once(event: 'serno', listener: () => void): this;
-  once(event: 'changing' | 'changed', listener: ChangeListener): this;
-  once(event: 'uploadStart', listener: UploadStartListener): this;
-  once(event: 'uploadData', listener: UploadDataListener): this;
-  once(event: 'uploadFinish', listener: UploadFinishListener): this;
-  once(event: 'downloadStart', listener: DownloadStartListener): this;
-  once(event: 'downloadData', listener: DownloadDataListener): this;
-  once(event: 'downloadFinish', listener: DownloadFinishListener): this;
-
-  addListener(event: 'connected' | 'disconnected', listener: () => void): this;
-  // addListener(event: 'serno', listener: () => void): this;
-  addListener(event: 'changing' | 'changed', listener: ChangeListener): this;
-  addListener(event: 'uploadStart', listener: UploadStartListener): this;
-  addListener(event: 'uploadData', listener: UploadDataListener): this;
-  addListener(event: 'uploadFinish', listener: UploadFinishListener): this;
-  addListener(event: 'downloadStart', listener: DownloadStartListener): this;
-  addListener(event: 'downloadData', listener: DownloadDataListener): this;
-  addListener(event: 'downloadFinish', listener: DownloadFinishListener): this;
-
-  off(event: 'connected' | 'disconnected', listener: () => void): this;
-  // off(event: 'serno', listener: () => void): this;
-  off(event: 'changing' | 'changed', listener: ChangeListener): this;
-  off(event: 'uploadStart', listener: UploadStartListener): this;
-  off(event: 'uploadData', listener: UploadDataListener): this;
-  off(event: 'uploadFinish', listener: UploadFinishListener): this;
-  off(event: 'downloadStart', listener: DownloadStartListener): this;
-  off(event: 'downloadData', listener: DownloadDataListener): this;
-  off(event: 'downloadFinish', listener: DownloadFinishListener): this;
-
-  removeListener(event: 'connected' | 'disconnected', listener: () => void): this;
-  // removeListener(event: 'serno', listener: () => void): this;
-  removeListener(event: 'changing' | 'changed', listener: ChangeListener): this;
-  removeListener(event: 'uploadStart', listener: UploadStartListener): this;
-  removeListener(event: 'uploadData', listener: UploadDataListener): this;
-  removeListener(event: 'uploadFinish', listener: UploadFinishListener): this;
-  removeListener(event: 'downloadStart', listener: DownloadStartListener): this;
-  removeListener(event: 'downloadData', listener: DownloadDataListener): this;
-  removeListener(event: 'downloadFinish', listener: DownloadFinishListener): this;
-
-  emit(event: 'connected' | 'disconnected'): boolean;
-  // emit(event: 'serno'): boolean;
-  emit(event: 'changing' | 'changed', arg: ChangeArg): boolean;
-  emit(event: 'uploadStart', arg: UploadStartArg): boolean;
-  emit(event: 'uploadData', arg: UploadDataArg): boolean;
-  emit(event: 'uploadFinish', arg: UploadFinishArg): boolean;
-  emit(event: 'downloadStart', arg: DownloadStartArg): boolean;
-  emit(event: 'downloadData', arg: DownloadDataArg): boolean;
-  emit(event: 'downloadFinish', arg: DownloadFinishArg): boolean;
+interface IDeviceEvents {
+  connected: () => void;
+  disconnected: () => void;
+  changing: ChangeListener;
+  changed: ChangeListener;
+  uploadStart: UploadStartListener;
+  uploadData: UploadDataListener;
+  uploadFinish: UploadFinishListener;
+  downloadStart: DownloadStartListener;
+  downloadData: DownloadDataListener;
+  downloadFinish: DownloadFinishListener;
+  uploadError: (e: Error) => void;
+  release: (device: IDevice) => void;
+  addressChanged: (prev: Address, address: Address) => void;
 }
 
-export interface IDevice extends IDeviceEvents {
+export interface IDevice {
   readonly id: DeviceId;
   readonly address: Address;
   connection?: INibusConnection;
@@ -200,6 +152,20 @@ export interface IDevice extends IDeviceEvents {
   getError(idOrName: number | string): any;
   isDirty(idOrName: string | number): boolean;
   [mibProperty: string]: any;
+
+  on<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+  once<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+  off<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+  toJSON(): unknown;
+  // addListener<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+  // removeListener<U extends keyof IDeviceEvents>(event: U, listener: IDeviceEvents[U]): this;
+  // emit<U extends keyof IDeviceEvents>(event: U, ...args: Parameters<IDeviceEvents[U]>): boolean;
+}
+
+interface DevicesEvents {
+  // serno: (prevAddress: Address, newAddress: Address) => void;
+  new: (device: IDevice) => void;
+  delete: (device: IDevice) => void;
 }
 
 interface ISubroutineDesc {
@@ -429,9 +395,11 @@ export function getMibFile(mibname: string): string {
   return path.resolve(__dirname, '../../mibs/', `${mibname}.mib.json`);
 }
 
-class DevicePrototype extends EventEmitter implements IDevice {
+class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
   // will be override for an instance
   $countRef = 1;
+
+  $read?: Promise<any>;
 
   // private $debounceDrain = _.debounce(this.drain, 25);
 
@@ -488,7 +456,12 @@ class DevicePrototype extends EventEmitter implements IDevice {
     //   Reflect.defineMetadata('category', category, this);
     //   Reflect.defineMetadata('disableBatchReading', !!disableBatchReading, this);
     // }
-
+    if (device.appinfo.disable_batch_reading) {
+      const disableBatchReading = Boolean(
+        JSON.parse(device.appinfo.disable_batch_reading.toLowerCase())
+      );
+      Reflect.defineMetadata('disableBatchReading', disableBatchReading, this);
+    }
     const keys = Reflect.ownKeys(device.properties) as string[];
     Reflect.defineMetadata('mibProperties', keys.map(validJsName), this);
     const map: { [id: number]: string[] } = {};
@@ -612,7 +585,6 @@ class DevicePrototype extends EventEmitter implements IDevice {
     const { [$dirties]: dirties } = this;
     if (isDirty) {
       dirties[id] = true;
-      // TODO: implement autosave
       // this.write(id).catch(() => {});
     } else {
       delete dirties[id];
@@ -630,10 +602,14 @@ class DevicePrototype extends EventEmitter implements IDevice {
     ) {
       const value = this.serno;
       const prevAddress = this.address;
-      const address = Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex');
-      Reflect.defineProperty(this, 'address', withValue(new Address(address), false, true));
+      const address = new Address(
+        Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex')
+      );
+      Reflect.defineProperty(this, 'address', withValue(address, false, true));
+      this.emit('addressChanged', prevAddress, address);
+      // console.log('DEFINE NEW ADDRESS', address, this.address.toString());
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      devices.emit('serno', prevAddress, this.address);
+      // devices.emit('serno', prevAddress, this.address);
     }
   }
 
@@ -646,13 +622,10 @@ class DevicePrototype extends EventEmitter implements IDevice {
   public release(): number {
     this.$countRef -= 1;
     if (this.$countRef <= 0) {
-      const key = this.address.toString();
-      deviceMap[key] = _.without(deviceMap[key], this);
-      if (deviceMap[key].length === 0) {
-        delete deviceMap[key];
-      }
+      // const key = this.address.toString();
+      this.emit('release', this);
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      devices.emit('delete', this);
+      // devices.emit('delete', this);
     }
     return this.$countRef;
   }
@@ -969,7 +942,7 @@ class DevicePrototype extends EventEmitter implements IDevice {
 interface DevicePrototype {
   readonly id: DeviceId;
   readonly address: Address;
-  $countRef: number;
+  // $countRef: number;
   $read?: Promise<any>;
   [$values]: { [id: number]: any };
   [$errors]: { [id: number]: Error };
@@ -1015,15 +988,6 @@ export function findMibByType(type: number, version?: number): string | undefine
   // });
 }
 
-export declare interface Devices {
-  on(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
-  on(event: 'serno', listener: (prevAddress: Address, newAddress: Address) => void): this;
-  once(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
-  once(event: 'serno', listener: (prevAddress: Address, newAddress: Address) => void): this;
-  addListener(event: 'new' | 'delete', deviceListener: (device: IDevice) => void): this;
-  addListener(event: 'serno', listener: (prevAddress: Address, newAddress: Address) => void): this;
-}
-
 function getConstructor(mib: string): DeviceConstructor {
   let constructor = mibTypesCache[mib];
   if (!constructor) {
@@ -1053,31 +1017,43 @@ export function getMibPrototype(mib: string): Record<string, any> {
 }
 
 export interface CreateDevice {
-  (address: AddressParam, mib: string): IDevice;
-  (address: AddressParam, type: number, version?: number): IDevice;
+  (address: AddressParam, mib: string, owned?: INibusConnection): IDevice;
+  (address: AddressParam, type: number, version?: number, owned?: INibusConnection): IDevice;
 }
 
-export class Devices extends EventEmitter {
-  get = (): IDevice[] => _.flatten(_.values(deviceMap));
+export class Devices extends TypedEmitter<DevicesEvents> {
+  private deviceMap: { [address: string]: IDevice[] } = {};
 
-  find = (address: AddressParam): IDevice[] | undefined => {
+  get = (): IDevice[] => _.flatten(_.values(this.deviceMap));
+
+  findById(id: DeviceId): IDevice | undefined {
+    return this.get().find(item => item.id === id);
+  }
+
+  find = (address: AddressParam): IDevice[] => {
     const targetAddress = new Address(address);
-    return deviceMap[targetAddress.toString()];
+    return this.deviceMap[targetAddress.toString()] ?? [];
   };
 
   // create(address: AddressParam, mib: string): IDevice;
 
   // create(address: AddressParam, type: number, version?: number): IDevice;
 
-  create: CreateDevice = (address: AddressParam, mibOrType: any, version?: number): IDevice => {
+  create: CreateDevice = (
+    address: AddressParam,
+    mibOrType: number | string,
+    versionOrOwned?: number | INibusConnection,
+    ownedParam?: INibusConnection
+  ): IDevice => {
     let mib: string | undefined;
+    let owned: INibusConnection | undefined;
     if (typeof mibOrType === 'number') {
-      mib = findMibByType(mibOrType, version);
+      mib = findMibByType(mibOrType, versionOrOwned as number);
       if (mib === undefined) throw new Error('Unknown mib type');
-    } else if (typeof mibOrType === 'string') {
-      mib = String(mibOrType);
+      owned = ownedParam;
     } else {
-      throw new Error(`mib or type expected, got ${mibOrType}`);
+      mib = String(mibOrType);
+      owned = versionOrOwned as INibusConnection | undefined;
     }
     const targetAddress = new Address(address);
     // let device = deviceMap[targetAddress.toString()];
@@ -1092,15 +1068,33 @@ export class Devices extends EventEmitter {
 
     const constructor = getConstructor(mib);
     const device: IDevice = Reflect.construct(constructor, [targetAddress]);
-    if (!targetAddress.isEmpty) {
-      const key = targetAddress.toString();
-      deviceMap[key] = (deviceMap[key] || []).concat(device);
-      process.nextTick(() => this.emit('new', device));
+    if (owned) {
+      device.connection = owned;
+      if (!owned.owner) {
+        owned.owner = device;
+        owned.description.mib = mib;
+      }
     }
+    // if (!targetAddress.isEmpty) {
+    const key = targetAddress.toString();
+    this.deviceMap[key] = (this.deviceMap[key] || []).concat(device);
+    device.on('release', this.onReleaseDevice);
+    process.nextTick(() => this.emit('new', device));
+    // }
     return device;
+  };
+
+  private onReleaseDevice = (device: IDevice): void => {
+    if (!device) return;
+    const key = device.address.toString();
+    this.deviceMap[key] = _.without(this.deviceMap[key], device);
+    device.off('release', this.onReleaseDevice);
+    if (this.deviceMap[key].length === 0) {
+      delete this.deviceMap[key];
+    }
+    this.emit('delete', device);
   };
 }
 
-const devices = new Devices();
-
-export default devices;
+// const devices = new Devices();
+// export default devices;

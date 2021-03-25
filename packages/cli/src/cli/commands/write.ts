@@ -19,9 +19,8 @@ type WriteOpts = MacOptions;
 type NameIdValue = [string, number, string];
 
 export async function action(device: IDevice, args: Arguments<WriteOpts>): Promise<string[]> {
-  const vars: NameIdValue[] = args._
-    .slice(1)
-    .map(arg => arg.split('=', 2))
+  const vars: NameIdValue[] = args._.slice(1)
+    .map(arg => String(arg).split('=', 2))
     .filter(([name, value]) => name !== '' && value !== '')
     .map(([name, value]) => [device.getName(name), device.getId(name), value] as NameIdValue);
   vars.forEach(([name, , value]) => {
@@ -30,7 +29,8 @@ export async function action(device: IDevice, args: Arguments<WriteOpts>): Promi
   if (vars.length === 0) {
     return [];
   }
-  args.quiet || console.info(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
+  args.quiet ||
+    console.info(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
   return device.write(...vars.map(([, id]) => id)).then(ids => {
     const names = ids.map(id => device.getName(id));
     if (!args.quiet) {
@@ -43,12 +43,11 @@ export async function action(device: IDevice, args: Arguments<WriteOpts>): Promi
 const writeCommand: CommandModule<CommonOpts, WriteOpts> = {
   command: 'write',
   describe: 'запись переменных в устройство',
-  builder: argv => argv
-    .demandOption(['mac'])
-    .example(
+  builder: argv =>
+    argv.demandOption(['mac']).example(
       '$0 write -m ::ab:cd hofs=100 vofs=300 brightness=34',
       `записать в переменные: hofs<-100, vofs<-300, brightness<-34 на устройстве с адресом ::ab:cd
-      mib указывать не обязательно, если у устройства есть firmware_version`,
+      mib указывать не обязательно, если у устройства есть firmware_version`
     ),
   handler: makeAddressHandler(action, true),
 };

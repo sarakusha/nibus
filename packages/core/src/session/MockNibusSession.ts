@@ -1,27 +1,31 @@
-/* eslint-disable class-methods-use-this */
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-import debugFactory from 'debug';
-import { EventEmitter } from 'events';
+
+/* eslint-disable class-methods-use-this */
+import { TypedEmitter } from 'tiny-typed-emitter';
+import debugFactory from '../debug';
 import Address, { AddressParam } from '../Address';
-import { IDevice } from '../mib';
-import { INibusConnection } from '../nibus';
+import { Devices, IDevice } from '../mib';
 import MockNibusConnection from '../nibus/MockNibusConnection';
-import type { INibusSession } from './NibusSession';
+import { NibusSessionEvents, INibusSession } from './NibusSession';
 
 const debug = debugFactory('nibus:mock-session');
 
-export default class MockNibusSession extends EventEmitter implements INibusSession {
+export class MockNibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
   readonly ports = 1;
 
-  private connection = new MockNibusConnection();
+  readonly devices = new Devices();
+
+  readonly port = 9001;
+
+  private connection = new MockNibusConnection(this, this.devices);
 
   private isStarted = false;
 
@@ -29,6 +33,8 @@ export default class MockNibusSession extends EventEmitter implements INibusSess
     this.isStarted = true;
     setTimeout(() => {
       this.emit('add', this.connection);
+      // const device = this.devices.create('::DE:AD', 'minihost3');
+      // this.connectDevice(device);
       this.emit('found', {
         connection: this.connection,
         category: 'minihost',
@@ -38,13 +44,12 @@ export default class MockNibusSession extends EventEmitter implements INibusSess
     return Promise.resolve(1);
   }
 
-  connectDevice(device: IDevice, connection: INibusConnection): void {
-    if (device.connection === connection) return;
-    device.connection = connection;
-    const event = connection ? 'connected' : 'disconnected';
-    process.nextTick(() => this.emit(event, device));
+  connectDevice(device: IDevice): void {
+    if (device.connection === this.connection) return;
+    device.connection = this.connection;
+    process.nextTick(() => this.emit('connected', device));
     // device.emit('connected');
-    debug(`mib-device [${device.address}] was ${event}`);
+    debug(`mib-device [${device.address}] was connected`);
   }
 
   close(): void {
@@ -61,4 +66,14 @@ export default class MockNibusSession extends EventEmitter implements INibusSess
   ping(_address: AddressParam): Promise<number> {
     return MockNibusConnection.pingImpl();
   }
+
+  reloadDevices(): void {}
+
+  setLogLevel(): void {}
+
+  saveConfig(): void {}
 }
+
+const session = new MockNibusSession();
+
+export default session;

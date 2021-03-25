@@ -1,23 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,21 +15,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const chalk_1 = __importDefault(require("chalk"));
 const cli_table3_1 = __importDefault(require("cli-table3"));
 const lodash_1 = __importDefault(require("lodash"));
-const core_1 = __importStar(require("@nibus/core"));
+const core_1 = require("@nibus/core");
 const debug_1 = __importDefault(require("../../debug"));
 const serviceWrapper_1 = __importDefault(require("../serviceWrapper"));
 const debug = debug_1.default('nibus:dump');
 let count = 0;
+const session = core_1.getDefaultSession();
+const { devices } = session;
 function dumpDevice(address, connection, argv, mib) {
     return __awaiter(this, void 0, void 0, function* () {
         const { raw, compact } = argv;
         let device;
         if (!mib) {
             const [version, type] = yield connection.getVersion(address);
-            device = core_1.devices.create(address, type, version);
+            device = devices.create(address, type, version);
         }
         else {
-            device = core_1.devices.create(address, mib);
+            device = devices.create(address, mib);
         }
         device.connection = connection;
         let ids = [];
@@ -131,20 +114,20 @@ const dumpCommand = {
         let timeout;
         const close = (err) => {
             clearTimeout(timeout);
-            core_1.default.close();
+            session.close();
             if (err)
                 reject(err);
             else
                 resolve();
         };
         const mac = argv.mac && new core_1.Address(argv.mac);
-        core_1.default.start().then(value => {
+        session.start().then(value => {
             count = value;
             if (process.platform === 'win32') {
                 count *= 3;
             }
         });
-        core_1.default.on('found', ({ address, connection }) => __awaiter(void 0, void 0, void 0, function* () {
+        session.on('found', ({ address, connection }) => __awaiter(void 0, void 0, void 0, function* () {
             try {
                 if (connection.description.link) {
                     if (mac) {

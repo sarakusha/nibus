@@ -3,16 +3,20 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const debug_1 = __importDefault(require("debug"));
-const events_1 = require("events");
+exports.MockNibusSession = void 0;
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
+const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
+const mib_1 = require("../mib");
 const MockNibusConnection_1 = __importDefault(require("../nibus/MockNibusConnection"));
 const debug = debug_1.default('nibus:mock-session');
-class MockNibusSession extends events_1.EventEmitter {
+class MockNibusSession extends tiny_typed_emitter_1.TypedEmitter {
     constructor() {
         super(...arguments);
         this.ports = 1;
-        this.connection = new MockNibusConnection_1.default();
+        this.devices = new mib_1.Devices();
+        this.port = 9001;
+        this.connection = new MockNibusConnection_1.default(this, this.devices);
         this.isStarted = false;
     }
     start() {
@@ -27,13 +31,12 @@ class MockNibusSession extends events_1.EventEmitter {
         }, 500);
         return Promise.resolve(1);
     }
-    connectDevice(device, connection) {
-        if (device.connection === connection)
+    connectDevice(device) {
+        if (device.connection === this.connection)
             return;
-        device.connection = connection;
-        const event = connection ? 'connected' : 'disconnected';
-        process.nextTick(() => this.emit(event, device));
-        debug(`mib-device [${device.address}] was ${event}`);
+        device.connection = this.connection;
+        process.nextTick(() => this.emit('connected', device));
+        debug(`mib-device [${device.address}] was connected`);
     }
     close() {
         if (!this.isStarted)
@@ -48,6 +51,11 @@ class MockNibusSession extends events_1.EventEmitter {
     ping(_address) {
         return MockNibusConnection_1.default.pingImpl();
     }
+    reloadDevices() { }
+    setLogLevel() { }
+    saveConfig() { }
 }
-exports.default = MockNibusSession;
+exports.MockNibusSession = MockNibusSession;
+const session = new MockNibusSession();
+exports.default = session;
 //# sourceMappingURL=MockNibusSession.js.map

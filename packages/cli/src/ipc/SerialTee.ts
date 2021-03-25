@@ -8,11 +8,11 @@
  * the EULA file that was distributed with this source code.
  */
 
+import { IKnownPort, MibDescription } from '@nibus/core';
+import { Socket } from 'net';
 import SerialPort, { OpenOptions } from 'serialport';
-import { EventEmitter } from 'events';
-import { getSocketPath, IKnownPort, MibDescription } from '@nibus/core';
+import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from '../debug';
-import Server, { Direction } from './Server';
 
 const debug = debugFactory('nibus:serial-tee');
 const portOptions: OpenOptions = {
@@ -22,29 +22,26 @@ const portOptions: OpenOptions = {
   stopBits: 1,
 };
 
+// eslint-disable-next-line no-shadow
+export enum Direction {
+  in,
+  out,
+}
+
 export interface SerialLogger {
   (data: Buffer, dir: Direction): void;
 }
 
-// declare module serialport {
-//   interface SerialPort {
-//     write(
-//       data: string | Uint8Array | Buffer,
-//       callback?: (error: any, bytesWritten: number) => void): boolean;
-//     write(
-//       buffer: string | Uint8Array | Buffer,
-//       encoding?: 'ascii' | 'utf8' | 'utf16le' | 'ucs2' | 'base64' | 'binary' | 'hex',
-//       callback?: (error: any, bytesWritten: number) => void): boolean;
-//     test: () => void;
-//   }
-// }
+interface SerialTeeEvents {
+  close: (path: string) => void;
+}
 
-export default class SerialTee extends EventEmitter {
+export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
   private readonly serial: SerialPort;
 
-  private closed = false;
+  private readonly connections: Socket[] = [];
 
-  private readonly server: Server;
+  private closed = false;
 
   private logger: SerialLogger | null = null;
 
@@ -60,42 +57,48 @@ export default class SerialTee extends EventEmitter {
         parity: win32.parity || description.parity || portOptions.parity,
       },
       err => {
-        err && this.close();
+        if (err) {
+          debug(`error while open serial port: ${err.message}`);
+          process.platform === 'linux' &&
+            debug(
+              `WARNING! You would add user '${process.env.USER}' to the dialout group: "sudo usermode -aG dialout ${process.env.USER}"`
+            );
+          this.close();
+        }
       }
     );
     this.serial.on('close', this.close);
     this.serial.on('error', this.close);
-    this.server = new Server(getSocketPath(path), true);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    this.server.pipe(this.serial as any);
-    this.serial.pipe(this.server);
-    debug(`new connection on ${path} baud: ${this.serial.baudRate} (${description.category})`);
+    this.serial.on('data', this.broadcast);
+    debug(`create serial tee on ${path} baud: ${this.serial.baudRate} (${description.category})`);
   }
 
   public get path(): string {
-    return this.server.path;
+    return this.portInfo.path;
   }
 
   public close = (): void => {
     if (this.closed) return;
-    const { serial, server } = this;
+    const { serial } = this;
     if (serial.isOpen) {
       debug('close serial', serial.path);
       serial.close();
     }
-    server.close();
+    const connections = this.connections.slice();
+    this.connections.length = 0;
+    connections.forEach(socket => this.releaseSocket(socket));
     this.closed = true;
     this.emit('close', this.portInfo.path);
   };
 
   public setLogger(logger: SerialLogger | null): void {
-    if (this.logger) {
-      this.server.off('raw', this.logger);
-    }
+    // if (this.logger) {
+    //   this.server.off('raw', this.logger);
+    // }
     this.logger = logger;
-    if (this.logger) {
-      this.server.on('raw', this.logger);
-    }
+    // if (this.logger) {
+    //   this.server.on('raw', this.logger);
+    // }
   }
 
   toJSON(): { portInfo: IKnownPort; description: MibDescription } {
@@ -104,5 +107,34 @@ export default class SerialTee extends EventEmitter {
       portInfo,
       description,
     };
+  }
+
+  broadcast = (data: Buffer): void => {
+    const { logger, closed, connections } = this;
+    if (closed) return;
+    connections.forEach(socket => socket.write(data));
+    logger && logger(data, Direction.out);
+  };
+
+  send = (data: Buffer): void => {
+    const { logger, closed, serial } = this;
+    if (closed) return;
+    serial.write(data);
+    logger && logger(data, Direction.in);
+  };
+
+  private releaseSocket(socket: Socket): void {
+    socket.off('data', this.send);
+    socket.destroyed || socket.destroy();
+    const index = this.connections.findIndex(item => item === socket);
+    if (index !== -1) this.connections.splice(index, 1);
+  }
+
+  addConnection(socket: Socket): void {
+    const { closed, connections } = this;
+    if (closed) return;
+    connections.push(socket);
+    socket.on('data', this.send);
+    socket.once('close', () => this.releaseSocket(socket));
   }
 }

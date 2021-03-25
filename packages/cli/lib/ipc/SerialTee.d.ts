@@ -1,16 +1,23 @@
 /// <reference types="node" />
-import { EventEmitter } from 'events';
 import { IKnownPort, MibDescription } from '@nibus/core';
-import { Direction } from './Server';
+import { Socket } from 'net';
+import { TypedEmitter } from 'tiny-typed-emitter';
+export declare enum Direction {
+    in = 0,
+    out = 1
+}
 export interface SerialLogger {
     (data: Buffer, dir: Direction): void;
 }
-export default class SerialTee extends EventEmitter {
+interface SerialTeeEvents {
+    close: (path: string) => void;
+}
+export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     readonly portInfo: IKnownPort;
     readonly description: MibDescription;
     private readonly serial;
+    private readonly connections;
     private closed;
-    private readonly server;
     private logger;
     constructor(portInfo: IKnownPort, description: MibDescription);
     get path(): string;
@@ -20,5 +27,10 @@ export default class SerialTee extends EventEmitter {
         portInfo: IKnownPort;
         description: MibDescription;
     };
+    broadcast: (data: Buffer) => void;
+    send: (data: Buffer) => void;
+    private releaseSocket;
+    addConnection(socket: Socket): void;
 }
+export {};
 //# sourceMappingURL=SerialTee.d.ts.map

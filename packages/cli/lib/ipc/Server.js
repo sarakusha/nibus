@@ -1,142 +1,137 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Direction = void 0;
-const net_1 = __importStar(require("net"));
-const stream_1 = require("stream");
-const fs_1 = __importDefault(require("fs"));
-const xpipe_1 = __importDefault(require("xpipe"));
+const core_1 = require("@nibus/core");
+const Either_1 = require("fp-ts/lib/Either");
+const net_1 = __importDefault(require("net"));
+const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const debug_1 = __importDefault(require("../debug"));
 const debug = debug_1.default('nibus:IPCServer');
-const noop = () => { };
-var Direction;
-(function (Direction) {
-    Direction[Direction["in"] = 0] = "in";
-    Direction[Direction["out"] = 1] = "out";
-})(Direction = exports.Direction || (exports.Direction = {}));
-class IPCServer extends stream_1.Duplex {
-    constructor(path, raw = false) {
+class IPCServer extends tiny_typed_emitter_1.TypedEmitter {
+    constructor() {
         super();
-        this.raw = raw;
+        this.ports = {};
         this.closed = false;
-        this.reading = false;
-        this.connectionHandler = (socket) => {
-            this.emit('connection', socket);
-            this.clients.push(socket);
-            socket
-                .once('error', this.clientErrorHandler.bind(this, socket))
-                .on('data', this.clientDataHandler.bind(this, socket))
-                .once('close', () => this.removeClient(socket));
-            debug('new connection on', this.path, this.clients.length);
-        };
-        this.errorHandler = (err) => {
-            if (err.code === 'EADDRINUSE') {
-                const check = net_1.default.connect(xpipe_1.default.eq(this.path), () => {
-                    debug('Server running, giving up...');
-                    process.exit();
-                });
-                check.once('error', e => {
-                    if (e.code === 'ECONNREFUSED') {
-                        fs_1.default.unlinkSync(xpipe_1.default.eq(this.path));
-                        this.server.listen(xpipe_1.default.eq(this.path), () => {
-                            debug('restart', this.server.address());
-                        });
-                    }
-                });
-            }
-            else {
-                throw err;
-            }
-        };
+        this.tail = '';
         this.close = () => {
             if (this.closed)
                 return;
+            this.closed = true;
             const path = this.server.address();
             this.clients.forEach(client => client.destroy());
             this.clients.length = 0;
             this.server.close();
-            this.raw && this.push(null);
-            this.closed = true;
+            setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
             debug(`${path} closed`);
         };
+        this.connectionHandler = (socket) => {
+            const addClient = () => {
+                this.clients.push(socket);
+                this.emit('connection', socket);
+                debug(`${socket.remoteAddress} connected`);
+            };
+            let waitingPreamble = true;
+            const clientErrorHandler = (err) => {
+                debug('error on client %s', err.message);
+                this.emit('client:error', socket, err);
+            };
+            const clientDataHandler = (data) => {
+                if (waitingPreamble) {
+                    waitingPreamble = false;
+                    const preamble = data.toString();
+                    if (preamble === 'NIBUS')
+                        addClient();
+                    else {
+                        removeClient();
+                        const serial = this.ports[preamble];
+                        if (serial) {
+                            serial.addConnection(socket);
+                        }
+                    }
+                    return;
+                }
+                const chunks = data.toString().split(core_1.MSG_DELIMITER);
+                chunks[0] = this.tail + chunks[0];
+                [this.tail] = chunks.splice(-1, 1);
+                chunks.filter(line => line && line.trim().length > 0).forEach(line => {
+                    try {
+                        const { event, args, } = JSON.parse(line);
+                        const res = core_1.ClientEventsArgsV.decode([event, ...args].filter(item => !!item));
+                        if (Either_1.isRight(res)) {
+                            const [name, ...opts] = res.right;
+                            if (name === 'ping') {
+                                this.send(socket, 'pong').catch(console.error);
+                            }
+                            else {
+                                this.emit(`client:${name}`, ...[socket, ...opts]);
+                            }
+                        }
+                    }
+                    catch (err) {
+                        debug(`error while parse ${line}`);
+                    }
+                });
+            };
+            const removeClient = () => {
+                const index = this.clients.findIndex(item => item === socket);
+                if (index !== -1) {
+                    this.clients.splice(index, 1);
+                    debug(`${socket.remoteAddress} disconnected`);
+                }
+                socket.off('error', clientErrorHandler);
+                socket.off('data', clientDataHandler);
+                socket.off('end', removeClient);
+            };
+            socket
+                .once('error', clientErrorHandler)
+                .on('data', clientDataHandler)
+                .once('end', removeClient);
+        };
         this.clients = [];
-        this.server = new net_1.Server();
         this.server = net_1.default
             .createServer(this.connectionHandler)
-            .on('error', this.errorHandler)
-            .on('close', this.close)
-            .listen(xpipe_1.default.eq(path), () => {
-            debug('listening on', this.server.address());
-        });
+            .on('close', this.close);
         process.on('SIGINT', () => this.close());
         process.on('SIGTERM', () => this.close());
     }
-    clientErrorHandler(client, err) {
-        debug('error on client', err.message);
-        this.emit('client:error', client, err);
-        this.removeClient(client);
-    }
-    clientDataHandler(client, data) {
-        if (this.reading) {
-            this.reading = this.push(data);
-        }
-        if (this.raw) {
-            this.emit('raw', data, Direction.in);
-            return;
-        }
-        debug('data from', client.remoteAddress, data.toString());
-        const { event, args } = JSON.parse(data.toString());
-        this.emit(`client:${event}`, client, ...args);
-    }
-    removeClient(client) {
-        const index = this.clients.findIndex(item => item === client);
-        if (index !== -1) {
-            this.clients.splice(index, 1);
-        }
-        client.destroy();
-        debug('destroy connection on', this.path, this.clients.length);
-    }
-    _write(chunk, encoding, callback) {
-        this.emit('raw', chunk, Direction.out);
-        this.clients.forEach(client => client.write(chunk, encoding, noop));
-        callback();
-    }
-    _read(_size) {
-        this.reading = true;
-    }
     get path() {
-        return (this.server.address() || '').toString();
+        return JSON.stringify(this.server.address());
+    }
+    listen(port, host) {
+        return new Promise((resolve, reject) => {
+            this.server.once('error', reject);
+            this.server.listen({
+                port,
+                host,
+            }, () => {
+                debug('listening on %o', this.server.address());
+                this.server.off('error', reject);
+                resolve();
+            });
+        });
     }
     send(client, event, ...args) {
         if (this.closed) {
             return Promise.reject(new Error('Server is closed'));
         }
+        if (client.destroyed) {
+            return Promise.resolve();
+        }
         const data = {
             event,
             args,
         };
-        return new Promise(resolve => client.write(JSON.stringify(data), () => resolve()));
+        return new Promise(resolve => {
+            try {
+                client.write(`${JSON.stringify(data)}${core_1.MSG_DELIMITER}`, () => resolve());
+            }
+            catch (err) {
+                debug(`error while send ${JSON.stringify(data)}`);
+                resolve();
+            }
+        });
     }
     broadcast(event, ...args) {
         return Promise.all(this.clients.map(client => this.send(client, event, ...args))).then(() => { });

@@ -57,5 +57,4 @@ export const KnownPortV = t.intersection([
   }),
 ]);
 
-export interface IKnownPort extends t.TypeOf<typeof KnownPortV> {
-}
+export interface IKnownPort extends t.TypeOf<typeof KnownPortV> {}

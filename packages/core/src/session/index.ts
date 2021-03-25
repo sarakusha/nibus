@@ -10,6 +10,12 @@
 
 // export { default as detector } from './detector';
 export * from './KnownPorts';
-export * from './common';
-export * from './NibusSession';
-export { default } from './session';
+export type { INibusSession, FoundListener, NibusSessionEvents } from './NibusSession';
+export {
+  // default,
+  getNibusSession,
+  getDefaultSession,
+  setDefaultSession,
+  getSessions,
+  findDeviceById,
+} from './NibusSession';

@@ -15,13 +15,13 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { delay, LogLevel, noop, promiseArray } from '../common';
 import debugFactory from '../debug';
-import { Client, Host, PortArg } from '../ipc';
-import { Display } from '../ipc/events';
+import { Client, Host, PortArg, Display } from '../ipc';
+// import { Display } from '../ipc/events';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
 import { NibusEvents } from '../nibus/NibusConnection';
-import { createNmsRead, NmsDatagram, NmsServiceType } from '../nms';
+import { NmsDatagram, NmsServiceType } from '../nms';
 import { Category } from './KnownPorts';
 // import session from './session';
 
@@ -372,23 +372,27 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
             break;
           }
           case 'version':
-            connection.sendDatagram(createNmsRead(Address.empty, 2)).then(
-              datagram => {
-                if (!datagram || Array.isArray(datagram)) return;
+            try {
+              const [, type, address] = await connection.getVersion(Address.empty);
+              debug(
+                `find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`
+              );
+              if (desc.type === type && address) {
+                // const datagram = await connection.sendDatagram(createNmsRead(Address.empty, 2));
+                // if (!datagram || Array.isArray(datagram)) return;
                 debug(`category was changed: ${connection.description.category} => ${category}`);
                 connection.description = desc;
-                const address = new Address(datagram.source.mac);
+                // const address = new Address(datagram.source.mac);
                 this.emit('found', {
                   connection,
                   category: category as Category,
                   address,
                 });
                 debug(`device ${category}[${address}] was found on ${connection.path}`);
-              },
-              () => {
-                this.emit('pureConnection', connection);
               }
-            );
+            } catch (err) {
+              this.emit('pureConnection', connection);
+            }
             break;
           default:
             this.emit('pureConnection', connection);

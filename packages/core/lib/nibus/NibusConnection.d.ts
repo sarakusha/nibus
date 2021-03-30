@@ -1,5 +1,5 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { AddressParam } from '../Address';
+import Address, { AddressParam } from '../Address';
 import { NmsDatagram } from '../nms';
 import { SarpDatagram } from '../sarp';
 import { MibDescription } from '../MibDescription';
@@ -21,7 +21,7 @@ export interface INibusConnection {
     sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
     ping(address: AddressParam): Promise<number>;
     findByType(type: number): Promise<SarpDatagram>;
-    getVersion(address: AddressParam): Promise<[number?, number?]>;
+    getVersion(address: AddressParam): Promise<[version?: number, type?: number, source?: Address]>;
     close(): void;
     readonly isClosed: boolean;
     readonly path: string;
@@ -51,7 +51,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
     ping(address: AddressParam): Promise<number>;
     findByType(type?: number): Promise<SarpDatagram>;
-    getVersion(address: AddressParam): Promise<[number?, number?]>;
+    getVersion(address: AddressParam): Promise<[version?: number, type?: number, source?: Address]>;
     close: () => void;
     private stopWaiting;
     private onDatagram;

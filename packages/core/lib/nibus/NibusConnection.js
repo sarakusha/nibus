@@ -161,14 +161,14 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
     async getVersion(address) {
         const nmsRead = nms_1.createNmsRead(address, VERSION_ID);
         try {
-            const { value, status } = (await this.sendDatagram(nmsRead));
+            const { value, status, source } = (await this.sendDatagram(nmsRead));
             if (status !== 0) {
                 debug('<error>', status);
                 return [];
             }
             const version = value & 0xffff;
             const type = value >>> 16;
-            return [version, type];
+            return [version, type, source];
         }
         catch (err) {
             debug('<error>', err.message || err);

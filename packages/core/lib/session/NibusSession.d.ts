@@ -1,8 +1,7 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { LogLevel } from '../common';
-import { Host } from '../ipc';
-import { Display } from '../ipc/events';
+import { Host, Display } from '../ipc';
 import { Devices, IDevice, DeviceId } from '../mib';
 import { INibusConnection } from '../nibus';
 import { NmsDatagram } from '../nms';

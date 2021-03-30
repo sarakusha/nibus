@@ -28,6 +28,7 @@ class IPCClient extends net_1.Socket {
                 const result = events_1.EventFromString.decode(line);
                 if (Either_1.isLeft(result)) {
                     debug(`Unknown event: ${PathReporter_1.PathReporter.report(result)}`);
+                    console.log(`Unknown event: ${line}`);
                     return;
                 }
                 const { right: { event, args }, } = result;

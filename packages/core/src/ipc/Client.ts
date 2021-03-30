@@ -81,7 +81,7 @@ export default class IPCClient extends Socket implements Client {
         const result = EventFromString.decode(line);
         if (isLeft(result)) {
           debug(`Unknown event: ${PathReporter.report(result)}`);
-          // console.(`Unknown event: ${line}`);
+          console.log(`Unknown event: ${line}`);
           return;
         }
         const {

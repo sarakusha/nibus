@@ -257,21 +257,23 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
                         break;
                     }
                     case 'version':
-                        connection.sendDatagram(nms_1.createNmsRead(Address_1.default.empty, 2)).then(datagram => {
-                            if (!datagram || Array.isArray(datagram))
-                                return;
-                            debug(`category was changed: ${connection.description.category} => ${category}`);
-                            connection.description = desc;
-                            const address = new Address_1.default(datagram.source.mac);
-                            this.emit('found', {
-                                connection,
-                                category: category,
-                                address,
-                            });
-                            debug(`device ${category}[${address}] was found on ${connection.path}`);
-                        }, () => {
+                        try {
+                            const [, type, address] = await connection.getVersion(Address_1.default.empty);
+                            debug(`find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`);
+                            if (desc.type === type && address) {
+                                debug(`category was changed: ${connection.description.category} => ${category}`);
+                                connection.description = desc;
+                                this.emit('found', {
+                                    connection,
+                                    category: category,
+                                    address,
+                                });
+                                debug(`device ${category}[${address}] was found on ${connection.path}`);
+                            }
+                        }
+                        catch (err) {
                             this.emit('pureConnection', connection);
-                        });
+                        }
                         break;
                     default:
                         this.emit('pureConnection', connection);

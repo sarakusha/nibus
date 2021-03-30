@@ -97,7 +97,7 @@ export interface INibusConnection {
   sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
   ping(address: AddressParam): Promise<number>;
   findByType(type: number): Promise<SarpDatagram>;
-  getVersion(address: AddressParam): Promise<[number?, number?]>;
+  getVersion(address: AddressParam): Promise<[version?: number, type?: number, source?: Address]>;
   close(): void;
   readonly isClosed: boolean;
   readonly path: string;
@@ -206,17 +206,19 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     }).finally(() => this.off('sarp', sarpHandler));
   }
 
-  public async getVersion(address: AddressParam): Promise<[number?, number?]> {
+  public async getVersion(
+    address: AddressParam
+  ): Promise<[version?: number, type?: number, source?: Address]> {
     const nmsRead = createNmsRead(address, VERSION_ID);
     try {
-      const { value, status } = (await this.sendDatagram(nmsRead)) as NmsDatagram;
+      const { value, status, source } = (await this.sendDatagram(nmsRead)) as NmsDatagram;
       if (status !== 0) {
         debug('<error>', status);
         return [];
       }
       const version = (value as number) & 0xffff;
       const type = (value as number) >>> 16;
-      return [version, type];
+      return [version, type, source];
     } catch (err) {
       debug('<error>', err.message || err);
       return [];

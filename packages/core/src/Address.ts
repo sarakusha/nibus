@@ -8,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 import _ from 'lodash';
+import { chunkArray } from './common';
 
 /**
  * Длина буфера для хранения адреса
@@ -18,7 +19,7 @@ export const MAC_LENGTH = 6;
  * Строка адреса содержит шестнадцатиричные цифры или префикс 0x
  * @param str - адрес
  */
-const isHex = (str: string): boolean => /^(?:0X[0-9A-F]+)|(?:[0-9]*[A-F]+)/i.test(str);
+const isHex = (str: string): boolean => /^0X[0-9A-F]+|[0-9]*[A-F]+/i.test(str);
 /**
  * Декодирование hex-строки
  * @param str - hex-строка
@@ -45,6 +46,7 @@ export enum AddressType {
   mac = 0,
   net = 1,
   group = 2,
+  // invalid = -1,
 }
 
 const isEmpty = (array: number[] | Uint8Array): boolean => _.every(array, b => b === 0);
@@ -130,6 +132,24 @@ export default class Address {
    */
   public readonly raw = Buffer.alloc(MAC_LENGTH);
 
+  /*
+  static getAddressType(address: AddressParam): AddressType {
+    if (typeof address === 'string') {
+      switch (address) {
+        case '': return AddressType.empty;
+        case 'broadcast': return AddressType.broadcast;
+        case 'auto': return AddressType.mac;
+        default:
+          if (!/^[0-9A-FX.:]+$/i.test(address)) {
+            return AddressType.invalid;
+          } else {
+            const dots =
+          }
+      }
+    }
+  }
+*/
+
   /**
    * Конструктор создания или копирования
    * @param address - представление адреса
@@ -192,7 +212,10 @@ export default class Address {
             if (rest) {
               throw new Error(`Invalid address: ${address}`);
             }
-            const lefts = left ? left.split(':') : [];
+            let lefts = left ? left.split(':') : [];
+            if (!right && lefts.length === 1) {
+              lefts = chunkArray(left.padStart(16, '0'), 2).slice(2);
+            }
             const rights = right ? right.split(':') : [];
             let len = lefts.length + rights.length;
             if (len > MAC_LENGTH) {

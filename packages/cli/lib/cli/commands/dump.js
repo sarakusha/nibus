@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -22,70 +13,68 @@ const debug = debug_1.default('nibus:dump');
 let count = 0;
 const session = core_1.getDefaultSession();
 const { devices } = session;
-function dumpDevice(address, connection, argv, mib) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { raw, compact } = argv;
-        let device;
-        if (!mib) {
-            const [version, type] = yield connection.getVersion(address);
-            device = devices.create(address, type, version);
+async function dumpDevice(address, connection, argv, mib) {
+    const { raw, compact } = argv;
+    let device;
+    if (!mib) {
+        const { version, type } = (await connection.getVersion(address)) ?? {};
+        device = devices.create(address, type, version);
+    }
+    else {
+        device = devices.create(address, mib);
+    }
+    device.connection = connection;
+    let ids = [];
+    if (argv.id) {
+        ids = argv.id.map(id => device.getId(id));
+    }
+    const result = await device.read(...ids);
+    const rows = Object.keys(result).map(key => {
+        const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
+        return {
+            value,
+            key,
+            displayName: Reflect.getMetadata('displayName', device, key),
+        };
+    });
+    const proto = Reflect.getPrototypeOf(device);
+    device.release();
+    const categories = lodash_1.default.groupBy(rows, ({ key }) => Reflect.getMetadata('category', proto, key) || '');
+    console.info(` Устройство ${Reflect.getMetadata('mib', proto)} [${address.toString()}]`);
+    const table = new cli_table3_1.default({
+        head: ['Название', 'Значение', 'Имя'],
+        style: { compact },
+        wordWrap: true,
+    });
+    const toRow = ({ displayName, value, key }) => {
+        let val;
+        if (value && value.error) {
+            val = chalk_1.default.red(value.error);
+        }
+        else if (value && value.errcode) {
+            val = chalk_1.default.red(`errcode: ${value.errcode}`);
         }
         else {
-            device = devices.create(address, mib);
+            val = JSON.stringify(value);
+            if (!Reflect.getMetadata('isWritable', proto, key)) {
+                val = chalk_1.default.grey(val);
+            }
         }
-        device.connection = connection;
-        let ids = [];
-        if (argv.id) {
-            ids = argv.id.map(id => device.getId(id));
+        return [displayName, val, key];
+    };
+    Object.keys(categories).forEach(category => {
+        const rowItems = categories[category];
+        if (category) {
+            table.push([
+                {
+                    colSpan: 3,
+                    content: chalk_1.default.yellow(category.toUpperCase()),
+                },
+            ]);
         }
-        const result = yield device.read(...ids);
-        const rows = Object.keys(result).map(key => {
-            const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
-            return {
-                value,
-                key,
-                displayName: Reflect.getMetadata('displayName', device, key),
-            };
-        });
-        const proto = Reflect.getPrototypeOf(device);
-        device.release();
-        const categories = lodash_1.default.groupBy(rows, ({ key }) => Reflect.getMetadata('category', proto, key) || '');
-        console.info(` Устройство ${Reflect.getMetadata('mib', proto)} [${address.toString()}]`);
-        const table = new cli_table3_1.default({
-            head: ['Название', 'Значение', 'Имя'],
-            style: { compact },
-            wordWrap: true,
-        });
-        const toRow = ({ displayName, value, key }) => {
-            let val;
-            if (value && value.error) {
-                val = chalk_1.default.red(value.error);
-            }
-            else if (value && value.errcode) {
-                val = chalk_1.default.red(`errcode: ${value.errcode}`);
-            }
-            else {
-                val = JSON.stringify(value);
-                if (!Reflect.getMetadata('isWritable', proto, key)) {
-                    val = chalk_1.default.grey(val);
-                }
-            }
-            return [displayName, val, key];
-        };
-        Object.keys(categories).forEach(category => {
-            const rowItems = categories[category];
-            if (category) {
-                table.push([
-                    {
-                        colSpan: 3,
-                        content: chalk_1.default.yellow(category.toUpperCase()),
-                    },
-                ]);
-            }
-            table.push(...rowItems.map(toRow));
-        });
-        console.info(table.toString());
+        table.push(...rowItems.map(toRow));
     });
+    console.info(table.toString());
 }
 function findDevices(mib, connection, argv) {
     count += 1;
@@ -127,12 +116,12 @@ const dumpCommand = {
                 count *= 3;
             }
         });
-        session.on('found', ({ address, connection }) => __awaiter(void 0, void 0, void 0, function* () {
+        session.on('found', async ({ address, connection }) => {
             try {
                 if (connection.description.link) {
                     if (mac) {
                         count += 1;
-                        yield dumpDevice(mac, connection, argv);
+                        await dumpDevice(mac, connection, argv);
                     }
                     else if (argv.mib) {
                         findDevices(argv.mib, connection, argv);
@@ -140,7 +129,7 @@ const dumpCommand = {
                 }
                 if ((!mac || mac.equals(address)) &&
                     (!argv.mib || argv.mib === connection.description.mib)) {
-                    yield dumpDevice(address, connection, argv, connection.description.mib);
+                    await dumpDevice(address, connection, argv, connection.description.mib);
                 }
                 count -= 1;
                 if (count === 0) {
@@ -151,7 +140,7 @@ const dumpCommand = {
             catch (e) {
                 close(e.message || e);
             }
-        }));
+        });
         const wait = () => {
             count -= 1;
             if (count > 0) {

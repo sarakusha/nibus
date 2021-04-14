@@ -5,8 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AddressType = exports.MAC_LENGTH = void 0;
 const lodash_1 = __importDefault(require("lodash"));
+const common_1 = require("./common");
 exports.MAC_LENGTH = 6;
-const isHex = (str) => /^(?:0X[0-9A-F]+)|(?:[0-9]*[A-F]+)/i.test(str);
+const isHex = (str) => /^0X[0-9A-F]+|[0-9]*[A-F]+/i.test(str);
 const parseHex = (str) => parseInt(str, 16);
 const padHex = (val) => val.toString(16).padStart(2, '0');
 var AddressType;
@@ -81,7 +82,10 @@ class Address {
                         if (rest) {
                             throw new Error(`Invalid address: ${address}`);
                         }
-                        const lefts = left ? left.split(':') : [];
+                        let lefts = left ? left.split(':') : [];
+                        if (!right && lefts.length === 1) {
+                            lefts = common_1.chunkArray(left.padStart(16, '0'), 2).slice(2);
+                        }
                         const rights = right ? right.split(':') : [];
                         let len = lefts.length + rights.length;
                         if (len > exports.MAC_LENGTH) {

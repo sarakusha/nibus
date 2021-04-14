@@ -32,7 +32,7 @@ describe('Address', () => {
         test('should be net', () => {
             const net = expect(new Address_1.default('FE.56.34'));
             net.toHaveProperty('type', Address_1.AddressType.net);
-            net.toHaveProperty('domain', 0xFE);
+            net.toHaveProperty('domain', 0xfe);
             net.toHaveProperty('subnet', 0x56);
             net.toHaveProperty('device', 0x34);
         });
@@ -58,8 +58,16 @@ describe('Address', () => {
             expect(address.mac && address.mac.equals(mac)).toBe(true);
             expect(address).toHaveProperty('type', Address_1.AddressType.mac);
         });
+        test('should be ::8E:14', () => {
+            const address = new Address_1.default('0000000000008E14');
+            const address1 = new Address_1.default('08E14');
+            const address2 = new Address_1.default('::8e:14');
+            expect(address.type).toBe(Address_1.AddressType.mac);
+            expect(address.equals(address2)).toBeTruthy();
+            expect(address1.equals(address2)).toBeTruthy();
+        });
     });
-    describe('comparision', () => {
+    describe('comparison', () => {
         const a = new Address_1.default('::45:78');
         const b = new Address_1.default([0, 0, 0, 0, 0x45, 0x78]);
         const c = new Address_1.default();
@@ -70,7 +78,7 @@ describe('Address', () => {
             expect(c.equals(Address_1.default.empty)).toBe(true);
             expect(a.equals(new Address_1.default(a))).toBe(true);
         });
-        test('shouldn\'t be equal', () => {
+        test("shouldn't be equal", () => {
             expect(a.equals(c)).toBe(false);
             expect(a.equals(d)).toBe(false);
         });

@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const common_1 = require("../common");
 const debug_1 = __importDefault(require("../debug"));
+const Address_1 = __importDefault(require("../Address"));
 const nms_1 = require("../nms");
 const nms_2 = require("../nms/nms");
 const NmsServiceType_1 = __importDefault(require("../nms/NmsServiceType"));
@@ -30,11 +31,17 @@ class MockNibusConnection extends tiny_typed_emitter_1.TypedEmitter {
     findByType(_type) {
         throw new TypeError('NotImpl');
     }
-    getVersion(_address) {
-        return Promise.resolve([3, 2]);
+    getVersion(address) {
+        return Promise.resolve({
+            version: 3,
+            type: 2,
+            source: new Address_1.default(address),
+            timestamp: 0,
+            connection: this,
+        });
     }
-    ping(_address) {
-        return MockNibusConnection.pingImpl();
+    async ping(address) {
+        return common_1.tuplify(await MockNibusConnection.pingImpl(), await this.getVersion(address));
     }
     sendDatagram(datagram) {
         if (datagram.protocol === NibusDatagram_1.Protocol.NMS) {

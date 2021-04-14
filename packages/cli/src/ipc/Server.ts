@@ -29,6 +29,7 @@ interface IPCServerEvents {
   ) => void;
   'client:reloadDevices': (socket: Socket) => void;
   'client:config': (socket: Socket, config: Record<string, unknown>) => void;
+  'client:getBrightnessHistory': (socket: Socket, dt?: number) => void;
   // 'client:ping': (socket: Socket) => void;
   raw: (data: Buffer, dir: Direction) => void;
 }

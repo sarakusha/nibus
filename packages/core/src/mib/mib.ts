@@ -223,10 +223,14 @@ export const booleanConverter: IConverter = {
 };
 
 export const percentConverter: IConverter = {
-  from: value =>
-    typeof value === 'number' ? Math.max(Math.min(Math.round((value * 255) / 100), 255), 0) : value,
-  to: value =>
-    typeof value === 'number' ? Math.max(Math.min(Math.round((value * 100) / 255), 100), 0) : value,
+  from: value => {
+    const val = Number(value);
+    return Number.isNaN(val) ? value : Math.max(Math.min(Math.round((val * 255) / 100), 255), 0);
+  },
+  to: value => {
+    const val = Number(value);
+    return Number.isNaN(val) ? value : Math.max(Math.min(Math.round((val * 100) / 255), 100), 0);
+  },
 };
 
 export function representationConverter(format: string, size: number): IConverter {
@@ -267,9 +271,12 @@ export function packed8floatConverter(subtype: IMibType): IConverter {
   return {
     from: value => {
       const val = typeof value === 'string' ? parseFloat(value) : value;
-      return typeof val === 'number' ? Math.floor((val - delta) * 100) & 0xff : val;
+      return typeof val === 'number' ? Math.round((val - delta) * 100) & 0xff : val;
     },
-    to: value => (typeof value === 'number' ? value / 100 + delta : value),
+    to: value => {
+      const val = Number(value);
+      return Number.isInteger(val) ? (val / 100 + delta).toString() : value;
+    },
   };
 }
 

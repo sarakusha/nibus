@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -24,6 +15,7 @@ const bonjour_hap_1 = __importDefault(require("bonjour-hap"));
 const debug_1 = __importDefault(require("../debug"));
 const ipc_1 = require("../ipc");
 const detector_1 = __importDefault(require("./detector"));
+const { version } = require('../../package.json');
 const bonjour = bonjour_hap_1.default();
 const pkgName = '@nata/nibus.js';
 const conf = new configstore_1.default(pkgName, {
@@ -48,32 +40,30 @@ const minVersionToInt = (str) => {
     const [high, low] = str.split('.', 2);
     return (core_1.toInt(high) << 8) + core_1.toInt(low);
 };
-function updateMibTypes() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const mibs = yield core_1.getMibs();
-        conf.set('mibs', mibs);
-        const mibTypes = {};
-        mibs.forEach(mib => {
-            const mibfile = core_1.getMibFile(mib);
-            const validation = core_1.MibDeviceV.decode(JSON.parse(fs_1.default.readFileSync(mibfile).toString()));
-            if (Either_1.isLeft(validation)) {
-                debug(`<error>: Invalid mib file ${mibfile}`);
-            }
-            else {
-                const { types } = validation.right;
-                const device = types[validation.right.device];
-                const type = core_1.toInt(device.appinfo.device_type);
-                const minVersion = minVersionToInt(device.appinfo.min_version);
-                const currentMibs = mibTypes[type] || [];
-                currentMibs.push({
-                    mib,
-                    minVersion,
-                });
-                mibTypes[type] = lodash_1.default.sortBy(currentMibs, 'minVersion');
-            }
-        });
-        conf.set('mibTypes', mibTypes);
+async function updateMibTypes() {
+    const mibs = await core_1.getMibs();
+    conf.set('mibs', mibs);
+    const mibTypes = {};
+    mibs.forEach(mib => {
+        const mibfile = core_1.getMibFile(mib);
+        const validation = core_1.MibDeviceV.decode(JSON.parse(fs_1.default.readFileSync(mibfile).toString()));
+        if (Either_1.isLeft(validation)) {
+            debug(`<error>: Invalid mib file ${mibfile}`);
+        }
+        else {
+            const { types } = validation.right;
+            const device = types[validation.right.device];
+            const type = core_1.toInt(device.appinfo.device_type);
+            const minVersion = minVersionToInt(device.appinfo.min_version);
+            const currentMibs = mibTypes[type] || [];
+            currentMibs.push({
+                mib,
+                minVersion,
+            });
+            mibTypes[type] = lodash_1.default.sortBy(currentMibs, 'minVersion');
+        }
     });
+    conf.set('mibTypes', mibTypes);
 }
 updateMibTypes().catch(e => debug(`<error> ${e.message}`));
 const decoderIn = new core_1.NibusDecoder();
@@ -121,8 +111,7 @@ const loggers = {
 };
 class NibusService {
     constructor() {
-        var _a;
-        this.port = +((_a = process.env.NIBUS_PORT) !== null && _a !== void 0 ? _a : 9001);
+        this.port = +(process.env.NIBUS_PORT ?? 9001);
         this.isStarted = false;
         this.logLevelHandler = (client, logLevel) => {
             debug(`setLogLevel: ${logLevel}`);
@@ -184,31 +173,27 @@ class NibusService {
         const connections = connection ? [connection] : Object.values(this.server.ports);
         connections.forEach(con => con.setLogger(logger));
     }
-    start() {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (this.isStarted)
-                return;
-            yield this.server.listen(this.port, process.env.NIBUS_HOST);
-            this.isStarted = true;
-            this.ad = bonjour.publish({
-                name: os_1.default.hostname().replace(/\.local\.?$/, ''),
-                type: 'nibus',
-                port: this.port,
-                txt: {
-                    version: require('../../package.json').version,
-                },
-            });
-            const detection = detector_1.default.getDetection();
-            if (detection == null)
-                throw new Error('detection is N/A');
-            detector_1.default.on('add', this.addHandler);
-            detector_1.default.on('remove', this.removeHandler);
-            detector_1.default.start();
-            process.once('SIGINT', () => this.stop());
-            process.once('SIGTERM', () => this.stop());
-            debug('started');
-            yield detector_1.default.getPorts();
+    async start() {
+        if (this.isStarted)
+            return;
+        await this.server.listen(this.port, process.env.NIBUS_HOST);
+        this.isStarted = true;
+        this.ad = bonjour.publish({
+            name: os_1.default.hostname().replace(/\.local\.?$/, ''),
+            type: 'nibus',
+            port: this.port,
+            txt: { version },
         });
+        const detection = detector_1.default.getDetection();
+        if (detection == null)
+            throw new Error('detection is N/A');
+        detector_1.default.on('add', this.addHandler);
+        detector_1.default.on('remove', this.removeHandler);
+        detector_1.default.start();
+        process.once('SIGINT', () => this.stop());
+        process.once('SIGTERM', () => this.stop());
+        debug('started');
+        await detector_1.default.getPorts();
     }
     stop() {
         if (!this.isStarted)

@@ -57,7 +57,11 @@ class SerialTee extends tiny_typed_emitter_1.TypedEmitter {
         };
         const { path } = portInfo;
         const win32 = (process.platform === 'win32' && description.win32) || {};
-        this.serial = new serialport_1.default(path, Object.assign(Object.assign({}, portOptions), { baudRate: description.baudRate || 115200, parity: win32.parity || description.parity || portOptions.parity }), err => {
+        this.serial = new serialport_1.default(path, {
+            ...portOptions,
+            baudRate: description.baudRate || 115200,
+            parity: win32.parity || description.parity || portOptions.parity,
+        }, err => {
             if (err) {
                 debug(`error while open serial port: ${err.message}`);
                 process.platform === 'linux' &&

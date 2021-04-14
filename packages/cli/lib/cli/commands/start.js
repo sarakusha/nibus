@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -63,10 +54,10 @@ const startCommand = {
                 process.exit(2);
             }
             debug('pm2 is connected');
-            pm2_1.default.delete(exports.startOptions.name, () => pm2_1.default.start(exports.startOptions, (e) => __awaiter(void 0, void 0, void 0, function* () {
+            pm2_1.default.delete(exports.startOptions.name, () => pm2_1.default.start(exports.startOptions, async (e) => {
                 if (!e && argc.auto) {
                     try {
-                        yield startup(argc.auto);
+                        await startup(argc.auto);
                     }
                     catch (error) {
                         console.error('Не удалось зарегистрировать сервис', error.message);
@@ -78,7 +69,7 @@ const startCommand = {
                     process.exit(2);
                 }
                 console.info(`nibus.service запущен. modules: ${process.versions.modules}, node: ${process.versions.node}`);
-            })));
+            }));
         });
     },
 };

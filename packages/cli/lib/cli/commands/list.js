@@ -14,8 +14,7 @@ const listCommand = {
     describe: 'Показать список доступных устройств',
     builder: {},
     handler: serviceWrapper_1.default(() => new Promise((resolve, reject) => {
-        var _a;
-        const socket = core_1.Client.connect({ port: +((_a = process.env.NIBUS_PORT) !== null && _a !== void 0 ? _a : 9001) });
+        const socket = core_1.Client.connect({ port: +(process.env.NIBUS_PORT ?? 9001) });
         let resolved = false;
         let error;
         socket.once('close', () => {
@@ -37,9 +36,8 @@ const listCommand = {
             socket.destroy();
         });
         socket.on('error', err => {
-            var _a;
             debug(`<error> ${err.message}`);
-            if (((_a = err) === null || _a === void 0 ? void 0 : _a.code) === 'ENOENT') {
+            if (err?.code === 'ENOENT') {
                 error = new Error('Сервис не запущен');
             }
             else {

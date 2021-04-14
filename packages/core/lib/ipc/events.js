@@ -19,7 +19,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EventFromString = exports.EventFromStringType = exports.EventV = exports.DisplaysEventV = exports.DisplayV = exports.RectV = exports.PongEventV = exports.LogLineEventV = exports.HostEventV = exports.ConfigEventV = exports.LogLevelEventV = exports.PortRemovedEventV = exports.PortAddedEventV = exports.PortsEventV = exports.HostV = exports.PortArgV = void 0;
+exports.EventFromString = exports.EventFromStringType = exports.EventV = exports.BrightnessHistoryEventV = exports.BrightnessHistoryV = exports.DisplaysEventV = exports.DisplayV = exports.RectV = exports.PongEventV = exports.LogLineEventV = exports.HostEventV = exports.ConfigEventV = exports.LogLevelEventV = exports.PortRemovedEventV = exports.PortAddedEventV = exports.PortsEventV = exports.HostV = exports.PortArgV = void 0;
 const Either_1 = require("fp-ts/lib/Either");
 const t = __importStar(require("io-ts"));
 const common_1 = require("../common");
@@ -66,6 +66,16 @@ exports.DisplayV = t.intersection([
     }),
 ]);
 exports.DisplaysEventV = eventType('displays', t.array(exports.DisplayV));
+exports.BrightnessHistoryV = t.intersection([
+    t.type({
+        timestamp: t.number,
+        brightness: t.number,
+    }),
+    t.partial({
+        actual: t.number,
+    }),
+]);
+exports.BrightnessHistoryEventV = eventType('brightnessHistory', t.array(exports.BrightnessHistoryV));
 exports.EventV = t.union([
     exports.PortsEventV,
     exports.PortAddedEventV,
@@ -76,6 +86,7 @@ exports.EventV = t.union([
     exports.LogLineEventV,
     exports.PongEventV,
     exports.DisplaysEventV,
+    exports.BrightnessHistoryEventV,
 ]);
 class FromStringType extends t.Type {
     constructor(name, type) {

@@ -94,6 +94,22 @@ export const DisplaysEventV = eventType('displays', t.array(DisplayV));
 
 export interface DisplaysEvent extends t.TypeOf<typeof DisplaysEventV> {}
 
+export const BrightnessHistoryV = t.intersection([
+  t.type({
+    timestamp: t.number,
+    brightness: t.number,
+  }),
+  t.partial({
+    actual: t.number,
+  }),
+]);
+
+export interface BrightnessHistory extends t.TypeOf<typeof BrightnessHistoryV> {}
+
+export const BrightnessHistoryEventV = eventType('brightnessHistory', t.array(BrightnessHistoryV));
+
+export interface BrightnessHistoryEvent extends t.TypeOf<typeof BrightnessHistoryEventV> {}
+
 export const EventV = t.union([
   PortsEventV,
   PortAddedEventV,
@@ -104,6 +120,7 @@ export const EventV = t.union([
   LogLineEventV,
   PongEventV,
   DisplaysEventV,
+  BrightnessHistoryEventV,
 ]);
 
 export type Event =
@@ -115,7 +132,8 @@ export type Event =
   | HostEvent
   | LogLineEvent
   | PongEvent
-  | DisplaysEvent;
+  | DisplaysEvent
+  | BrightnessHistoryEvent;
 
 class FromStringType<A> extends t.Type<A, string> {
   constructor(name: string, type: t.Mixed) {

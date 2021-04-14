@@ -49,11 +49,14 @@ class MockNibusSession extends tiny_typed_emitter_1.TypedEmitter {
         return MockNibusConnection_1.default.pingImpl();
     }
     ping(_address) {
-        return MockNibusConnection_1.default.pingImpl();
+        return Promise.resolve([-1, undefined]);
     }
     reloadDevices() { }
     setLogLevel() { }
     saveConfig() { }
+    getBrightnessHistory() {
+        return Promise.reject(new Error('Not implemented'));
+    }
 }
 exports.MockNibusSession = MockNibusSession;
 const session = new MockNibusSession();

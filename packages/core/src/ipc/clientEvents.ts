@@ -15,6 +15,7 @@ export const ClientMessagesV = t.keyof({
   reloadDevices: null,
   config: null,
   ping: null,
+  getBrightnessHistory: null,
 });
 
 export type ClientMessages = t.TypeOf<typeof ClientMessagesV>;
@@ -42,13 +43,23 @@ export const PingArgsV = argsType0('ping');
 
 export interface PingArgs extends t.TypeOf<typeof PingArgsV> {}
 
+export const GetBrightnessHistoryV = argsType1('getBrightnessHistory', t.number);
+
+export interface GetBrightnessHistory extends t.TypeOf<typeof GetBrightnessHistoryV> {}
+
 export const ClientEventsArgsV = t.union([
   SetLogLevelArgsV,
   ReloadDevicesArgsV,
   ConfigArgsV,
   PingArgsV,
+  GetBrightnessHistoryV,
 ]);
-export type ClientEventsArgs = SetLogLevelArgs | ReloadDevicesArgs | ConfigArgs | PingArgs;
+export type ClientEventsArgs =
+  | SetLogLevelArgs
+  | ReloadDevicesArgs
+  | ConfigArgs
+  | PingArgs
+  | GetBrightnessHistory;
 
 // function test(...args: SetLogLevelArgs) {
 //   const [event, ...vars] = args;

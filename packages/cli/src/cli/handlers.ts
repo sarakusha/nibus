@@ -84,7 +84,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
           }
           if ((address.equals(mac) && connection.description.type) || connection.description.link) {
             count += 1;
-            const [version, type] = await connection.getVersion(mac);
+            const { version, type } = (await connection.getVersion(mac)) ?? {};
             if (type) {
               await perform(connection, type, version);
               if (breakout) {

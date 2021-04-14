@@ -19,9 +19,9 @@ export interface INibusConnection {
     once<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
     off<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
     sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
-    ping(address: AddressParam): Promise<number>;
+    ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
     findByType(type: number): Promise<SarpDatagram>;
-    getVersion(address: AddressParam): Promise<[version?: number, type?: number, source?: Address]>;
+    getVersion(address: AddressParam): Promise<VersionInfo | undefined>;
     close(): void;
     readonly isClosed: boolean;
     readonly path: string;
@@ -32,6 +32,13 @@ export interface INibusConnection {
     owner?: IDevice;
     readonly session: INibusSession;
 }
+export declare type VersionInfo = {
+    version: number;
+    type: number;
+    source: Address;
+    timestamp: number;
+    connection: INibusConnection;
+};
 export default class NibusConnection extends TypedEmitter<NibusEvents> implements INibusConnection {
     readonly session: INibusSession;
     readonly path: string;
@@ -49,9 +56,9 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     constructor(session: INibusSession, path: string, description: MibDescription, port: number, host?: string | undefined);
     get isClosed(): boolean;
     sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
-    ping(address: AddressParam): Promise<number>;
+    ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
     findByType(type?: number): Promise<SarpDatagram>;
-    getVersion(address: AddressParam): Promise<[version?: number, type?: number, source?: Address]>;
+    getVersion(address: AddressParam): Promise<VersionInfo | undefined>;
     close: () => void;
     private stopWaiting;
     private onDatagram;

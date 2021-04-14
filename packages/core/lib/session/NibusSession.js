@@ -60,7 +60,7 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
                     .reduce(async (promise, device) => {
                     await promise;
                     debug('start ping');
-                    const time = await connection.ping(device.address);
+                    const [time] = await connection.ping(device.address);
                     debug(`ping ${time}`);
                     if (time !== -1) {
                         device.connection = connection;
@@ -158,10 +158,14 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     }
     async pingDevice(device) {
         const { connections } = this;
+        const deviceType = Reflect.getMetadata('deviceType', device);
         if (device.connection && connections.includes(device.connection)) {
-            const timeout = await device.connection.ping(device.address);
-            if (timeout !== -1)
-                return timeout;
+            const [timeout, info] = await device.connection.ping(device.address);
+            if (timeout !== -1) {
+                const { type } = info;
+                if (deviceType === type)
+                    return timeout;
+            }
             device.connection = undefined;
             this.emit('disconnected', device);
         }
@@ -173,7 +177,9 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
         const acceptable = lodash_1.default.difference(connections, occupied).filter(({ description }) => description.link || description.mib === mib);
         if (acceptable.length === 0)
             return -1;
-        const [timeout, connection] = await Promise.race(acceptable.map(item => item.ping(device.address).then(t => [t, item])));
+        const [timeout, connection] = await Promise.race(acceptable.map(item => item
+            .ping(device.address)
+            .then(([t, info]) => common_1.tuplify((info === null || info === void 0 ? void 0 : info.type) === deviceType ? t : -1, item))));
         if (timeout === -1) {
             return -1;
         }
@@ -184,7 +190,7 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
         const { connections } = this;
         const addr = new Address_1.default(address);
         if (connections.length === 0)
-            return Promise.resolve(-1);
+            return Promise.resolve([-1, undefined]);
         return Promise.race(connections.map(connection => connection.ping(addr)));
     }
     reloadDevices() {
@@ -195,6 +201,26 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     }
     saveConfig(config) {
         this.socket && this.socket.send('config', config);
+    }
+    getBrightnessHistory(dt = Date.now()) {
+        return new Promise((resolve, reject) => {
+            if (!this.socket) {
+                reject(new Error('Not connected'));
+                return;
+            }
+            let timer = 0;
+            const handler = (history) => {
+                window.clearTimeout(timer);
+                resolve(history);
+            };
+            timer = window.setTimeout(() => {
+                var _a;
+                (_a = this.socket) === null || _a === void 0 ? void 0 : _a.off('brightnessHistory', handler);
+                reject(new Error('Timeout'));
+            }, 1000);
+            this.socket.once('brightnessHistory', handler);
+            this.socket.send('getBrightnessHistory', dt);
+        });
     }
     closeConnection(connection) {
         connection.close();
@@ -218,6 +244,7 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
             if (connection.isClosed)
                 return;
             common_1.promiseArray(descriptions, async (desc) => {
+                var _a;
                 debug(`find ${JSON.stringify(connection.description)} ${baseCategory}`);
                 if (baseCategory && connection.description.category !== baseCategory)
                     return;
@@ -233,7 +260,6 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
                         }
                         try {
                             const sarpDatagram = await connection.findByType(type);
-                            debug(`category was changed: ${connection.description.category} => ${category}`);
                             connection.description = desc;
                             const address = new Address_1.default(sarpDatagram.mac);
                             debug(`device ${category}[${address}] was found on ${connection.path}`);
@@ -258,7 +284,7 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
                     }
                     case 'version':
                         try {
-                            const [, type, address] = await connection.getVersion(Address_1.default.empty);
+                            const { type, source: address } = (_a = (await connection.getVersion(Address_1.default.empty))) !== null && _a !== void 0 ? _a : {};
                             debug(`find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`);
                             if (desc.type === type && address) {
                                 debug(`category was changed: ${connection.description.category} => ${category}`);

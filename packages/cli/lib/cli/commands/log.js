@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -42,8 +33,7 @@ const logCommand = {
         boolean: true,
     }),
     handler: serviceWrapper_1.default(({ level, begin }) => new Promise((resolve, reject) => {
-        var _a;
-        const socket = core_1.Client.connect({ port: +((_a = process.env.NIBUS_PORT) !== null && _a !== void 0 ? _a : 9001) });
+        const socket = core_1.Client.connect({ port: +(process.env.NIBUS_PORT ?? 9001) });
         let resolved = false;
         socket.once('close', () => {
             resolved ? resolve() : reject();
@@ -51,15 +41,15 @@ const logCommand = {
         socket.on('error', err => {
             debug('<error>', err);
         });
-        socket.on('connect', () => __awaiter(void 0, void 0, void 0, function* () {
+        socket.on('connect', async () => {
             try {
-                yield socket.send('setLogLevel', (level !== null && level !== void 0 ? level : 'none'));
+                await socket.send('setLogLevel', (level ?? 'none'));
                 resolved = true;
             }
             finally {
                 socket.destroy();
             }
-        }));
+        });
         const log = new tail_1.Tail(path_1.default.resolve(os_1.homedir(), '.pm2', 'logs', 'nibus.service-error.log'), {
             fromBeginning: !!begin,
         });

@@ -10,9 +10,9 @@
 
 /* eslint-disable class-methods-use-this,no-bitwise */
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { chunkArray } from '../common';
+import { chunkArray, tuplify } from '../common';
 import debugFactory from '../debug';
-import { AddressParam } from '../Address';
+import Address, { AddressParam } from '../Address';
 import type { Devices } from '../mib';
 
 import { MibDescription } from '../MibDescription';
@@ -22,7 +22,7 @@ import NmsServiceType from '../nms/NmsServiceType';
 import type { SarpDatagram } from '../sarp';
 import type { INibusSession } from '../session';
 import { SlipDatagram } from '../slip';
-import { NibusEvents, INibusConnection } from './NibusConnection';
+import { NibusEvents, INibusConnection, VersionInfo } from './NibusConnection';
 import NibusDatagram, { Protocol } from './NibusDatagram';
 
 const debug = debugFactory('nibus:mock-connection');
@@ -54,12 +54,18 @@ export default class MockNibusConnection
     // return Promise.resolve(undefined);
   }
 
-  getVersion(_address: AddressParam): Promise<[number, number]> {
-    return Promise.resolve([3, 2]);
+  getVersion(address: AddressParam): Promise<VersionInfo> {
+    return Promise.resolve({
+      version: 3,
+      type: 2,
+      source: new Address(address),
+      timestamp: 0,
+      connection: this,
+    });
   }
 
-  ping(_address: AddressParam): Promise<number> {
-    return MockNibusConnection.pingImpl();
+  async ping(address: AddressParam): Promise<[number, VersionInfo]> {
+    return tuplify(await MockNibusConnection.pingImpl(), await this.getVersion(address));
   }
 
   sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined> {

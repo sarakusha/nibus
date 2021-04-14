@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -53,36 +44,34 @@ const convert = (buffer) => {
     return [Buffer.from(lines.join('')), offset];
 };
 exports.convert = convert;
-function action(device, args) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { domain, offset, source, hex, } = args;
-        yield write_1.action(device, args);
-        let buffer;
-        let ofs = 0;
-        let tick = (_size) => { };
-        if (source) {
-            buffer = yield fs_1.default.promises.readFile(source);
-            if (hex)
-                [buffer, ofs] = exports.convert(buffer);
-            const dest = (offset || ofs).toString(16).padStart(4, '0');
-            const bar = new progress_1.default(`  downloading [:bar] to ${dest} :rate/bps :percent :current/:total :etas`, {
-                total: buffer.length,
-                width: 20,
-            });
-            tick = bar.tick.bind(bar);
-        }
-        else {
-            buffer = yield readAllFromStdin();
-            if (hex) {
-                [buffer, ofs] = exports.convert(buffer);
-            }
-        }
-        device.on('downloadData', ({ domain: dataDomain, length }) => {
-            if (dataDomain === domain)
-                tick(length);
+async function action(device, args) {
+    const { domain, offset, source, hex, } = args;
+    await write_1.action(device, args);
+    let buffer;
+    let ofs = 0;
+    let tick = (_size) => { };
+    if (source) {
+        buffer = await fs_1.default.promises.readFile(source);
+        if (hex)
+            [buffer, ofs] = exports.convert(buffer);
+        const dest = (offset || ofs).toString(16).padStart(4, '0');
+        const bar = new progress_1.default(`  downloading [:bar] to ${dest} :rate/bps :percent :current/:total :etas`, {
+            total: buffer.length,
+            width: 20,
         });
-        yield device.download(domain, buffer, offset || ofs, !args.terminate);
+        tick = bar.tick.bind(bar);
+    }
+    else {
+        buffer = await readAllFromStdin();
+        if (hex) {
+            [buffer, ofs] = exports.convert(buffer);
+        }
+    }
+    device.on('downloadData', ({ domain: dataDomain, length }) => {
+        if (dataDomain === domain)
+            tick(length);
     });
+    await device.download(domain, buffer, offset || ofs, !args.terminate);
 }
 exports.action = action;
 const downloadCommand = {

@@ -36,6 +36,9 @@ import { SerialTee, Server, Direction, SerialLogger } from '../ipc';
 
 import detector from './detector';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
+const { version } = require('../../package.json');
+
 const bonjour = Bonjour();
 const pkgName = '@nata/nibus.js'; // = require('../../package.json');
 const conf = new Configstore(pkgName, {
@@ -152,10 +155,6 @@ export class NibusService {
   private isStarted = false;
 
   private ad?: Bonjour.Service;
-  // private ad = mdns.createAdvertisement(mdns.tcp('nibus'), this.port, {
-  //   // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
-  //   txtRecord: { version: require('../../package.json').version },
-  // });
 
   constructor() {
     this.server = new Server();
@@ -182,10 +181,7 @@ export class NibusService {
       name: os.hostname().replace(/\.local\.?$/, ''),
       type: 'nibus',
       port: this.port,
-      txt: {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
-        version: require('../../package.json').version,
-      },
+      txt: { version },
     });
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');

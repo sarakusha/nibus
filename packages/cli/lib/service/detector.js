@@ -18,15 +18,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -109,38 +100,43 @@ function equals(port, device) {
         getId(port.vendorId) === device.vendorId &&
         port.serialNumber === device.serialNumber);
 }
-function detectDevice(port, lastAdded) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let detected;
-        if (lastAdded && equals(port, lastAdded)) {
-            detected = lastAdded;
+async function detectDevice(port, lastAdded) {
+    let detected;
+    if (lastAdded && equals(port, lastAdded)) {
+        detected = lastAdded;
+    }
+    else {
+        let list = await usb_detection_1.default.find(getId(port.vendorId), getId(port.productId), () => { });
+        const { serialNumber, manufacturer } = port;
+        list = lodash_1.default.filter(list, {
+            serialNumber,
+            manufacturer,
+        });
+        if (list.length === 0) {
+            debug(`Unknown device ${JSON.stringify(port)}`);
+        }
+        else if (list.length > 1) {
+            debug(`can't identify device ${JSON.stringify(port)}`);
         }
         else {
-            let list = yield usb_detection_1.default.find(getId(port.vendorId), getId(port.productId), () => { });
-            const { serialNumber, manufacturer } = port;
-            list = lodash_1.default.filter(list, {
-                serialNumber,
-                manufacturer,
-            });
-            if (list.length === 0) {
-                debug(`Unknown device ${JSON.stringify(port)}`);
-            }
-            else if (list.length > 1) {
-                debug(`can't identify device ${JSON.stringify(port)}`);
-            }
-            else {
-                [detected] = list;
-            }
+            [detected] = list;
         }
-        if (detected !== undefined) {
-            const { productId, vendorId, deviceName: device, deviceAddress } = detected;
-            return Object.assign(Object.assign({}, port), { productId,
-                vendorId,
-                device,
-                deviceAddress });
-        }
-        return Object.assign(Object.assign({}, port), { productId: getId(port.productId), vendorId: getId(port.vendorId) });
-    });
+    }
+    if (detected !== undefined) {
+        const { productId, vendorId, deviceName: device, deviceAddress } = detected;
+        return {
+            ...port,
+            productId,
+            vendorId,
+            device,
+            deviceAddress,
+        };
+    }
+    return {
+        ...port,
+        productId: getId(port.productId),
+        vendorId: getId(port.vendorId),
+    };
 }
 const matchCategory = (port) => {
     const match = detection &&
@@ -158,65 +154,63 @@ const matchCategory = (port) => {
     }
     return match && getOrUndefined(core_1.CategoryV.decode(match.category));
 };
-function reloadDevicesAsync(prevPorts, lastAdded) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const ports = [];
-        try {
-            if (detection == null) {
-                detection = loadDetection();
+async function reloadDevicesAsync(prevPorts, lastAdded) {
+    const ports = [];
+    try {
+        if (detection == null) {
+            detection = loadDetection();
+        }
+        const list = await serialport_1.default.list();
+        const externalPorts = list.filter(port => !!port.productId);
+        debug('externalPorts', JSON.stringify(externalPorts));
+        await externalPorts.reduce(async (promise, port) => {
+            const nextPorts = await promise;
+            const prev = lodash_1.default.findIndex(prevPorts, { path: port.path });
+            let device;
+            if (prev !== -1) {
+                [device] = prevPorts.splice(prev, 1);
+                const category = matchCategory(device);
+                if (category !== device.category) {
+                    debug(`device's category was changed ${device.category} to ${category}`);
+                    device.category && detector.emit('remove', device);
+                    device.category = getOrUndefined(core_1.CategoryV.decode(category));
+                    device.category && detector.emit('add', device);
+                }
             }
-            const list = yield serialport_1.default.list();
-            const externalPorts = list.filter(port => !!port.productId);
-            debug('externalPorts', JSON.stringify(externalPorts));
-            yield externalPorts.reduce((promise, port) => __awaiter(this, void 0, void 0, function* () {
-                const nextPorts = yield promise;
-                const prev = lodash_1.default.findIndex(prevPorts, { path: port.path });
-                let device;
-                if (prev !== -1) {
-                    [device] = prevPorts.splice(prev, 1);
-                    const category = matchCategory(device);
-                    if (category !== device.category) {
-                        debug(`device's category was changed ${device.category} to ${category}`);
-                        device.category && detector.emit('remove', device);
-                        device.category = getOrUndefined(core_1.CategoryV.decode(category));
-                        device.category && detector.emit('add', device);
-                    }
-                }
-                else {
-                    device = yield detectDevice(port, lastAdded);
-                    device.category = matchCategory(device);
-                    detector.emit('plug', device);
-                    if (device.category) {
-                        debug(`new device ${device.device || device.vendorId}/\
+            else {
+                device = await detectDevice(port, lastAdded);
+                device.category = matchCategory(device);
+                detector.emit('plug', device);
+                if (device.category) {
+                    debug(`new device ${device.device || device.vendorId}/\
 ${device.category} was plugged to ${device.path}`);
-                        detector.emit('add', device);
-                    }
-                    else {
-                        debug('unknown device %o was plugged', device);
-                    }
-                }
-                const validation = core_1.KnownPortV.decode(device);
-                if (Either_1.isLeft(validation)) {
-                    debug('<error>', PathReporter_1.PathReporter.report(validation).join('\n'));
+                    detector.emit('add', device);
                 }
                 else {
-                    nextPorts.push(validation.right);
+                    debug('unknown device %o was plugged', device);
                 }
-                return nextPorts;
-            }), Promise.resolve(ports));
-            prevPorts.forEach(port => {
-                detector.emit('unplug', port);
-                debug(`device ${port.device || port.vendorId}/\
+            }
+            const validation = core_1.KnownPortV.decode(device);
+            if (Either_1.isLeft(validation)) {
+                debug('<error>', PathReporter_1.PathReporter.report(validation).join('\n'));
+            }
+            else {
+                nextPorts.push(validation.right);
+            }
+            return nextPorts;
+        }, Promise.resolve(ports));
+        prevPorts.forEach(port => {
+            detector.emit('unplug', port);
+            debug(`device ${port.device || port.vendorId}/\
 ${port.category || port.productId} was unplugged from ${port.path}`);
-                port.category && detector.emit('remove', port);
-            });
-            return ports;
-        }
-        catch (err) {
-            debug(`Error: reload devices was failed (${err.stack || err})`);
-            return ports;
-        }
-    });
+            port.category && detector.emit('remove', port);
+        });
+        return ports;
+    }
+    catch (err) {
+        debug(`Error: reload devices was failed (${err.stack || err})`);
+        return ports;
+    }
 }
 exports.default = detector;
 //# sourceMappingURL=detector.js.map

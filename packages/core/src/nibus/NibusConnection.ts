@@ -14,11 +14,9 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import _ from 'lodash';
 import { Socket, connect } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
-// import xpipe from 'xpipe';
 import debugFactory from '../debug';
 import Address, { AddressParam } from '../Address';
 import { TimeoutError } from '../errors';
-// import { getSocketPath } from '../ipc';
 import { createExecuteProgramInvocation, createNmsRead, NmsDatagram } from '../nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import { createSarp, SarpQueryType, SarpDatagram } from '../sarp';
@@ -29,7 +27,7 @@ import NibusDatagram from './NibusDatagram';
 import NibusEncoder from './NibusEncoder';
 import NibusDecoder from './NibusDecoder';
 import config from './config';
-import { Datagram, delay } from '../common';
+import { Datagram, delay, tuplify } from '../common';
 import type { IDevice } from '../mib';
 
 export const MINIHOST_TYPE = 0xabc6;
@@ -95,9 +93,9 @@ export interface INibusConnection {
   once<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
   off<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
   sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
-  ping(address: AddressParam): Promise<number>;
+  ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
   findByType(type: number): Promise<SarpDatagram>;
-  getVersion(address: AddressParam): Promise<[version?: number, type?: number, source?: Address]>;
+  getVersion(address: AddressParam): Promise<VersionInfo | undefined>;
   close(): void;
   readonly isClosed: boolean;
   readonly path: string;
@@ -108,6 +106,14 @@ export interface INibusConnection {
   owner?: IDevice;
   readonly session: INibusSession;
 }
+
+export type VersionInfo = {
+  version: number;
+  type: number;
+  source: Address;
+  timestamp: number;
+  connection: INibusConnection;
+};
 
 const empty = Buffer.alloc(0);
 
@@ -141,7 +147,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     const validate = MibDescriptionV.decode(description);
     if (isLeft(validate)) {
       const msg = PathReporter.report(validate).join('\n');
-      debug('<error>', msg);
+      debug(`<error> ${msg}`);
       throw new TypeError(msg);
     }
     this.description = validate.right;
@@ -180,12 +186,16 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     });
   }
 
-  public ping(address: AddressParam): Promise<number> {
-    debug(`ping [${address.toString()}] ${this.path}`);
+  public ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]> {
+    // debug(`ping [${address.toString()}] ${this.path}`);
     const now = Date.now();
-    return this.sendDatagram(createNmsRead(address, VERSION_ID))
-      .then(datagram => Number(Reflect.getOwnMetadata('timeStamp', datagram!)) - now)
-      .catch(() => -1);
+    return this.getVersion(address)
+      .then(response =>
+        response
+          ? tuplify(response.timestamp - now, response)
+          : ([-1, undefined] as [-1, undefined])
+      )
+      .catch(() => [-1, undefined]);
   }
 
   public findByType(type: number = MINIHOST_TYPE): Promise<SarpDatagram> {
@@ -206,22 +216,22 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     }).finally(() => this.off('sarp', sarpHandler));
   }
 
-  public async getVersion(
-    address: AddressParam
-  ): Promise<[version?: number, type?: number, source?: Address]> {
+  public async getVersion(address: AddressParam): Promise<VersionInfo | undefined> {
     const nmsRead = createNmsRead(address, VERSION_ID);
     try {
-      const { value, status, source } = (await this.sendDatagram(nmsRead)) as NmsDatagram;
+      const datagram = (await this.sendDatagram(nmsRead)) as NmsDatagram;
+      const { value, status, source } = datagram;
+      const timestamp = Number(Reflect.getOwnMetadata('timeStamp', datagram));
       if (status !== 0) {
-        debug('<error>', status);
-        return [];
+        debug(`<error> ${status}`);
+        return undefined;
       }
       const version = (value as number) & 0xffff;
       const type = (value as number) >>> 16;
-      return [version, type, source];
+      return { version, type, source, timestamp, connection: this };
     } catch (err) {
-      debug('<error>', err.message || err);
-      return [];
+      // debug(`<error> ${err.message || err}`);
+      return undefined;
     }
   }
 

@@ -10,6 +10,7 @@ interface IPCServerEvents {
     'client:setLogLevel': (client: Socket, logLevel: LogLevel | undefined) => void;
     'client:reloadDevices': (socket: Socket) => void;
     'client:config': (socket: Socket, config: Record<string, unknown>) => void;
+    'client:getBrightnessHistory': (socket: Socket, dt?: number) => void;
     raw: (data: Buffer, dir: Direction) => void;
 }
 declare class IPCServer extends TypedEmitter<IPCServerEvents> {

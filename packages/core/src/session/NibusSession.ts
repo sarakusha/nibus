@@ -13,14 +13,15 @@ import fs from 'fs';
 import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
-import { delay, LogLevel, noop, promiseArray } from '../common';
+import { delay, LogLevel, noop, promiseArray, tuplify } from '../common';
 import debugFactory from '../debug';
 import { Client, Host, PortArg, Display } from '../ipc';
+import { BrightnessHistory } from '../ipc/events';
 // import { Display } from '../ipc/events';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
-import { NibusEvents } from '../nibus/NibusConnection';
+import { NibusEvents, VersionInfo } from '../nibus/NibusConnection';
 import { NmsDatagram, NmsServiceType } from '../nms';
 import { Category } from './KnownPorts';
 // import session from './session';
@@ -64,10 +65,11 @@ export interface INibusSession {
   // connectDevice(device: IDevice, connection: INibusConnection): void;
   close(): void;
   pingDevice(device: IDevice): Promise<number>;
-  ping(address: AddressParam): Promise<number>;
+  ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
   reloadDevices(): void;
   setLogLevel(logLevel: LogLevel): void;
   saveConfig(config: Record<string, unknown>): void;
+  getBrightnessHistory(dt?: number): Promise<BrightnessHistory[]>;
   readonly devices: Devices;
   readonly host?: string;
   readonly port: number;
@@ -170,9 +172,14 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
   //
   async pingDevice(device: IDevice): Promise<number> {
     const { connections } = this;
+    const deviceType = Reflect.getMetadata('deviceType', device);
     if (device.connection && connections.includes(device.connection)) {
-      const timeout = await device.connection.ping(device.address);
-      if (timeout !== -1) return timeout;
+      const [timeout, info] = await device.connection.ping(device.address);
+      if (timeout !== -1) {
+        const { type } = info!;
+        if (deviceType === type) return timeout;
+      }
+
       device.connection = undefined;
       this.emit('disconnected', device);
       // device.emit('disconnected');
@@ -190,7 +197,9 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
 
     const [timeout, connection] = await Promise.race(
       acceptable.map(item =>
-        item.ping(device.address).then(t => [t, item] as [number, INibusConnection])
+        item
+          .ping(device.address)
+          .then(([t, info]) => tuplify(info?.type === deviceType ? t : -1, item))
       )
     );
     if (timeout === -1) {
@@ -221,10 +230,10 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
   //   debug('started');
   // }
 
-  async ping(address: AddressParam): Promise<number> {
+  async ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]> {
     const { connections } = this;
     const addr = new Address(address);
-    if (connections.length === 0) return Promise.resolve(-1);
+    if (connections.length === 0) return Promise.resolve([-1, undefined]);
     return Promise.race(connections.map(connection => connection.ping(addr)));
   }
 
@@ -238,6 +247,26 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
 
   saveConfig(config: Record<string, unknown>): void {
     this.socket && this.socket.send('config', config);
+  }
+
+  getBrightnessHistory(dt = Date.now()): Promise<BrightnessHistory[]> {
+    return new Promise<BrightnessHistory[]>((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Not connected'));
+        return;
+      }
+      let timer = 0;
+      const handler = (history: BrightnessHistory[]): void => {
+        window.clearTimeout(timer);
+        resolve(history);
+      };
+      timer = window.setTimeout(() => {
+        this.socket?.off('brightnessHistory', handler);
+        reject(new Error('Timeout'));
+      }, 1000);
+      this.socket.once('brightnessHistory', handler);
+      this.socket.send('getBrightnessHistory', dt);
+    });
   }
 
   private reloadHandler = (ports: PortArg[]): void => {
@@ -280,7 +309,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
         .reduce(async (promise, device) => {
           await promise;
           debug('start ping');
-          const time = await connection.ping(device.address);
+          const [time] = await connection.ping(device.address);
           debug(`ping ${time}`);
           if (time !== -1) {
             device.connection = connection;
@@ -340,7 +369,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
             }
             try {
               const sarpDatagram = await connection.findByType(type);
-              debug(`category was changed: ${connection.description.category} => ${category}`);
+              // debug(`category was changed: ${connection.description.category} => ${category}`);
               // eslint-disable-next-line no-param-reassign
               connection.description = desc;
               const address = new Address(sarpDatagram.mac);
@@ -373,7 +402,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
           }
           case 'version':
             try {
-              const [, type, address] = await connection.getVersion(Address.empty);
+              const { type, source: address } = (await connection.getVersion(Address.empty)) ?? {};
               debug(
                 `find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`
               );

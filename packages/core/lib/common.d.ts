@@ -47,6 +47,7 @@ export declare type SubType<Base, Condition> = Pick<Base, AllowedNames<Base, Con
 export declare type ReplaceType<Base, Condition, Type> = Pick<Base, ExcludeNames<Base, Condition>> & Record<AllowedNames<Base, Condition>, Type>;
 export declare const replaceBuffers: <T extends object>(obj: T) => ReplaceType<T, Buffer, string>;
 export declare function promiseArray<T, R>(array: ReadonlyArray<T>, action: (item: T, index: number, arr: ReadonlyArray<T>) => Promise<R | R[]>): Promise<R[]>;
+export declare function tuplify<T extends unknown[]>(...args: T): T;
 export declare const MSG_DELIMITER = "\n";
 export {};
 //# sourceMappingURL=common.d.ts.map

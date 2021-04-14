@@ -12,7 +12,7 @@
 enum SarpQueryType {
   ByType = 1,
   ByNet,
-  ByGrpup,
+  ByGroup,
   All,
 }
 

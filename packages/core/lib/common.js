@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MSG_DELIMITER = exports.promiseArray = exports.replaceBuffers = exports.printBuffer = exports.chunkArray = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = void 0;
+exports.MSG_DELIMITER = exports.tuplify = exports.promiseArray = exports.replaceBuffers = exports.printBuffer = exports.chunkArray = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = void 0;
 const t = __importStar(require("io-ts"));
 const lodash_1 = __importDefault(require("lodash"));
 exports.LogLevelV = t.keyof({
@@ -73,5 +73,9 @@ function promiseArray(array, action) {
     }), Promise.resolve([]));
 }
 exports.promiseArray = promiseArray;
+function tuplify(...args) {
+    return args;
+}
+exports.tuplify = tuplify;
 exports.MSG_DELIMITER = '\n';
 //# sourceMappingURL=common.js.map

@@ -17,7 +17,7 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import _, { Dictionary } from 'lodash';
 import path from 'path';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { config as configDir } from 'xdg-basedir';
+import { config as xdgConfig } from 'xdg-basedir';
 import debugFactory from '../debug';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
@@ -245,7 +245,7 @@ function defineMibProperty(
     default:
       break;
   }
-  switch (simpleType) {
+  switch (type?.base ?? simpleType) {
     case 'packed8Float':
       converters.push(packed8floatConverter(type));
       break;
@@ -276,11 +276,11 @@ function defineMibProperty(
       }
     }
     if (min !== undefined) {
-      min = convertTo(converters)(min) as number;
+      // min = convertTo(converters)(min); // as number;
       Reflect.defineMetadata('min', min, target, propertyKey);
     }
     if (max !== undefined) {
-      max = convertTo(converters)(max) as number;
+      // max = convertTo(converters)(max); // as number;
       Reflect.defineMetadata('max', max, target, propertyKey);
     }
   }
@@ -291,7 +291,7 @@ function defineMibProperty(
     const { units, precision, representation, get, set } = info;
     const size = getIntSize(simpleType);
     if (units) {
-      converters.push(unitConverter(units));
+      isWritable || converters.push(unitConverter(units));
       Reflect.defineMetadata('unit', units, target, propertyKey);
     }
     let precisionConv: IConverter = {
@@ -301,7 +301,8 @@ function defineMibProperty(
     if (precision) {
       precisionConv = precisionConverter(precision);
       converters.push(precisionConv);
-      Reflect.defineMetadata('step', 1 / 10 ** parseInt(precision, 10), target, propertyKey);
+      const prec = 1 / 10 ** parseInt(precision, 10);
+      Reflect.defineMetadata('step', prec, target, propertyKey);
     }
     if (enumeration) {
       // console.log({ enumeration, propertyKey });
@@ -384,6 +385,7 @@ function defineMibProperty(
       if (value === undefined || Number.isNaN(value as number)) {
         throw new Error(`Invalid value: ${JSON.stringify(newValue)}`);
       }
+      // console.log({ setRawValue: value, newValue });
       this.setRawValue(id, value);
     };
   }
@@ -631,7 +633,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
   }
 
   public drain(): Promise<number[]> {
-    debug(`drain [${this.address}]`);
+    // debug(`drain [${this.address}]`);
     const { [$dirties]: dirties } = this;
     const ids = Object.keys(dirties)
       .map(Number)
@@ -715,8 +717,9 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     const map: { [id: string]: string[] } = Reflect.getMetadata('map', this);
     const chunks = chunkArray(ids, disableBatchReading ? 1 : 21);
     debug(`read [${chunks.map(chunk => `[${chunk.join()}]`).join()}] from [${this.address}]`);
+    const isSiolynx = Reflect.getMetadata('mib', this) === 'siolynx';
     const requests = chunks.map<[NmsDatagram, number[]]>(chunk => [
-      createNmsRead(this.address, ...chunk),
+      createNmsRead(isSiolynx ? Address.empty : this.address, ...chunk),
       chunk,
     ]);
     const parseResult = (id: number, status: Error | number, value?: any): Record<string, any> => {
@@ -951,7 +954,7 @@ interface DevicePrototype {
 }
 
 export const getMibTypes = (): Config['mibTypes'] => {
-  const conf = path.resolve(configDir || '/tmp', 'configstore', pkgName);
+  const conf = path.resolve(xdgConfig || '/tmp', 'configstore', pkgName);
   if (!fs.existsSync(`${conf}.json`)) return {};
   const validate = ConfigV.decode(JSON.parse(fs.readFileSync(`${conf}.json`).toString()));
   //   const validate = ConfigV.decode(require(conf));

@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "3.0.6",
+  "version": "3.1.0",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -39,7 +39,7 @@
   },
   "devDependencies": {
     "@types/bonjour": "^3.5.8",
-    "@types/configstore": "^4.0.0",
+    "@types/configstore": "^5.0.0",
     "@types/debug": "^4.1.0",
     "@types/jest-diff": "^24.3.0",
     "@types/js-yaml": "^4.0.0",
@@ -58,7 +58,7 @@
     "bonjour-hap": "^3.6.2",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",
-    "configstore": "^5.0.0",
+    "configstore": "^6.0.0",
     "debug": "^4.1.0",
     "electron-log": "^4.0.4",
     "fp-ts": "^2.4.1",

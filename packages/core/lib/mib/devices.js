@@ -63,7 +63,7 @@ function getBaseType(types, type) {
     return base;
 }
 function defineMibProperty(target, key, types, prop) {
-    var _a;
+    var _a, _b;
     const propertyKey = mib_1.validJsName(key);
     const { appinfo } = prop;
     const id = mib_1.toInt(appinfo.nms_id);
@@ -104,7 +104,7 @@ function defineMibProperty(target, key, types, prop) {
         default:
             break;
     }
-    switch (simpleType) {
+    switch ((_a = type === null || type === void 0 ? void 0 : type.base) !== null && _a !== void 0 ? _a : simpleType) {
         case 'packed8Float':
             converters.push(mib_1.packed8floatConverter(type));
             break;
@@ -135,21 +135,19 @@ function defineMibProperty(target, key, types, prop) {
             }
         }
         if (min !== undefined) {
-            min = mib_1.convertTo(converters)(min);
             Reflect.defineMetadata('min', min, target, propertyKey);
         }
         if (max !== undefined) {
-            max = mib_1.convertTo(converters)(max);
             Reflect.defineMetadata('max', max, target, propertyKey);
         }
     }
-    const info = (_a = type === null || type === void 0 ? void 0 : type.appinfo) !== null && _a !== void 0 ? _a : appinfo;
+    const info = (_b = type === null || type === void 0 ? void 0 : type.appinfo) !== null && _b !== void 0 ? _b : appinfo;
     if (info != null) {
         enumeration = type === null || type === void 0 ? void 0 : type.enumeration;
         const { units, precision, representation, get, set } = info;
         const size = mib_1.getIntSize(simpleType);
         if (units) {
-            converters.push(mib_1.unitConverter(units));
+            isWritable || converters.push(mib_1.unitConverter(units));
             Reflect.defineMetadata('unit', units, target, propertyKey);
         }
         let precisionConv = {
@@ -159,7 +157,8 @@ function defineMibProperty(target, key, types, prop) {
         if (precision) {
             precisionConv = mib_1.precisionConverter(precision);
             converters.push(precisionConv);
-            Reflect.defineMetadata('step', 1 / 10 ** parseInt(precision, 10), target, propertyKey);
+            const prec = 1 / 10 ** parseInt(precision, 10);
+            Reflect.defineMetadata('step', prec, target, propertyKey);
         }
         if (enumeration) {
             converters.push(mib_1.enumerationConverter(enumeration));
@@ -414,7 +413,6 @@ class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
         return this.$countRef;
     }
     drain() {
-        debug(`drain [${this.address}]`);
         const { [$dirties]: dirties } = this;
         const ids = Object.keys(dirties)
             .map(Number)
@@ -487,8 +485,9 @@ class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
         const map = Reflect.getMetadata('map', this);
         const chunks = common_1.chunkArray(ids, disableBatchReading ? 1 : 21);
         debug(`read [${chunks.map(chunk => `[${chunk.join()}]`).join()}] from [${this.address}]`);
+        const isSiolynx = Reflect.getMetadata('mib', this) === 'siolynx';
         const requests = chunks.map(chunk => [
-            nms_1.createNmsRead(this.address, ...chunk),
+            nms_1.createNmsRead(isSiolynx ? Address_1.default.empty : this.address, ...chunk),
             chunk,
         ]);
         const parseResult = (id, status, value) => {

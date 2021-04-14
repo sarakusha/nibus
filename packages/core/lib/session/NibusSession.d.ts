@@ -2,8 +2,10 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { LogLevel } from '../common';
 import { Host, Display } from '../ipc';
+import { BrightnessHistory } from '../ipc/events';
 import { Devices, IDevice, DeviceId } from '../mib';
 import { INibusConnection } from '../nibus';
+import { VersionInfo } from '../nibus/NibusConnection';
 import { NmsDatagram } from '../nms';
 import { Category } from './KnownPorts';
 export declare type FoundListener = (arg: {
@@ -38,10 +40,11 @@ export interface INibusSession {
     start(port?: number, host?: string): Promise<number>;
     close(): void;
     pingDevice(device: IDevice): Promise<number>;
-    ping(address: AddressParam): Promise<number>;
+    ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
     reloadDevices(): void;
     setLogLevel(logLevel: LogLevel): void;
     saveConfig(config: Record<string, unknown>): void;
+    getBrightnessHistory(dt?: number): Promise<BrightnessHistory[]>;
     readonly devices: Devices;
     readonly host?: string;
     readonly port: number;
@@ -60,10 +63,11 @@ export declare class NibusSession extends TypedEmitter<NibusSessionEvents> imple
     private connectDevice;
     close(): void;
     pingDevice(device: IDevice): Promise<number>;
-    ping(address: AddressParam): Promise<number>;
+    ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
     reloadDevices(): void;
     setLogLevel(logLevel: LogLevel): void;
     saveConfig(config: Record<string, unknown>): void;
+    getBrightnessHistory(dt?: number): Promise<BrightnessHistory[]>;
     private reloadHandler;
     private addHandler;
     private closeConnection;

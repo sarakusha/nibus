@@ -103,7 +103,7 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
         const validate = MibDescription_1.MibDescriptionV.decode(description);
         if (Either_1.isLeft(validate)) {
             const msg = PathReporter_1.PathReporter.report(validate).join('\n');
-            debug('<error>', msg);
+            debug(`<error> ${msg}`);
             throw new TypeError(msg);
         }
         this.description = validate.right;
@@ -138,11 +138,12 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
         });
     }
     ping(address) {
-        debug(`ping [${address.toString()}] ${this.path}`);
         const now = Date.now();
-        return this.sendDatagram(nms_1.createNmsRead(address, VERSION_ID))
-            .then(datagram => Number(Reflect.getOwnMetadata('timeStamp', datagram)) - now)
-            .catch(() => -1);
+        return this.getVersion(address)
+            .then(response => response
+            ? common_1.tuplify(response.timestamp - now, response)
+            : [-1, undefined])
+            .catch(() => [-1, undefined]);
     }
     findByType(type = exports.MINIHOST_TYPE) {
         debug(`findByType ${type} on ${this.path} (${this.description.category})`);
@@ -161,18 +162,19 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
     async getVersion(address) {
         const nmsRead = nms_1.createNmsRead(address, VERSION_ID);
         try {
-            const { value, status, source } = (await this.sendDatagram(nmsRead));
+            const datagram = (await this.sendDatagram(nmsRead));
+            const { value, status, source } = datagram;
+            const timestamp = Number(Reflect.getOwnMetadata('timeStamp', datagram));
             if (status !== 0) {
-                debug('<error>', status);
-                return [];
+                debug(`<error> ${status}`);
+                return undefined;
             }
             const version = value & 0xffff;
             const type = value >>> 16;
-            return [version, type, source];
+            return { version, type, source, timestamp, connection: this };
         }
         catch (err) {
-            debug('<error>', err.message || err);
-            return [];
+            return undefined;
         }
     }
     async execBootloader(fn, data) {

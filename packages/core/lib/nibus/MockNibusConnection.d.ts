@@ -6,7 +6,7 @@ import { NmsDatagram } from '../nms';
 import type { SarpDatagram } from '../sarp';
 import type { INibusSession } from '../session';
 import { SlipDatagram } from '../slip';
-import { NibusEvents, INibusConnection } from './NibusConnection';
+import { NibusEvents, INibusConnection, VersionInfo } from './NibusConnection';
 import NibusDatagram from './NibusDatagram';
 export default class MockNibusConnection extends TypedEmitter<NibusEvents> implements INibusConnection {
     readonly session: INibusSession;
@@ -17,8 +17,8 @@ export default class MockNibusConnection extends TypedEmitter<NibusEvents> imple
     constructor(session: INibusSession, devices: Devices);
     close(): void;
     findByType(_type: number): Promise<SarpDatagram>;
-    getVersion(_address: AddressParam): Promise<[number, number]>;
-    ping(_address: AddressParam): Promise<number>;
+    getVersion(address: AddressParam): Promise<VersionInfo>;
+    ping(address: AddressParam): Promise<[number, VersionInfo]>;
     sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
     get isClosed(): boolean;
     nmsReadResponse(nmsDatagram: NmsDatagram): Promise<NmsDatagram[]>;

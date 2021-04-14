@@ -312,6 +312,30 @@ export declare const DisplaysEventV: t.TypeC<{
 }>;
 export interface DisplaysEvent extends t.TypeOf<typeof DisplaysEventV> {
 }
+export declare const BrightnessHistoryV: t.IntersectionC<[t.TypeC<{
+    timestamp: t.NumberC;
+    brightness: t.NumberC;
+}>, t.PartialC<{
+    actual: t.NumberC;
+}>]>;
+export interface BrightnessHistory extends t.TypeOf<typeof BrightnessHistoryV> {
+}
+export declare const BrightnessHistoryEventV: t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        timestamp: t.NumberC;
+        brightness: t.NumberC;
+    }>, t.PartialC<{
+        actual: t.NumberC;
+    }>]>>, t.Mixed]> | t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        timestamp: t.NumberC;
+        brightness: t.NumberC;
+    }>, t.PartialC<{
+        actual: t.NumberC;
+    }>]>>]>;
+}>;
+export interface BrightnessHistoryEvent extends t.TypeOf<typeof BrightnessHistoryEventV> {
+}
 export declare const EventV: t.UnionC<[t.TypeC<{
     event: t.LiteralC<string>;
     args: t.TupleC<[t.ArrayC<t.TypeC<{
@@ -531,8 +555,21 @@ export declare const EventV: t.UnionC<[t.TypeC<{
     }>, t.PartialC<{
         primary: t.BooleanC;
     }>]>>]>;
+}>, t.TypeC<{
+    event: t.LiteralC<string>;
+    args: t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        timestamp: t.NumberC;
+        brightness: t.NumberC;
+    }>, t.PartialC<{
+        actual: t.NumberC;
+    }>]>>, t.Mixed]> | t.TupleC<[t.ArrayC<t.IntersectionC<[t.TypeC<{
+        timestamp: t.NumberC;
+        brightness: t.NumberC;
+    }>, t.PartialC<{
+        actual: t.NumberC;
+    }>]>>]>;
 }>]>;
-export declare type Event = PortsEvent | PortAddedEvent | PortRemovedEvent | LogLevelEvent | ConfigEvent | HostEvent | LogLineEvent | PongEvent | DisplaysEvent;
+export declare type Event = PortsEvent | PortAddedEvent | PortRemovedEvent | LogLevelEvent | ConfigEvent | HostEvent | LogLineEvent | PongEvent | DisplaysEvent | BrightnessHistoryEvent;
 declare class FromStringType<A> extends t.Type<A, string> {
     constructor(name: string, type: t.Mixed);
 }

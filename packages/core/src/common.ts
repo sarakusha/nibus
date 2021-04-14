@@ -125,4 +125,8 @@ export function promiseArray<T, R>(
   );
 }
 
+export function tuplify<T extends unknown[]>(...args: T): T {
+  return args;
+}
+
 export const MSG_DELIMITER = '\n';

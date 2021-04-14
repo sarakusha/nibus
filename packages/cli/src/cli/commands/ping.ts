@@ -64,7 +64,7 @@ min/avg/max = ${min || '-'}/${Number.isNaN(avg) ? '-' : avg}/${max || '-'}`);
       });
       while (count - transmitted !== 0 && !exit) {
         // eslint-disable-next-line no-await-in-loop
-        const ping = await session.ping(mac);
+        const [ping] = await session.ping(mac);
         if (ping !== -1) stat.push(ping);
         transmitted += 1;
         quiet || raw || console.info(`${mac} ${ping !== -1 ? `${ping} ms` : '*'}`);

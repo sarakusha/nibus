@@ -1,7 +1,6 @@
-#!/usr/bin/env node
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -9,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+#!/usr/bin/env node
 import yargs from 'yargs';
 import { getMibsSync } from '@nibus/core';
 import dump from './cli/commands/dump';

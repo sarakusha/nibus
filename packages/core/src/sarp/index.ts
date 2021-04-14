@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -16,12 +16,14 @@ export { SarpQueryType };
 export { SarpDatagram, ISarpOptions };
 
 export function createSarp(
-  queryType: SarpQueryType, queryParam: Buffer | Uint8Array | number[] = Buffer.alloc(5),
+  queryType: SarpQueryType,
+  queryParam: Buffer | Uint8Array | number[] = Buffer.alloc(5)
 ): SarpDatagram {
   const param: Buffer = Buffer.isBuffer(queryParam)
     ? queryParam
     : Array.isArray(queryParam)
-      ? Buffer.from(queryParam as number[]) : Buffer.from(queryParam.buffer);
+    ? Buffer.from(queryParam as number[])
+    : Buffer.from(queryParam.buffer);
   return new SarpDatagram({
     queryType,
     destination: Address.broadcast,

@@ -1,6 +1,6 @@
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -29,9 +29,8 @@ export async function action(device: IDevice, args: Arguments<ReadOpts>): Promis
 const readCommand: CommandModule<CommonOpts, ReadOpts> = {
   command: 'read',
   describe: 'прочитать значение переменной',
-  builder: argv => argv
-    .demandOption(['id', 'mac'])
-    .check(checkArgv => {
+  builder: argv =>
+    argv.demandOption(['id', 'mac']).check(checkArgv => {
       if (Array.isArray(checkArgv.id) && checkArgv.id.length !== 1) {
         throw new Error('Только одна переменная id за раз');
       }

@@ -46,7 +46,6 @@ const conf = new Configstore(pkgName, {
   omit: ['priority'],
 });
 
-// debugFactory.enable('nibus:detector,nibus.service');
 const debug = debugFactory('nibus:service');
 const debugIn = debugFactory('nibus:<<<');
 const debugOut = debugFactory('nibus:>>>');

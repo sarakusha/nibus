@@ -24,7 +24,7 @@ class IPCServer extends tiny_typed_emitter_1.TypedEmitter {
             this.clients.length = 0;
             this.server.close();
             setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
-            debug(`${path} closed`);
+            debug(`${JSON.stringify(path)} closed`);
         };
         this.connectionHandler = (socket) => {
             const addClient = () => {
@@ -114,7 +114,7 @@ class IPCServer extends tiny_typed_emitter_1.TypedEmitter {
     }
     send(client, event, ...args) {
         if (this.closed) {
-            return Promise.reject(new Error('Server is closed'));
+            return Promise.reject(new Error('Server closed'));
         }
         if (client.destroyed) {
             return Promise.resolve();

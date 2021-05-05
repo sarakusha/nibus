@@ -30,6 +30,7 @@ exports.CategoryV = t.union([
         relay: null,
         ftdi: null,
         sensor: null,
+        novastar: null,
     }),
     t.undefined,
 ]);

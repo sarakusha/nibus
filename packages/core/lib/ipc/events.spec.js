@@ -4,7 +4,8 @@ const Either_1 = require("fp-ts/lib/Either");
 const events_1 = require("./events");
 const portsEvent = {
     event: 'ports',
-    args: [[
+    args: [
+        [
             {
                 portInfo: {
                     path: 'com1',
@@ -21,42 +22,45 @@ const portsEvent = {
                 },
                 description: { mib: 'test' },
             },
-        ]],
+        ],
+    ],
 };
 const addEvent = {
     event: 'add',
-    args: [{
+    args: [
+        {
             portInfo: {
                 path: 'com3',
                 productId: 1,
                 vendorId: 2,
             },
             description: { mib: 'test' },
-        }],
+        },
+    ],
 };
 const removeEvent = {
     event: 'remove',
-    args: [{
+    args: [
+        {
             portInfo: {
                 path: 'com3',
                 productId: 1,
                 vendorId: 2,
             },
             description: { mib: 'test' },
-        }],
+        },
+    ],
 };
 const testEvent = {
     event: 'test',
-    args: [{
+    args: [
+        {
             a: 1,
             b: 2,
-        }],
+        },
+    ],
 };
-const events = [
-    portsEvent,
-    addEvent,
-    removeEvent,
-];
+const events = [portsEvent, addEvent, removeEvent];
 describe('event tests', () => {
     test('PortsEvent', () => {
         expect(events_1.PortsEventV.is(portsEvent)).toBeTruthy();

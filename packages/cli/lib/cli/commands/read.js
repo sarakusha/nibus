@@ -19,9 +19,7 @@ exports.action = action;
 const readCommand = {
     command: 'read',
     describe: 'прочитать значение переменной',
-    builder: argv => argv
-        .demandOption(['id', 'mac'])
-        .check(checkArgv => {
+    builder: argv => argv.demandOption(['id', 'mac']).check(checkArgv => {
         if (Array.isArray(checkArgv.id) && checkArgv.id.length !== 1) {
             throw new Error('Только одна переменная id за раз');
         }

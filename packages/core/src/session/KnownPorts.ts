@@ -8,9 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* tslint:disable:variable-name */
 import * as t from 'io-ts';
-// import { NibusBaudRate, NibusBaudRateV } from '../nibus';
 
 export type HexOrNumber = string | number;
 /** @internal */
@@ -23,12 +21,12 @@ export const CategoryV = t.union([
     relay: null,
     ftdi: null,
     sensor: null,
-    // undefined: null,
+    novastar: null,
   }),
   t.undefined,
 ]);
 /**
- * Кутегория устройства
+ * Категория устройства
  * - siolynx
  * - minihost
  * - fancontrol
@@ -36,6 +34,7 @@ export const CategoryV = t.union([
  * - relay
  * - ftdi
  * - sensor
+ * - novastar
  * - undefined
  */
 export type Category = t.TypeOf<typeof CategoryV>;

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  * @license
  * Copyright (c) 2021. Nata-Info
@@ -8,7 +9,6 @@
  * the EULA file that was distributed with this source code.
  */
 
-#!/usr/bin/env node
 import yargs from 'yargs';
 import { getMibsSync } from '@nibus/core';
 import dump from './cli/commands/dump';

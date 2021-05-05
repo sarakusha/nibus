@@ -116,7 +116,7 @@ exports.default = {
             pid: 10,
             serialNumber: 'K_Ke-USB24R',
             category: 'relay',
-        }
+        },
     ],
 };
 //# sourceMappingURL=static.js.map

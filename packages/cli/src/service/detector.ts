@@ -8,11 +8,9 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* tslint:disable:variable-name */
 import { EventEmitter } from 'events';
-import { Either, getOrElse, isLeft } from 'fp-ts/lib/Either';
+import { Either, getOrElse } from 'fp-ts/lib/Either';
 import fs, { Stats } from 'fs';
-import { PathReporter } from 'io-ts/lib/PathReporter';
 import yaml from 'js-yaml';
 import _ from 'lodash';
 import path from 'path';
@@ -24,16 +22,16 @@ import {
   CategoryV,
   HexOrNumber,
   IKnownPort,
-  KnownPortV,
+  asyncSerialMap,
+  notEmpty,
 } from '@nibus/core';
 
 import debugFactory, { isElectron } from '../debug';
 
-function getOrUndefined<E, A>(e: Either<E, A>): A | undefined {
+function safeGet<E, A>(e: Either<E, A>): A | undefined {
   return getOrElse<E, A | undefined>(() => undefined)(e);
 }
 
-// let usbDetection: typeof UsbDetection;
 const debug = debugFactory('nibus:detector');
 export const detectionPath =
   isElectron && process.env.NODE_ENV === 'production'
@@ -66,16 +64,8 @@ interface IDetection {
 }
 
 const getRawDetection = (): IDetection => {
-  // try {
   const data = fs.readFileSync(detectionPath, 'utf8');
   return yaml.load(data) as IDetection;
-  /*
-  } catch (err) {
-    debug(`Warning: failed to read file ${detectionPath} (${err.message})`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return staticDetection as any;
-  }
-*/
 };
 
 const loadDetection = (): IDetection | undefined => {
@@ -125,7 +115,7 @@ interface IDetector extends NodeJS.EventEmitter {
 const detector = new EventEmitter() as IDetector;
 detector.start = () => {
   usbDetection.startMonitoring();
-  debug(`start watching the detector file ${detectionPath}`);
+  // debug(`start watching the detector file ${detectionPath}`);
   fs.watchFile(detectionPath, { persistent: false }, detectionListener);
   // detection = loadDetection();
   reloadDevices();
@@ -226,14 +216,13 @@ const matchCategory = (port: IKnownPort): Category => {
   ) {
     return 'ftdi';
   }
-  return match && getOrUndefined(CategoryV.decode(match.category));
+  return match && safeGet(CategoryV.decode(match.category));
 };
 
 async function reloadDevicesAsync(
   prevPorts: IKnownPort[],
   lastAdded?: usbDetection.IDevice
 ): Promise<IKnownPort[]> {
-  const ports: IKnownPort[] = [];
   try {
     if (detection == null) {
       detection = loadDetection();
@@ -241,52 +230,46 @@ async function reloadDevicesAsync(
     const list: SerialPort.PortInfo[] = await SerialPort.list();
     const externalPorts = list.filter(port => !!port.productId);
     debug('externalPorts', JSON.stringify(externalPorts));
-    // const prevPorts = knownPorts.splice(0);
 
-    await externalPorts.reduce(async (promise, port) => {
-      const nextPorts = await promise;
-      const prev = _.findIndex(prevPorts, { path: port.path });
-      let device: IKnownPort;
-      if (prev !== -1) {
-        [device] = prevPorts.splice(prev, 1);
-        const category = matchCategory(device);
-        if (category !== device.category) {
-          debug(`device's category was changed ${device.category} to ${category}`);
-          device.category && detector.emit('remove', device);
-          device.category = getOrUndefined(CategoryV.decode(category));
-          device.category && detector.emit('add', device);
-        }
-      } else {
-        device = await detectDevice(port, lastAdded);
-        device.category = matchCategory(device);
-        detector.emit('plug', device);
-        // console.log('PORT', JSON.stringify(port));
-        if (device.category) {
-          debug(`new device ${device.device || device.vendorId}/\
-${device.category} was plugged to ${device.path}`);
-          detector.emit('add', device);
-        } else {
-          debug('unknown device %o was plugged', device);
-        }
+    const checkCategory = (port: IKnownPort): void => {
+      const category = matchCategory(port);
+      if (category !== port.category) {
+        debug(`device's category was changed ${port.category} to ${category}`);
+        port.category && detector.emit('remove', port);
+        port.category = safeGet(CategoryV.decode(category));
+        port.category && detector.emit('add', port);
       }
-      const validation = KnownPortV.decode(device);
-      if (isLeft(validation)) {
-        debug('<error>', PathReporter.report(validation).join('\n'));
+    };
+
+    const detectCategory = (port: IKnownPort): void => {
+      port.category = matchCategory(port);
+      detector.emit('plug', port);
+      if (port.category) {
+        debug(
+          `new device ${port.device || port.vendorId}/${port.category} was plugged to ${port.path}`
+        );
+        detector.emit('add', port);
       } else {
-        nextPorts.push(validation.right);
+        debug('unknown device %o was plugged', port);
       }
-      return nextPorts;
-    }, Promise.resolve(ports));
-    prevPorts.forEach(port => {
-      detector.emit('unplug', port);
-      debug(`device ${port.device || port.vendorId}/\
-${port.category || port.productId} was unplugged from ${port.path}`);
-      port.category && detector.emit('remove', port);
+    };
+
+    const ports = await asyncSerialMap(externalPorts, async portInfo => {
+      const index = _.findIndex(prevPorts, { path: portInfo.path });
+      let port: IKnownPort;
+      if (index !== -1) {
+        [port] = prevPorts.splice(index, 1);
+        checkCategory(port);
+      } else {
+        port = await detectDevice(portInfo, lastAdded);
+        detectCategory(port);
+      }
+      return port.category && port;
     });
-    return ports;
+    return ports.filter(notEmpty);
   } catch (err) {
     debug(`Error: reload devices was failed (${err.stack || err})`);
-    return ports;
+    return [];
   }
 }
 

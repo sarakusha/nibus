@@ -32,6 +32,7 @@ export interface Datagram {
     toString(): string;
 }
 export declare const delay: (ms: number) => Promise<void>;
+export declare function notEmpty<TValue>(value: TValue | null | undefined): value is TValue;
 declare type Arrayable = any[] | Buffer | string;
 export declare function chunkArray<T extends Arrayable>(array: T, len: number): T[];
 export declare function printBuffer(buffer: Buffer): string;
@@ -46,7 +47,7 @@ declare type ExcludeNames<Base, Condition> = ExcludeFlags<Base, Condition>[keyof
 export declare type SubType<Base, Condition> = Pick<Base, AllowedNames<Base, Condition>>;
 export declare type ReplaceType<Base, Condition, Type> = Pick<Base, ExcludeNames<Base, Condition>> & Record<AllowedNames<Base, Condition>, Type>;
 export declare const replaceBuffers: <T extends object>(obj: T) => ReplaceType<T, Buffer, string>;
-export declare function promiseArray<T, R>(array: ReadonlyArray<T>, action: (item: T, index: number, arr: ReadonlyArray<T>) => Promise<R | R[]>): Promise<R[]>;
+export declare function asyncSerialMap<T, R>(array: ReadonlyArray<T>, action: (item: T, index: number, arr: ReadonlyArray<T>) => Promise<R | R[]>): Promise<R[]>;
 export declare function tuplify<T extends unknown[]>(...args: T): T;
 export declare const MSG_DELIMITER = "\n";
 export {};

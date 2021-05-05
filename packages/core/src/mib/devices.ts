@@ -68,8 +68,6 @@ import {
   versionTypeConverter,
   withValue,
 } from './mib';
-// import { getMibsSync } from './mib2json';
-// import detector from '../service/detector';
 
 const pkgName = '@nata/nibus.js'; // require('../../package.json').name;
 

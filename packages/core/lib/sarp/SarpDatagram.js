@@ -20,7 +20,7 @@ class SarpDatagram extends NibusDatagram_1.default {
                 throw new Error('Invalid mac param');
             }
             const nibusData = [
-                (options.isResponse ? 0x80 : 0) | (options.queryType),
+                (options.isResponse ? 0x80 : 0) | options.queryType,
                 ...options.queryParam,
                 ...options.mac,
             ];
@@ -30,14 +30,16 @@ class SarpDatagram extends NibusDatagram_1.default {
         const { data } = this;
         console.assert(data.length === 12, 'Unexpected sarp length');
         this.isResponse = (data[0] & 0x80) !== 0;
-        this.queryType = (data[0] & 0x0f);
+        this.queryType = data[0] & 0x0f;
         this.queryParam = data.slice(1, 6);
         this.mac = data.slice(6);
         Object.freeze(this);
     }
     static isSarpFrame(frame) {
-        return Buffer.isBuffer(frame) && frame.length === nbconst_1.Offsets.DATA + 12 + 2
-            && frame[nbconst_1.Offsets.PROTOCOL] === 2 && frame[nbconst_1.Offsets.LENGTH] === 13;
+        return (Buffer.isBuffer(frame) &&
+            frame.length === nbconst_1.Offsets.DATA + 12 + 2 &&
+            frame[nbconst_1.Offsets.PROTOCOL] === 2 &&
+            frame[nbconst_1.Offsets.LENGTH] === 13);
     }
     get deviceType() {
         return this.isResponse ? this.queryParam.readUInt16BE(3) : undefined;

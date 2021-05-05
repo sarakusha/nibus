@@ -39,8 +39,9 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
             prev.forEach(connection => this.closeConnection(connection));
         };
         this.addHandler = async ({ portInfo: { path }, description }) => {
+            if (description.foreign)
+                return;
             try {
-                debug('add');
                 const { port, host } = this;
                 const connection = new nibus_1.NibusConnection(this, path, description, port, host);
                 const nmsListener = nms => {
@@ -96,6 +97,9 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     }
     get ports() {
         return this.connections.length;
+    }
+    getSocket() {
+        return this.socket;
     }
     start() {
         return new Promise((resolve, reject) => {
@@ -243,9 +247,8 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
         const tryFind = () => {
             if (connection.isClosed)
                 return;
-            common_1.promiseArray(descriptions, async (desc) => {
+            common_1.asyncSerialMap(descriptions, async (desc) => {
                 var _a;
-                debug(`find ${JSON.stringify(connection.description)} ${baseCategory}`);
                 if (baseCategory && connection.description.category !== baseCategory)
                     return;
                 const { category } = desc;
@@ -285,9 +288,7 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
                     case 'version':
                         try {
                             const { type, source: address } = (_a = (await connection.getVersion(Address_1.default.empty))) !== null && _a !== void 0 ? _a : {};
-                            debug(`find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`);
                             if (desc.type === type && address) {
-                                debug(`category was changed: ${connection.description.category} => ${category}`);
                                 connection.description = desc;
                                 this.emit('found', {
                                     connection,

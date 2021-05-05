@@ -1,6 +1,6 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { AddressParam } from '../Address';
-import { BrightnessHistory } from '../ipc/events';
+import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';
 import { VersionInfo } from '../nibus/NibusConnection';
 import { NibusSessionEvents, INibusSession } from './NibusSession';
@@ -19,6 +19,7 @@ export declare class MockNibusSession extends TypedEmitter<NibusSessionEvents> i
     setLogLevel(): void;
     saveConfig(): void;
     getBrightnessHistory(): Promise<BrightnessHistory[]>;
+    getSocket(): undefined;
 }
 declare const session: MockNibusSession;
 export default session;

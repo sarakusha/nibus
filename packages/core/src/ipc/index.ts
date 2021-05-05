@@ -9,7 +9,7 @@
  */
 
 export { default as Client } from './Client';
-export { PortArg, Host, Display } from './events';
+export { PortArg, Host, Display, BrightnessHistory } from './events';
 export * from './clientEvents';
 
 export function getSocketPath(path: string): string {

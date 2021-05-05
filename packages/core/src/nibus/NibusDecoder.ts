@@ -58,7 +58,6 @@ export default class NibusDecoder extends Transform {
     callback();
   }
 
-  // tslint:disable-next-line
   public _flush(callback: TransformCallback): void {
     this.buf.length = 0;
     // this.datagram.length = 0;

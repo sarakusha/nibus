@@ -70,7 +70,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     this.serial.on('close', this.close);
     this.serial.on('error', this.close);
     this.serial.on('data', this.broadcast);
-    debug(`create serial tee on ${path} baud: ${this.serial.baudRate} (${description.category})`);
+    // debug(`create serial tee on ${path} baud: ${this.serial.baudRate} (${description.category})`);
   }
 
   public get path(): string {

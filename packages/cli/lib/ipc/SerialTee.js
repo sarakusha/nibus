@@ -72,7 +72,6 @@ class SerialTee extends tiny_typed_emitter_1.TypedEmitter {
         this.serial.on('close', this.close);
         this.serial.on('error', this.close);
         this.serial.on('data', this.broadcast);
-        debug(`create serial tee on ${path} baud: ${this.serial.baudRate} (${description.category})`);
     }
     get path() {
         return this.portInfo.path;

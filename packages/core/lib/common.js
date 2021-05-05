@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MSG_DELIMITER = exports.tuplify = exports.promiseArray = exports.replaceBuffers = exports.printBuffer = exports.chunkArray = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = void 0;
+exports.MSG_DELIMITER = exports.tuplify = exports.asyncSerialMap = exports.replaceBuffers = exports.printBuffer = exports.chunkArray = exports.notEmpty = exports.delay = exports.noop = exports.ConfigV = exports.LogLevelV = void 0;
 const t = __importStar(require("io-ts"));
 const lodash_1 = __importDefault(require("lodash"));
 exports.LogLevelV = t.keyof({
@@ -42,6 +42,10 @@ const noop = () => { };
 exports.noop = noop;
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 exports.delay = delay;
+function notEmpty(value) {
+    return value !== null && value !== undefined;
+}
+exports.notEmpty = notEmpty;
 function chunkArray(array, len) {
     const ret = [];
     const size = Math.ceil(array.length / len);
@@ -66,13 +70,13 @@ const replaceBuffers = (obj) => Object.entries(obj).reduce((result, [name, value
             ? exports.replaceBuffers(value)
             : value })), {});
 exports.replaceBuffers = replaceBuffers;
-function promiseArray(array, action) {
+function asyncSerialMap(array, action) {
     return array.reduce((acc, item, index) => acc.then(async (items) => {
         const result = await action(item, index, array);
         return Array.isArray(result) ? [...items, ...result] : [...items, result];
     }), Promise.resolve([]));
 }
-exports.promiseArray = promiseArray;
+exports.asyncSerialMap = asyncSerialMap;
 function tuplify(...args) {
     return args;
 }

@@ -21,6 +21,7 @@ export declare const PortArgV: t.TypeC<{
             relay: null;
             ftdi: null;
             sensor: null;
+            novastar: null;
         }>, t.UndefinedC]>;
     }>]>;
     description: t.Type<MibDescription, MibDescription, unknown>;
@@ -59,6 +60,7 @@ export declare const PortsEventV: t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -82,6 +84,7 @@ export declare const PortsEventV: t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -111,6 +114,7 @@ export declare const PortAddedEventV: t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -134,6 +138,7 @@ export declare const PortAddedEventV: t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -163,6 +168,7 @@ export declare const PortRemovedEventV: t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -186,6 +192,7 @@ export declare const PortRemovedEventV: t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -358,6 +365,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -381,6 +389,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -407,6 +416,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -430,6 +440,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -456,6 +467,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;
@@ -479,6 +491,7 @@ export declare const EventV: t.UnionC<[t.TypeC<{
                 relay: null;
                 ftdi: null;
                 sensor: null;
+                novastar: null;
             }>, t.UndefinedC]>;
         }>]>;
         description: t.Type<MibDescription, MibDescription, unknown>;

@@ -12,7 +12,7 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from '../debug';
 import Address, { AddressParam } from '../Address';
-import { BrightnessHistory } from '../ipc/events';
+import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';
 import MockNibusConnection from '../nibus/MockNibusConnection';
 import { VersionInfo } from '../nibus/NibusConnection';
@@ -77,6 +77,10 @@ export class MockNibusSession extends TypedEmitter<NibusSessionEvents> implement
 
   getBrightnessHistory(): Promise<BrightnessHistory[]> {
     return Promise.reject(new Error('Not implemented'));
+  }
+
+  getSocket(): undefined {
+    return undefined;
   }
 }
 

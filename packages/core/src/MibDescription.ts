@@ -29,7 +29,7 @@ export const FindKindV = t.keyof(
 export type FindKind = t.TypeOf<typeof FindKindV>;
 
 /**
- * Вылидатор скорости интерфейса
+ * Валидатор скорости интерфейса
  */
 export const NibusBaudRateV = t.union(
   [t.literal(115200), t.literal(57600), t.literal(28800)],
@@ -78,6 +78,7 @@ export const MibDescriptionV: t.Type<MibDescription> = t.recursion('MibDescripti
     disableBatchReading: t.boolean,
     select: t.array(MibDescriptionV),
     win32: t.union([MibDescriptionV, t.undefined]),
+    foreign: t.boolean,
   })
 );
 
@@ -114,7 +115,7 @@ export interface MibDescription {
    */
   find?: FindKind;
   /**
-   * Не плддерживается пакетное чтение переменных одним запрсом
+   * Не поддерживается пакетное чтение переменных одним запросом
    */
   disableBatchReading?: boolean;
   /**
@@ -125,4 +126,8 @@ export interface MibDescription {
    * Параметры для Win32
    */
   win32?: MibDescription;
+  /**
+   * Стороннее устройство
+   */
+  foreign?: boolean;
 }

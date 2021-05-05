@@ -15,7 +15,7 @@ import Address, { AddressParam } from '../Address';
 import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';
 import MockNibusConnection from '../nibus/MockNibusConnection';
-import { VersionInfo } from '../nibus/NibusConnection';
+import { VersionInfo } from '../nibus';
 import { NibusSessionEvents, INibusSession } from './NibusSession';
 
 const debug = debugFactory('nibus:mock-session');
@@ -79,9 +79,9 @@ export class MockNibusSession extends TypedEmitter<NibusSessionEvents> implement
     return Promise.reject(new Error('Not implemented'));
   }
 
-  getSocket(): undefined {
-    return undefined;
-  }
+  // getSocket(): undefined {
+  //   return undefined;
+  // }
 }
 
 const session = new MockNibusSession();

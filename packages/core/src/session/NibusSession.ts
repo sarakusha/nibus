@@ -51,6 +51,7 @@ export interface NibusSessionEvents {
   log: (line: string) => void;
   online: (isOnline: boolean) => void;
   displays: (value: Display[]) => void;
+  foreign: (port: PortArg) => void;
 }
 // noinspection JSUnusedLocalSymbols
 export interface INibusSession {
@@ -71,7 +72,7 @@ export interface INibusSession {
   readonly devices: Devices;
   readonly host?: string;
   readonly port: number;
-  getSocket(): Client | undefined;
+  // getSocket(): Client | undefined;
 }
 
 export class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
@@ -104,9 +105,9 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     return this.connections.length;
   }
 
-  getSocket(): Client | undefined {
-    return this.socket;
-  }
+  // getSocket(): Client | undefined {
+  //   return this.socket;
+  // }
 
   start(): Promise<number> {
     return new Promise((resolve, reject) => {
@@ -288,8 +289,15 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     prev.forEach(connection => this.closeConnection(connection));
   };
 
-  private addHandler = async ({ portInfo: { path }, description }: PortArg): Promise<void> => {
-    if (description.foreign) return;
+  private addHandler = async (newPort: PortArg): Promise<void> => {
+    const {
+      portInfo: { path },
+      description,
+    } = newPort;
+    if (description.foreign) {
+      this.emit('foreign', newPort);
+      return;
+    }
     try {
       const { port, host } = this;
       const connection = new NibusConnection(this, path, description, port, host);

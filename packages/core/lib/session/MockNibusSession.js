@@ -57,9 +57,6 @@ class MockNibusSession extends tiny_typed_emitter_1.TypedEmitter {
     getBrightnessHistory() {
         return Promise.reject(new Error('Not implemented'));
     }
-    getSocket() {
-        return undefined;
-    }
 }
 exports.MockNibusSession = MockNibusSession;
 const session = new MockNibusSession();

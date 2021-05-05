@@ -38,9 +38,12 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
             });
             prev.forEach(connection => this.closeConnection(connection));
         };
-        this.addHandler = async ({ portInfo: { path }, description }) => {
-            if (description.foreign)
+        this.addHandler = async (newPort) => {
+            const { portInfo: { path }, description, } = newPort;
+            if (description.foreign) {
+                this.emit('foreign', newPort);
                 return;
+            }
             try {
                 const { port, host } = this;
                 const connection = new nibus_1.NibusConnection(this, path, description, port, host);
@@ -97,9 +100,6 @@ class NibusSession extends tiny_typed_emitter_1.TypedEmitter {
     }
     get ports() {
         return this.connections.length;
-    }
-    getSocket() {
-        return this.socket;
     }
     start() {
         return new Promise((resolve, reject) => {

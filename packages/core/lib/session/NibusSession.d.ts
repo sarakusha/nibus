@@ -1,7 +1,7 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { LogLevel } from '../common';
-import { Client, Host, Display } from '../ipc';
+import { Host, PortArg, Display } from '../ipc';
 import { BrightnessHistory } from '../ipc/events';
 import { Devices, IDevice, DeviceId } from '../mib';
 import { INibusConnection } from '../nibus';
@@ -31,6 +31,7 @@ export interface NibusSessionEvents {
     log: (line: string) => void;
     online: (isOnline: boolean) => void;
     displays: (value: Display[]) => void;
+    foreign: (port: PortArg) => void;
 }
 export interface INibusSession {
     on<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
@@ -48,7 +49,6 @@ export interface INibusSession {
     readonly devices: Devices;
     readonly host?: string;
     readonly port: number;
-    getSocket(): Client | undefined;
 }
 export declare class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
     readonly port: number;
@@ -60,7 +60,6 @@ export declare class NibusSession extends TypedEmitter<NibusSessionEvents> imple
     readonly devices: Devices;
     constructor(port: number, host?: string | undefined);
     get ports(): number;
-    getSocket(): Client | undefined;
     start(): Promise<number>;
     private connectDevice;
     close(): void;

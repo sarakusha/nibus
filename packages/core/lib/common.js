@@ -72,7 +72,7 @@ const replaceBuffers = (obj) => Object.entries(obj).reduce((result, [name, value
 exports.replaceBuffers = replaceBuffers;
 function asyncSerialMap(array, action) {
     return array.reduce((acc, item, index) => acc.then(async (items) => {
-        const result = await action(item, index, array);
+        const result = await action(item, index, items);
         return Array.isArray(result) ? [...items, ...result] : [...items, result];
     }), Promise.resolve([]));
 }

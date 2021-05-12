@@ -104,16 +104,6 @@ function defineMibProperty(target, key, types, prop) {
         default:
             break;
     }
-    switch ((_a = type === null || type === void 0 ? void 0 : type.base) !== null && _a !== void 0 ? _a : simpleType) {
-        case 'packed8Float':
-            converters.push(mib_1.packed8floatConverter(type));
-            break;
-        case 'fixedPointNumber4':
-            converters.push(mib_1.fixedPointNumber4Converter);
-            break;
-        default:
-            break;
-    }
     if (key === 'brightness' && prop.type === 'xs:unsignedByte') {
         converters.push(mib_1.percentConverter);
         Reflect.defineMetadata('unit', '%', target, propertyKey);
@@ -141,7 +131,7 @@ function defineMibProperty(target, key, types, prop) {
             Reflect.defineMetadata('max', max, target, propertyKey);
         }
     }
-    const info = (_b = type === null || type === void 0 ? void 0 : type.appinfo) !== null && _b !== void 0 ? _b : appinfo;
+    const info = (_a = type === null || type === void 0 ? void 0 : type.appinfo) !== null && _a !== void 0 ? _a : appinfo;
     if (info != null) {
         enumeration = type === null || type === void 0 ? void 0 : type.enumeration;
         const { units, precision, representation, get, set } = info;
@@ -174,6 +164,16 @@ function defineMibProperty(target, key, types, prop) {
             Reflect.defineMetadata('min', minEval, target, propertyKey);
             Reflect.defineMetadata('max', maxEval, target, propertyKey);
         }
+    }
+    switch ((_b = type === null || type === void 0 ? void 0 : type.base) !== null && _b !== void 0 ? _b : simpleType) {
+        case 'packed8Float':
+            converters.push(mib_1.packed8floatConverter(type));
+            break;
+        case 'fixedPointNumber4':
+            converters.push(mib_1.fixedPointNumber4Converter);
+            break;
+        default:
+            break;
     }
     if (min !== undefined) {
         converters.push(mib_1.minInclusiveConverter(min));

@@ -243,16 +243,6 @@ function defineMibProperty(
     default:
       break;
   }
-  switch (type?.base ?? simpleType) {
-    case 'packed8Float':
-      converters.push(packed8floatConverter(type));
-      break;
-    case 'fixedPointNumber4':
-      converters.push(fixedPointNumber4Converter);
-      break;
-    default:
-      break;
-  }
   if (key === 'brightness' && prop.type === 'xs:unsignedByte') {
     // console.log('uSE PERCENT 100<->250');
     converters.push(percentConverter);
@@ -325,6 +315,16 @@ function defineMibProperty(
       Reflect.defineMetadata('min', minEval, target, propertyKey);
       Reflect.defineMetadata('max', maxEval, target, propertyKey);
     }
+  }
+  switch (type?.base ?? simpleType) {
+    case 'packed8Float':
+      converters.push(packed8floatConverter(type));
+      break;
+    case 'fixedPointNumber4':
+      converters.push(fixedPointNumber4Converter);
+      break;
+    default:
+      break;
   }
   if (min !== undefined) {
     converters.push(minInclusiveConverter(min));

@@ -282,6 +282,7 @@ export function packed8floatConverter(subtype: IMibType): IConverter {
 
 export const fixedPointNumber4Converter: IConverter = {
   from: value => {
+    console.log(`FROM ${value}`);
     const val = typeof value === 'string' ? parseFloat(value) : value;
     if (typeof val !== 'number') {
       return val;
@@ -292,6 +293,7 @@ export const fixedPointNumber4Converter: IConverter = {
     return (hi << 8) | low;
   },
   to: value => {
+    console.log(`TO ${value} ${typeof value}`);
     if (typeof value !== 'number') {
       return value;
     }

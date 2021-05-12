@@ -155,8 +155,8 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   get value(): any {
-    const { valueType, nms, service } = this;
-    if (valueType === undefined) {
+    const { valueType, nms, service, isResponse, status } = this;
+    if (valueType === undefined || (isResponse && status !== 0)) {
       return undefined;
     }
     const { length } = nms;

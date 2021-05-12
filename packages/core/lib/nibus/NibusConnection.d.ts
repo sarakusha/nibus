@@ -8,6 +8,7 @@ import { BootloaderFunction, LikeArray, SlipDatagram } from '../slip';
 import NibusDatagram from './NibusDatagram';
 import type { IDevice } from '../mib';
 export declare const MINIHOST_TYPE = 43974;
+export declare const MCDVI_TYPE = 27;
 export interface NibusEvents {
     sarp: (datagram: SarpDatagram) => void;
     nms: (datagram: NmsDatagram) => void;

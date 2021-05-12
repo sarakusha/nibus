@@ -107,8 +107,8 @@ class NmsDatagram extends NibusDatagram_1.default {
         return this.nms.readInt8(0);
     }
     get value() {
-        const { valueType, nms, service } = this;
-        if (valueType === undefined) {
+        const { valueType, nms, service, isResponse, status } = this;
+        if (valueType === undefined || (isResponse && status !== 0)) {
             return undefined;
         }
         const { length } = nms;

@@ -69,7 +69,7 @@
     "highcharts-react-official": "^3.0.0",
     "hotkeys-js": "^3.7.3",
     "iput": "^1.1.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "material-ui-chip-input": "^2.0.0-beta.2",
     "node-machine-id": "^1.1.12",
     "notistack": "^1.0.1",

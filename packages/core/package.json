@@ -22,7 +22,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sarakusha/nibus.git"
+    "url": "https://github.com/sarakusha/nibus.git",
+    "directory": "packages/core"
   },
   "scripts": {
     "test": "jest src",
@@ -68,5 +69,8 @@
     "xdg-basedir": "4",
     "xpipe": "^1.0.5"
   },
-  "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
 }

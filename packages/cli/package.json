@@ -32,7 +32,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sarakusha/nibus.git"
+    "url": "https://github.com/sarakusha/nibus.git",
+    "directory": "packages/cli"
   },
   "bugs": {
     "url": "https://github.com/sarakusha/nibus/issues"
@@ -96,10 +97,12 @@
       "**/src/**/*.spec.+(ts|tsx|js)"
     ]
   },
-  "workspaces": {},
-  "gitHead": "bff51a5d48e72aa5cb4acefd176d0026346fe532",
   "pkg": {
     "scripts": "lib/**/*.js",
     "assets": "assets/**"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
   }
 }

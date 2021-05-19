@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -22,63 +22,67 @@ import {
 
 const portsEvent: PortsEvent = {
   event: 'ports',
-  args: [[
-    {
-      portInfo: {
-        path: 'com1',
-        productId: 1,
-        vendorId: 2,
+  args: [
+    [
+      {
+        portInfo: {
+          path: 'com1',
+          productId: 1,
+          vendorId: 2,
+        },
+        description: { mib: 'test' },
       },
-      description: { mib: 'test' },
-    },
-    {
-      portInfo: {
-        path: 'com2',
-        productId: 1,
-        vendorId: 2,
+      {
+        portInfo: {
+          path: 'com2',
+          productId: 1,
+          vendorId: 2,
+        },
+        description: { mib: 'test' },
       },
-      description: { mib: 'test' },
-    },
-  ]],
+    ],
+  ],
 };
 
 const addEvent: PortAddedEvent = {
   event: 'add',
-  args: [{
-    portInfo: {
-      path: 'com3',
-      productId: 1,
-      vendorId: 2,
+  args: [
+    {
+      portInfo: {
+        path: 'com3',
+        productId: 1,
+        vendorId: 2,
+      },
+      description: { mib: 'test' },
     },
-    description: { mib: 'test' },
-  }],
+  ],
 };
 
 const removeEvent: PortRemovedEvent = {
   event: 'remove',
-  args: [{
-    portInfo: {
-      path: 'com3',
-      productId: 1,
-      vendorId: 2,
+  args: [
+    {
+      portInfo: {
+        path: 'com3',
+        productId: 1,
+        vendorId: 2,
+      },
+      description: { mib: 'test' },
     },
-    description: { mib: 'test' },
-  }],
+  ],
 };
 
 const testEvent = {
   event: 'test',
-  args: [{
-    a: 1,
-    b: 2,
-  }],
+  args: [
+    {
+      a: 1,
+      b: 2,
+    },
+  ],
 };
 
-const events = [
-  portsEvent,
-  addEvent,
-  removeEvent,
-];
+const events = [portsEvent, addEvent, removeEvent];
 
 describe('event tests', () => {
   test('PortsEvent', () => {

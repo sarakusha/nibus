@@ -1,6 +1,6 @@
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -46,7 +46,6 @@ const conf = new Configstore(pkgName, {
   omit: ['priority'],
 });
 
-// debugFactory.enable('nibus:detector,nibus.service');
 const debug = debugFactory('nibus:service');
 const debugIn = debugFactory('nibus:<<<');
 const debugOut = debugFactory('nibus:>>>');

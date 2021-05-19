@@ -2,11 +2,14 @@
   "name": "root",
   "private": true,
   "devDependencies": {
+    "@commitlint/cli": "^12.1.4",
+    "@commitlint/config-conventional": "^12.1.4",
     "@types/jest": "^26.0.14",
     "@types/node": "^14.14.20",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",
     "cross-env": "^7.0.2",
+    "cz-conventional-changelog": "^3.3.0",
     "eslint": "^7.10.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^8.1.0",
@@ -17,6 +20,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.17.0",
     "eslint-plugin-react-hooks": "^4.1.2",
+    "husky": "^6.0.0",
     "jest": "^26.5.2",
     "lerna": "^3.19.0",
     "prettier-airbnb-config": "^1.0.0",
@@ -39,7 +43,14 @@
     "build": "lerna run build",
     "test": "lerna run test",
     "clean": "rimraf packages/*/{lib,build,.next}",
-    "publish": "lerna publish from-package",
-    "update:version": "lerna version --no-push"
+    "release:publish": "lerna publish from-package --dist-tag next",
+    "release:publish:dry-run": "lerna publish from-package --dist-tag next --registry=\"http://localhost:4873/\"",
+    "release:version": "lerna version --exact --no-changelog --no-push --no-git-tag-version",
+    "prepare": "husky install"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   }
 }

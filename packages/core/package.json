@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -22,7 +22,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sarakusha/nibus.git"
+    "url": "https://github.com/sarakusha/nibus.git",
+    "directory": "packages/core"
   },
   "scripts": {
     "test": "jest src",
@@ -41,6 +42,7 @@
     "@types/crc": "^3.4.0",
     "@types/debug": "^4.1.3",
     "@types/lodash": "^4.14.149",
+    "@types/pump": "^1.1.1",
     "@types/xdg-basedir": "^4.0.2",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-tsdoc": "^0.2.0",
@@ -60,11 +62,15 @@
     "monocle-ts": "^2.0.1",
     "newtype-ts": "^0.3.1",
     "printf": "^0.6.0",
+    "pump": "^3.0.0",
     "reflect-metadata": "^0.1.13",
     "sax": "^1.2.4",
     "tiny-typed-emitter": "^2.0.3",
     "xdg-basedir": "4",
     "xpipe": "^1.0.5"
   },
-  "gitHead": "652decb9c80261d6845ef834f4ae2df1e9264b2d"
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
 }

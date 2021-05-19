@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -68,8 +68,6 @@ import {
   versionTypeConverter,
   withValue,
 } from './mib';
-// import { getMibsSync } from './mib2json';
-// import detector from '../service/detector';
 
 const pkgName = '@nata/nibus.js'; // require('../../package.json').name;
 
@@ -245,16 +243,6 @@ function defineMibProperty(
     default:
       break;
   }
-  switch (type?.base ?? simpleType) {
-    case 'packed8Float':
-      converters.push(packed8floatConverter(type));
-      break;
-    case 'fixedPointNumber4':
-      converters.push(fixedPointNumber4Converter);
-      break;
-    default:
-      break;
-  }
   if (key === 'brightness' && prop.type === 'xs:unsignedByte') {
     // console.log('uSE PERCENT 100<->250');
     converters.push(percentConverter);
@@ -327,6 +315,16 @@ function defineMibProperty(
       Reflect.defineMetadata('min', minEval, target, propertyKey);
       Reflect.defineMetadata('max', maxEval, target, propertyKey);
     }
+  }
+  switch (type?.base ?? simpleType) {
+    case 'packed8Float':
+      converters.push(packed8floatConverter(type));
+      break;
+    case 'fixedPointNumber4':
+      converters.push(fixedPointNumber4Converter);
+      break;
+    default:
+      break;
   }
   if (min !== undefined) {
     converters.push(minInclusiveConverter(min));

@@ -259,6 +259,7 @@ function packed8floatConverter(subtype) {
 exports.packed8floatConverter = packed8floatConverter;
 exports.fixedPointNumber4Converter = {
     from: value => {
+        console.log(`FROM ${value}`);
         const val = typeof value === 'string' ? parseFloat(value) : value;
         if (typeof val !== 'number') {
             return val;
@@ -269,6 +270,7 @@ exports.fixedPointNumber4Converter = {
         return (hi << 8) | low;
     },
     to: value => {
+        console.log(`TO ${value} ${typeof value}`);
         if (typeof value !== 'number') {
             return value;
         }

@@ -8,6 +8,7 @@ export declare const CategoryV: t.UnionC<[t.KeyofC<{
     relay: null;
     ftdi: null;
     sensor: null;
+    novastar: null;
 }>, t.UndefinedC]>;
 export declare type Category = t.TypeOf<typeof CategoryV>;
 export declare const KnownPortV: t.IntersectionC<[t.TypeC<{
@@ -29,6 +30,7 @@ export declare const KnownPortV: t.IntersectionC<[t.TypeC<{
         relay: null;
         ftdi: null;
         sensor: null;
+        novastar: null;
     }>, t.UndefinedC]>;
 }>]>;
 export interface IKnownPort extends t.TypeOf<typeof KnownPortV> {

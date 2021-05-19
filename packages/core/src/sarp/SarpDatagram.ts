@@ -1,14 +1,14 @@
-/* eslint-disable no-bitwise */
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
+/* eslint-disable no-bitwise */
 import Address from '../Address';
 import { Offsets } from '../nbconst';
 import NibusDatagram, { INibusCommon, INibusOptions } from '../nibus/NibusDatagram';
@@ -23,8 +23,12 @@ export interface ISarpOptions extends INibusCommon {
 
 export default class SarpDatagram extends NibusDatagram implements ISarpOptions {
   public static isSarpFrame(frame: Buffer): boolean {
-    return Buffer.isBuffer(frame) && frame.length === Offsets.DATA + 12 + 2
-      && frame[Offsets.PROTOCOL] === 2 && frame[Offsets.LENGTH] === 13;
+    return (
+      Buffer.isBuffer(frame) &&
+      frame.length === Offsets.DATA + 12 + 2 &&
+      frame[Offsets.PROTOCOL] === 2 &&
+      frame[Offsets.LENGTH] === 13
+    );
   }
 
   public readonly isResponse: boolean;
@@ -51,7 +55,7 @@ export default class SarpDatagram extends NibusDatagram implements ISarpOptions 
         throw new Error('Invalid mac param');
       }
       const nibusData = [
-        (options.isResponse ? 0x80 : 0) | (options.queryType),
+        (options.isResponse ? 0x80 : 0) | options.queryType,
         ...options.queryParam,
         ...options.mac,
       ];
@@ -66,7 +70,7 @@ export default class SarpDatagram extends NibusDatagram implements ISarpOptions 
     const { data } = this;
     console.assert(data.length === 12, 'Unexpected sarp length');
     this.isResponse = (data[0] & 0x80) !== 0;
-    this.queryType = (data[0] & 0x0f);
+    this.queryType = data[0] & 0x0f;
     this.queryParam = data.slice(1, 6);
     this.mac = data.slice(6);
     Object.freeze(this);

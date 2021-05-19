@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MINIHOST_TYPE = void 0;
+exports.MCDVI_TYPE = exports.MINIHOST_TYPE = void 0;
 const Either_1 = require("fp-ts/lib/Either");
 const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));
 const net_1 = require("net");
+const pump_1 = __importDefault(require("pump"));
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
 const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importDefault(require("../Address"));
@@ -22,6 +23,7 @@ const NibusDecoder_1 = __importDefault(require("./NibusDecoder"));
 const config_1 = __importDefault(require("./config"));
 const common_1 = require("../common");
 exports.MINIHOST_TYPE = 0xabc6;
+exports.MCDVI_TYPE = 0x1b;
 const VERSION_ID = 2;
 const debug = debug_1.default('nibus:connection');
 class WaitedNmsDatagram {
@@ -110,8 +112,7 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
         this.socket = net_1.connect(port, host, () => {
             this.socket.write(path);
             window.setTimeout(() => {
-                this.socket.pipe(this.decoder);
-                this.encoder.pipe(this.socket);
+                pump_1.default(this.encoder, this.socket, this.decoder, () => this.close());
             }, 100);
         });
         this.decoder.on('data', this.onDatagram);

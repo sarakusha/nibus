@@ -1,9 +1,9 @@
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
@@ -13,10 +13,13 @@ import * as t from 'io-ts';
 /**
  * Валидатор тип поиска устройства
  */
-export const FindKindV = t.keyof({
-  sarp: null,
-  version: null,
-}, 'FindKind');
+export const FindKindV = t.keyof(
+  {
+    sarp: null,
+    version: null,
+  },
+  'FindKind'
+);
 
 /**
  * Тип поиска устройства 'sarp' | 'version'
@@ -26,11 +29,11 @@ export const FindKindV = t.keyof({
 export type FindKind = t.TypeOf<typeof FindKindV>;
 
 /**
- * Вылидатор скорости интерфейса
+ * Валидатор скорости интерфейса
  */
 export const NibusBaudRateV = t.union(
   [t.literal(115200), t.literal(57600), t.literal(28800)],
-  'NibusBaudRate',
+  'NibusBaudRate'
 );
 
 /**
@@ -42,7 +45,7 @@ export const NibusParityV = t.keyof(
     even: null,
     mark: null,
   },
-  'NibusParity',
+  'NibusParity'
 );
 
 /**
@@ -63,9 +66,8 @@ export type NibusParity = t.TypeOf<typeof NibusParityV>;
 /**
  * Валидатор типа MibDescription
  */
-export const MibDescriptionV: t.Type<MibDescription> = t.recursion(
-  'MibDescriptionV',
-  () => t.partial({
+export const MibDescriptionV: t.Type<MibDescription> = t.recursion('MibDescriptionV', () =>
+  t.partial({
     type: t.number,
     mib: t.string,
     link: t.boolean,
@@ -76,7 +78,8 @@ export const MibDescriptionV: t.Type<MibDescription> = t.recursion(
     disableBatchReading: t.boolean,
     select: t.array(MibDescriptionV),
     win32: t.union([MibDescriptionV, t.undefined]),
-  }),
+    foreign: t.boolean,
+  })
 );
 
 /**
@@ -112,7 +115,7 @@ export interface MibDescription {
    */
   find?: FindKind;
   /**
-   * Не плддерживается пакетное чтение переменных одним запрсом
+   * Не поддерживается пакетное чтение переменных одним запросом
    */
   disableBatchReading?: boolean;
   /**
@@ -123,4 +126,8 @@ export interface MibDescription {
    * Параметры для Win32
    */
   win32?: MibDescription;
+  /**
+   * Стороннее устройство
+   */
+  foreign?: boolean;
 }

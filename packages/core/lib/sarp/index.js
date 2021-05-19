@@ -13,7 +13,8 @@ function createSarp(queryType, queryParam = Buffer.alloc(5)) {
     const param = Buffer.isBuffer(queryParam)
         ? queryParam
         : Array.isArray(queryParam)
-            ? Buffer.from(queryParam) : Buffer.from(queryParam.buffer);
+            ? Buffer.from(queryParam)
+            : Buffer.from(queryParam.buffer);
     return new SarpDatagram_1.default({
         queryType,
         destination: Address_1.default.broadcast,

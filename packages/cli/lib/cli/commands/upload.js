@@ -12,7 +12,7 @@ const core_1 = require("@nibus/core");
 const handlers_1 = __importDefault(require("../handlers"));
 const write_1 = require("./write");
 async function action(device, args) {
-    const { domain, offset, size, out, force, hex, } = args;
+    const { domain, offset, size, out, force, hex } = args;
     const writeArgs = out
         ? {
             ...args,
@@ -46,7 +46,7 @@ async function action(device, args) {
         }
     };
     device.once('uploadStart', ({ domainSize }) => {
-        const total = size || (domainSize - offset);
+        const total = size || domainSize - offset;
         if (out) {
             const bar = new progress_1.default(`  uploading [:bar] ${total <= 50 ? '' : ':rate/bps :percent '}:current/:total :etas`, {
                 total: total,

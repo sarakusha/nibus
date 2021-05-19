@@ -1,30 +1,28 @@
-/* eslint-disable no-param-reassign */
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
+/* eslint-disable no-param-reassign */
 import fs from 'fs';
 import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
-import { delay, LogLevel, noop, promiseArray, tuplify } from '../common';
+import { delay, LogLevel, noop, asyncSerialMap, tuplify } from '../common';
 import debugFactory from '../debug';
 import { Client, Host, PortArg, Display } from '../ipc';
 import { BrightnessHistory } from '../ipc/events';
-// import { Display } from '../ipc/events';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
 import { NibusEvents, VersionInfo } from '../nibus/NibusConnection';
 import { NmsDatagram, NmsServiceType } from '../nms';
 import { Category } from './KnownPorts';
-// import session from './session';
 
 const debug = debugFactory('nibus:session');
 
@@ -53,6 +51,7 @@ export interface NibusSessionEvents {
   log: (line: string) => void;
   online: (isOnline: boolean) => void;
   displays: (value: Display[]) => void;
+  foreign: (port: PortArg) => void;
 }
 // noinspection JSUnusedLocalSymbols
 export interface INibusSession {
@@ -73,6 +72,7 @@ export interface INibusSession {
   readonly devices: Devices;
   readonly host?: string;
   readonly port: number;
+  // getSocket(): Client | undefined;
 }
 
 export class NibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
@@ -105,7 +105,10 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     return this.connections.length;
   }
 
-  //
+  // getSocket(): Client | undefined {
+  //   return this.socket;
+  // }
+
   start(): Promise<number> {
     return new Promise((resolve, reject) => {
       if (this.isStarted) {
@@ -286,9 +289,16 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     prev.forEach(connection => this.closeConnection(connection));
   };
 
-  private addHandler = async ({ portInfo: { path }, description }: PortArg): Promise<void> => {
+  private addHandler = async (newPort: PortArg): Promise<void> => {
+    const {
+      portInfo: { path },
+      description,
+    } = newPort;
+    if (description.foreign) {
+      this.emit('foreign', newPort);
+      return;
+    }
     try {
-      debug('add');
       const { port, host } = this;
       const connection = new NibusConnection(this, path, description, port, host);
       const nmsListener: NibusEvents['nms'] = nms => {
@@ -354,8 +364,8 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     const baseCategory = Array.isArray(description.select) ? description.category : null;
     const tryFind = (): void => {
       if (connection.isClosed) return;
-      promiseArray(descriptions, async desc => {
-        debug(`find ${JSON.stringify(connection.description)} ${baseCategory}`);
+      asyncSerialMap(descriptions, async desc => {
+        // debug(`find ${JSON.stringify(connection.description)} ${baseCategory}`);
         if (baseCategory && connection.description.category !== baseCategory) return;
         const { category } = desc;
         switch (desc.find) {
@@ -403,13 +413,13 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
           case 'version':
             try {
               const { type, source: address } = (await connection.getVersion(Address.empty)) ?? {};
-              debug(
-                `find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`
-              );
+              // debug(
+              //   `find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`
+              // );
               if (desc.type === type && address) {
                 // const datagram = await connection.sendDatagram(createNmsRead(Address.empty, 2));
                 // if (!datagram || Array.isArray(datagram)) return;
-                debug(`category was changed: ${connection.description.category} => ${category}`);
+                // debug(`category was changed: ${connection.description.category} => ${category}`);
                 connection.description = desc;
                 // const address = new Address(datagram.source.mac);
                 this.emit('found', {

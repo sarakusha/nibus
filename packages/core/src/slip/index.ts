@@ -1,4 +1,3 @@
-/* eslint-disable no-bitwise,no-plusplus */
 /*
  * @license
  * Copyright (c) 2021. Nata-Info
@@ -9,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+/* eslint-disable no-bitwise,no-plusplus */
 import { crc81wire } from 'crc';
 import { Datagram, replaceBuffers } from '../common';
 

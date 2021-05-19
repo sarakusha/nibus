@@ -1,15 +1,15 @@
-/* eslint-disable no-bitwise,no-eval */
-/* tslint:disable:no-eval */
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
+/* eslint-disable no-bitwise,no-eval */
+/* tslint:disable:no-eval */
 import * as t from 'io-ts';
 import printf from 'printf';
 
@@ -282,6 +282,7 @@ export function packed8floatConverter(subtype: IMibType): IConverter {
 
 export const fixedPointNumber4Converter: IConverter = {
   from: value => {
+    console.log(`FROM ${value}`);
     const val = typeof value === 'string' ? parseFloat(value) : value;
     if (typeof val !== 'number') {
       return val;
@@ -292,6 +293,7 @@ export const fixedPointNumber4Converter: IConverter = {
     return (hi << 8) | low;
   },
   to: value => {
+    console.log(`TO ${value} ${typeof value}`);
     if (typeof value !== 'number') {
       return value;
     }

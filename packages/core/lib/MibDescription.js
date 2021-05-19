@@ -42,5 +42,6 @@ exports.MibDescriptionV = t.recursion('MibDescriptionV', () => t.partial({
     disableBatchReading: t.boolean,
     select: t.array(exports.MibDescriptionV),
     win32: t.union([exports.MibDescriptionV, t.undefined]),
+    foreign: t.boolean,
 }));
 //# sourceMappingURL=MibDescription.js.map

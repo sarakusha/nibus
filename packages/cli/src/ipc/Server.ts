@@ -1,6 +1,6 @@
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -105,7 +105,7 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
 
   send(client: Socket, event: string, ...args: unknown[]): Promise<void> {
     if (this.closed) {
-      return Promise.reject(new Error('Server is closed'));
+      return Promise.reject(new Error('Server closed'));
     }
     if (client.destroyed) {
       return Promise.resolve();
@@ -143,7 +143,7 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
     // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
     setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
     // this.raw && this.push(null);
-    debug(`${path} closed`);
+    debug(`${JSON.stringify(path)} closed`);
   };
 
   private connectionHandler = (socket: Socket): void => {

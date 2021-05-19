@@ -24,5 +24,6 @@ export interface MibDescription {
     disableBatchReading?: boolean;
     select?: MibDescription[];
     win32?: MibDescription;
+    foreign?: boolean;
 }
 //# sourceMappingURL=MibDescription.d.ts.map

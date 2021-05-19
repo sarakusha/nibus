@@ -1,6 +1,6 @@
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -70,7 +70,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     this.serial.on('close', this.close);
     this.serial.on('error', this.close);
     this.serial.on('data', this.broadcast);
-    debug(`create serial tee on ${path} baud: ${this.serial.baudRate} (${description.category})`);
+    // debug(`create serial tee on ${path} baud: ${this.serial.baudRate} (${description.category})`);
   }
 
   public get path(): string {

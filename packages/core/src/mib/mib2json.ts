@@ -1,14 +1,14 @@
-/* eslint-disable no-multi-assign,@typescript-eslint/no-explicit-any,no-underscore-dangle */
 /*
  * @license
- * Copyright (c) 2019. OOO Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
- * This file is part of the "@nata" project.
+ * This file is part of the "@nibus" project.
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
 
+/* eslint-disable no-multi-assign,@typescript-eslint/no-explicit-any,no-underscore-dangle */
 import fs from 'fs';
 import { decode, encodingExists } from 'iconv-lite';
 import * as path from 'path';
@@ -52,14 +52,11 @@ function getEncoding(mibpath: string): Promise<string> {
 
 export function mib2json(mibpath: string): Promise<any> {
   return new Promise<any>((resolve, reject) => {
-    const saxStream = sax.createStream(
-      true,
-      {
-        xmlns: true,
-        trim: true,
-        normalize: true,
-      },
-    );
+    const saxStream = sax.createStream(true, {
+      xmlns: true,
+      trim: true,
+      normalize: true,
+    });
     saxStream.on('error', err => reject(err));
     const root: any = {};
     let level = 0;
@@ -198,19 +195,22 @@ export async function convert(mibpath: string, dir?: string): Promise<string> {
 const xsdMibRe = /^\S+\.mib\.xsd$/i;
 const jsonMibRe = /^(\S+)\.mib\.json$/i;
 
-export const convertDir = (dir: string): Promise<void> => new Promise((resolve, reject) => {
-  fs.readdir(dir, (err, files) => {
-    if (err) {
-      return reject(err);
-    }
-    const promises: Promise<void>[] = files
-      .filter(file => xsdMibRe.test(file))
-      .map(file => convert(path.join(dir, file))
-        .then(() => console.info(`${file}: success`))
-        .catch(error => console.error(`${file}: ${error.message}`)));
-    return resolve(Promise.all(promises).then(() => {}));
+export const convertDir = (dir: string): Promise<void> =>
+  new Promise((resolve, reject) => {
+    fs.readdir(dir, (err, files) => {
+      if (err) {
+        return reject(err);
+      }
+      const promises: Promise<void>[] = files
+        .filter(file => xsdMibRe.test(file))
+        .map(file =>
+          convert(path.join(dir, file))
+            .then(() => console.info(`${file}: success`))
+            .catch(error => console.error(`${file}: ${error.message}`))
+        );
+      return resolve(Promise.all(promises).then(() => {}));
+    });
   });
-});
 
 let mibs: string[] = [];
 const mibsDir = path.resolve(__dirname, '../../mibs');

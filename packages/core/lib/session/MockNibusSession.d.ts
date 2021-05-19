@@ -1,8 +1,8 @@
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { AddressParam } from '../Address';
-import { BrightnessHistory } from '../ipc/events';
+import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';
-import { VersionInfo } from '../nibus/NibusConnection';
+import { VersionInfo } from '../nibus';
 import { NibusSessionEvents, INibusSession } from './NibusSession';
 export declare class MockNibusSession extends TypedEmitter<NibusSessionEvents> implements INibusSession {
     readonly ports = 1;

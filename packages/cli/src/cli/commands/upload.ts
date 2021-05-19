@@ -1,6 +1,6 @@
 /*
  * @license
- * Copyright (c) 2020. Nata-Info
+ * Copyright (c) 2021. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -15,7 +15,6 @@ import Progress from 'progress';
 import { EOL } from 'os';
 
 import { IDevice, UploadDataListener, printBuffer } from '@nibus/core';
-
 
 import makeAddressHandler from '../handlers';
 import { CommonOpts, MacOptions } from '../options';
@@ -33,14 +32,12 @@ type UploadOpts = MacOptions & {
 };
 
 export async function action(device: IDevice, args: Arguments<UploadOpts>): Promise<void> {
-  const {
-    domain, offset, size, out, force, hex,
-  } = args;
+  const { domain, offset, size, out, force, hex } = args;
   const writeArgs = out
     ? {
-      ...args,
-      quiet: true,
-    }
+        ...args,
+        quiet: true,
+      }
     : args;
   await writeAction(device, writeArgs);
   let close = (): void => {};
@@ -70,14 +67,14 @@ export async function action(device: IDevice, args: Arguments<UploadOpts>): Prom
   };
 
   device.once('uploadStart', ({ domainSize }) => {
-    const total = size || (domainSize - offset);
+    const total = size || domainSize - offset;
     if (out) {
       const bar = new Progress(
         `  uploading [:bar] ${total! <= 50 ? '' : ':rate/bps :percent '}:current/:total :etas`,
         {
           total: total!,
           width: 20,
-        },
+        }
       );
       tick = bar.tick.bind(bar);
     }
@@ -102,38 +99,39 @@ export async function action(device: IDevice, args: Arguments<UploadOpts>): Prom
 const uploadCommand: CommandModule<CommonOpts, UploadOpts> = {
   command: 'upload',
   describe: 'выгрузить домен из устройства',
-  builder: argv => argv
-    .option('domain', {
-      default: 'CODE',
-      describe: 'имя домена',
-      string: true,
-    })
-    .option('offset', {
-      alias: 'ofs',
-      default: 0,
-      number: true,
-      describe: 'смещение в домене',
-    })
-    .option('size', {
-      alias: 'length',
-      number: true,
-      describe: 'требуемое количество байт',
-    })
-    .option('out', {
-      alias: 'o',
-      string: true,
-      describe: 'сохранить в файл',
-    })
-    .option('hex', {
-      boolean: true,
-      describe: 'использовать текстовый формат',
-    })
-    .option('f', {
-      alias: 'force',
-      boolean: true,
-      describe: 'перезаписать существующий файл',
-    })
-    .demandOption(['mac', 'domain']),
+  builder: argv =>
+    argv
+      .option('domain', {
+        default: 'CODE',
+        describe: 'имя домена',
+        string: true,
+      })
+      .option('offset', {
+        alias: 'ofs',
+        default: 0,
+        number: true,
+        describe: 'смещение в домене',
+      })
+      .option('size', {
+        alias: 'length',
+        number: true,
+        describe: 'требуемое количество байт',
+      })
+      .option('out', {
+        alias: 'o',
+        string: true,
+        describe: 'сохранить в файл',
+      })
+      .option('hex', {
+        boolean: true,
+        describe: 'использовать текстовый формат',
+      })
+      .option('f', {
+        alias: 'force',
+        boolean: true,
+        describe: 'перезаписать существующий файл',
+      })
+      .demandOption(['mac', 'domain']),
   handler: makeAddressHandler(action, true),
 };
 

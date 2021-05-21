@@ -66,7 +66,7 @@
     "reflect-metadata": "^0.1.13",
     "sax": "^1.2.4",
     "tiny-typed-emitter": "^2.0.3",
-    "xdg-basedir": "4",
+    "xdg-basedir": "5",
     "xpipe": "^1.0.5"
   },
   "sideEffects": false,

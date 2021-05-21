@@ -16093,12 +16093,12 @@ ws@~7.2.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.2.5.tgz#abb1370d4626a5a9cd79d8de404aa18b3465d10d"
   integrity sha512-C34cIU4+DB2vMyAbmEKossWq2ZQDr6QEyuuCzWrM9zfw1sGc0mYiJ0UnG9zzNykt49C2Fi34hvr2vssFQRS6EA==
 
-xdg-basedir@*, xdg-basedir@^5.0.1:
+xdg-basedir@*, xdg-basedir@5, xdg-basedir@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-5.0.1.tgz#b8900938336874b2efacaf8a2d5ad3d65fe0ca7d"
   integrity sha512-YgJsKtT0Jerlp42eqk9illJhG2ScfLSYEvp7qzYDdVCjHN625BkiK+defqXyv5gYjtif7rOIYi65vKA0JC3qaQ==
 
-xdg-basedir@4, xdg-basedir@^4.0.0:
+xdg-basedir@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-4.0.0.tgz#4bc8d9984403696225ef83a1573cbbcb4e79db13"
   integrity sha512-PSNhEJDejZYV7h50BohL09Er9VaIefr2LMAf3OEmpCkjOi34eYyQYAXUTjEQtZJTKcF0E2UKTh+osDLsgNim9Q==

@@ -130,7 +130,7 @@
     "env-cmd": "^10.0.1",
     "import-plugin-babel": "npm:babel-plugin-import",
     "react-refresh": "^0.10.0",
-    "webpack": "4",
+    "webpack": "5",
     "webpack-build-notifier": "^2.0.0"
   },
   "workspaces": {

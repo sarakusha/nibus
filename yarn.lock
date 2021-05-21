@@ -2342,9 +2342,9 @@
     fastq "^1.6.0"
 
 "@novastar/codec@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@novastar/codec/-/codec-1.0.5.tgz#1f288b87ee76256ebf184d3f88fcddbff80f8565"
-  integrity sha512-Vz1j0GthmnQbi8mXr+4i9bJOEHO1EBjqVZSL9UnAV02thFH3wHyzadk1gIzGQla3rK26Po+wF0CPD/pv6X84lQ==
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/@novastar/codec/-/codec-1.0.7.tgz#23a634f33acc50f5d2573c1b59054129f10195e1"
+  integrity sha512-djDODt0p+Ldp2eW+HOFPP+1UiqwEMpd4z7tEiHEE8nT09YHuHNwcLXL83tSLRiSxv3/tWPtc1C48LGyxQgp13w==
   dependencies:
     pump "^3.0.0"
     tiny-typed-emitter "^2.0.3"

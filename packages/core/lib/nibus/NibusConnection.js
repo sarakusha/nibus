@@ -20,7 +20,6 @@ const MibDescription_1 = require("../MibDescription");
 const slip_1 = require("../slip");
 const NibusEncoder_1 = __importDefault(require("./NibusEncoder"));
 const NibusDecoder_1 = __importDefault(require("./NibusDecoder"));
-const config_1 = __importDefault(require("./config"));
 const common_1 = require("../common");
 exports.MINIHOST_TYPE = 0xabc6;
 exports.MCDVI_TYPE = 0x1b;
@@ -45,7 +44,7 @@ class WaitedNmsDatagram {
             counter -= step;
             clearTimeout(timer);
             if (counter > 0) {
-                timer = global.setTimeout(timeout, req.timeout || config_1.default.timeout);
+                timer = global.setTimeout(timeout, req.timeout || common_1.config.get('timeout') || 1000);
             }
             else if (counter === 0) {
                 callback(this);
@@ -151,7 +150,7 @@ class NibusConnection extends tiny_typed_emitter_1.TypedEmitter {
         const sarp = sarp_1.createSarp(sarp_1.SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xff, type & 0xff]);
         let sarpHandler = () => { };
         return new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new errors_1.TimeoutError("Device didn't respond")), config_1.default.timeout);
+            const timeout = setTimeout(() => reject(new errors_1.TimeoutError("Device didn't respond")), common_1.config.get('timeout') || 1000);
             sarpHandler = sarpDatagram => {
                 clearTimeout(timeout);
                 resolve(sarpDatagram);

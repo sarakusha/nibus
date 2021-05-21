@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* tslint:disable:variable-name */
+import Configstore from 'configstore';
 import * as t from 'io-ts';
 import _ from 'lodash';
 
@@ -29,13 +29,19 @@ const MibTypeV = t.array(
 );
 
 /** @internal */
-export const ConfigV = t.partial({
-  logLevel: LogLevelV,
-  omit: t.union([t.array(t.string), t.null]),
-  pick: t.union([t.array(t.string), t.null]),
-  mibs: t.array(t.string),
-  mibTypes: t.record(t.string, MibTypeV),
-});
+export const ConfigV = t.intersection([
+  t.partial({
+    logLevel: LogLevelV,
+    omit: t.union([t.array(t.string), t.null]),
+    pick: t.union([t.array(t.string), t.null]),
+    mibs: t.array(t.string),
+    mibTypes: t.record(t.string, MibTypeV),
+  }),
+  t.type({
+    timeout: t.number,
+    attempts: t.number,
+  }),
+]);
 
 // type MibType = t.TypeOf<typeof MibTypeV>;
 /**
@@ -134,3 +140,10 @@ export function tuplify<T extends unknown[]>(...args: T): T {
 }
 
 export const MSG_DELIMITER = '\n';
+
+export const config = new Configstore('nibus-js', {
+  logLevel: 'none',
+  omit: ['priority'],
+  timeout: 1000,
+  attempts: 3,
+});

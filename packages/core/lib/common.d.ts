@@ -1,11 +1,12 @@
 /// <reference types="node" />
+import Configstore from 'configstore';
 import * as t from 'io-ts';
 export declare const LogLevelV: t.KeyofC<{
     none: null;
     hex: null;
     nibus: null;
 }>;
-export declare const ConfigV: t.PartialC<{
+export declare const ConfigV: t.IntersectionC<[t.PartialC<{
     logLevel: t.KeyofC<{
         none: null;
         hex: null;
@@ -19,7 +20,10 @@ export declare const ConfigV: t.PartialC<{
     }>, t.PartialC<{
         minVersion: t.NumberC;
     }>]>>>;
-}>;
+}>, t.TypeC<{
+    timeout: t.NumberC;
+    attempts: t.NumberC;
+}>]>;
 export declare type Config = t.TypeOf<typeof ConfigV>;
 export declare type Fields = string[] | undefined;
 export declare type LogLevel = t.TypeOf<typeof LogLevelV>;
@@ -50,5 +54,6 @@ export declare const replaceBuffers: <T extends object>(obj: T) => ReplaceType<T
 export declare function asyncSerialMap<T, R>(array: ReadonlyArray<T>, action: (item: T, index: number, res: ReadonlyArray<R>) => Promise<R | R[]>): Promise<R[]>;
 export declare function tuplify<T extends unknown[]>(...args: T): T;
 export declare const MSG_DELIMITER = "\n";
+export declare const config: Configstore;
 export {};
 //# sourceMappingURL=common.d.ts.map

@@ -79,22 +79,11 @@
     "yargs": "^16.0.3"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "babel-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
-      }
-    },
+    "preset": "ts-jest",
+    "testEnvironment": "node",
     "testMatch": [
-      "**/__tests__/*.+(ts|tsx|js)",
-      "**/src/**/*.spec.+(ts|tsx|js)"
+      "**/__tests__/*.+[tj]sx?",
+      "**/src/**/*.spec.+[tj]sx?"
     ]
   },
   "pkg": {

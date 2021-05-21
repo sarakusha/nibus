@@ -5189,7 +5189,7 @@ config-chain@^1.1.11:
     ini "^1.3.4"
     proto-list "~1.2.1"
 
-configstore@^5.0.1:
+configstore@^5, configstore@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/configstore/-/configstore-5.0.1.tgz#d365021b5df4b98cdd187d6a3b0e3f6a7cc5ed96"
   integrity sha512-aMKprgk5YhBNyH25hj8wGt2+D52Sw1DRRIzqBwLp2Ya9mFmY8KPvvtvmna8SxVR9JMZ4kzMD68N22vlaRpkeFA==
@@ -16102,7 +16102,7 @@ ws@~7.2.0:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.2.5.tgz#abb1370d4626a5a9cd79d8de404aa18b3465d10d"
   integrity sha512-C34cIU4+DB2vMyAbmEKossWq2ZQDr6QEyuuCzWrM9zfw1sGc0mYiJ0UnG9zzNykt49C2Fi34hvr2vssFQRS6EA==
 
-xdg-basedir@*, xdg-basedir@5, xdg-basedir@^5.0.1:
+xdg-basedir@*, xdg-basedir@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-5.0.1.tgz#b8900938336874b2efacaf8a2d5ad3d65fe0ca7d"
   integrity sha512-YgJsKtT0Jerlp42eqk9illJhG2ScfLSYEvp7qzYDdVCjHN625BkiK+defqXyv5gYjtif7rOIYi65vKA0JC3qaQ==

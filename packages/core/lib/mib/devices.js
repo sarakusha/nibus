@@ -31,7 +31,6 @@ const PathReporter_1 = require("io-ts/lib/PathReporter");
 const lodash_1 = __importDefault(require("lodash"));
 const path_1 = __importDefault(require("path"));
 const tiny_typed_emitter_1 = require("tiny-typed-emitter");
-const xdg_basedir_1 = require("xdg-basedir");
 const debug_1 = __importDefault(require("../debug"));
 const Address_1 = __importStar(require("../Address"));
 const errors_1 = require("../errors");
@@ -41,7 +40,6 @@ const NmsValueType_1 = __importDefault(require("../nms/NmsValueType"));
 const common_1 = require("../common");
 const timeid_1 = __importDefault(require("../timeid"));
 const mib_1 = require("./mib");
-const pkgName = '@nata/nibus.js';
 const debug = debug_1.default('nibus:devices');
 const $values = Symbol('values');
 const $errors = Symbol('errors');
@@ -689,13 +687,9 @@ class DevicePrototype extends tiny_typed_emitter_1.TypedEmitter {
     }
 }
 const getMibTypes = () => {
-    const conf = path_1.default.resolve(xdg_basedir_1.config || '/tmp', 'configstore', pkgName);
-    if (!fs_1.default.existsSync(`${conf}.json`))
-        return {};
-    const validate = common_1.ConfigV.decode(JSON.parse(fs_1.default.readFileSync(`${conf}.json`).toString()));
+    const validate = common_1.ConfigV.decode(common_1.config.all);
     if (Either_1.isLeft(validate)) {
-        throw new Error(`Invalid config file ${conf}
-  ${PathReporter_1.PathReporter.report(validate).join('\n')}`);
+        throw new Error(`Invalid config file ${common_1.config.path} ${PathReporter_1.PathReporter.report(validate).join('\n')}`);
     }
     const { mibTypes } = validate.right;
     return mibTypes;

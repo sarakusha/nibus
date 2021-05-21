@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.detectionPath = exports.NibusService = void 0;
 const core_1 = require("@nibus/core");
-const configstore_1 = __importDefault(require("configstore"));
 const Either_1 = require("fp-ts/lib/Either");
 const fs_1 = __importDefault(require("fs"));
 const lodash_1 = __importDefault(require("lodash"));
@@ -17,15 +16,10 @@ const ipc_1 = require("../ipc");
 const detector_1 = __importDefault(require("./detector"));
 const { version } = require('../../package.json');
 const bonjour = bonjour_hap_1.default();
-const pkgName = '@nata/nibus.js';
-const conf = new configstore_1.default(pkgName, {
-    logLevel: 'none',
-    omit: ['priority'],
-});
 const debug = debug_1.default('nibus:service');
 const debugIn = debug_1.default('nibus:<<<');
 const debugOut = debug_1.default('nibus:>>>');
-debug(`config path: ${conf.path}`);
+debug(`config path: ${core_1.config.path}`);
 const noop = () => { };
 if (process.platform === 'win32') {
     const rl = readline_1.createInterface({
@@ -42,7 +36,7 @@ const minVersionToInt = (str) => {
 };
 async function updateMibTypes() {
     const mibs = await core_1.getMibs();
-    conf.set('mibs', mibs);
+    core_1.config.set('mibs', mibs);
     const mibTypes = {};
     mibs.forEach(mib => {
         const mibfile = core_1.getMibFile(mib);
@@ -63,21 +57,21 @@ async function updateMibTypes() {
             mibTypes[type] = lodash_1.default.sortBy(currentMibs, 'minVersion');
         }
     });
-    conf.set('mibTypes', mibTypes);
+    core_1.config.set('mibTypes', mibTypes);
 }
 updateMibTypes().catch(e => debug(`<error> ${e.message}`));
 const decoderIn = new core_1.NibusDecoder();
 decoderIn.on('data', (datagram) => {
     debugIn(datagram.toString({
-        pick: conf.get('pick'),
-        omit: conf.get('omit'),
+        pick: core_1.config.get('pick'),
+        omit: core_1.config.get('omit'),
     }));
 });
 const decoderOut = new core_1.NibusDecoder();
 decoderOut.on('data', (datagram) => {
     debugOut(datagram.toString({
-        pick: conf.get('pick'),
-        omit: conf.get('omit'),
+        pick: core_1.config.get('pick'),
+        omit: core_1.config.get('omit'),
     }));
 });
 const loggers = {
@@ -116,7 +110,7 @@ class NibusService {
         this.logLevelHandler = (client, logLevel) => {
             debug(`setLogLevel: ${logLevel}`);
             if (logLevel) {
-                conf.set('logLevel', logLevel);
+                core_1.config.set('logLevel', logLevel);
                 this.server
                     .broadcast('logLevel', logLevel)
                     .catch(e => debug(`error while broadcast: ${e.message}`));
@@ -136,9 +130,9 @@ class NibusService {
                 version: os_1.default.version(),
             })
                 .catch(err => debug(`<error> while send 'host': ${err.message}`));
-            debug(`logLevel`, conf.get('logLevel'));
+            debug(`logLevel`, core_1.config.get('logLevel'));
             server
-                .send(socket, 'logLevel', conf.get('logLevel'))
+                .send(socket, 'logLevel', core_1.config.get('logLevel'))
                 .catch(e => debug(`error while send logLevel ${e.message}`));
         };
         this.addHandler = (portInfo) => {
@@ -169,7 +163,7 @@ class NibusService {
         return this.server.path;
     }
     updateLogger(connection) {
-        const logger = loggers[conf.get('logLevel')];
+        const logger = loggers[core_1.config.get('logLevel')];
         const connections = connection ? [connection] : Object.values(this.server.ports);
         connections.forEach(con => con.setLogger(logger));
     }

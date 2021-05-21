@@ -11,8 +11,8 @@
 /* eslint-disable no-bitwise */
 import _ from 'lodash';
 import { AddressParam } from '../Address';
+import { config } from '../common';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
-import config from '../nibus/config';
 import { encodeValue, getNmsType, getSizeOf, writeValue } from './nms';
 import NmsDatagram from './NmsDatagram';
 import NmsServiceType from './NmsServiceType';
@@ -129,7 +129,7 @@ export function createNmsInitiateDownloadSequence(
     destination,
     id,
     service: NmsServiceType.InitiateDownloadSequence,
-    timeout: 5 * config.timeout,
+    timeout: 5 * (config.get('timeout') || 1000),
   });
 }
 
@@ -167,7 +167,7 @@ export function createNmsTerminateDownloadSequence(
     destination,
     id,
     service: NmsServiceType.TerminateDownloadSequence,
-    timeout: config.timeout * 10,
+    timeout: (config.get('timeout') || 1000) * 10,
   });
 }
 
@@ -193,7 +193,7 @@ export function createNmsVerifyDomainChecksum(
     id,
     nms,
     service: NmsServiceType.VerifyDomainChecksum,
-    timeout: config.timeout * 10,
+    timeout: (config.get('timeout') || 1000) * 10,
   });
 }
 
@@ -221,6 +221,6 @@ export function createExecuteProgramInvocation(
     nms,
     notReply,
     service: NmsServiceType.ExecuteProgramInvocation,
-    timeout: config.timeout * 3,
+    timeout: (config.get('timeout') || 1000) * 3,
   });
 }

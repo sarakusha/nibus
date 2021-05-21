@@ -22,8 +22,8 @@ function makeAddressHandler(action, breakout = false) {
                 resolve();
             };
             const mac = new core_1.Address(args.mac);
-            if (args.timeout && args.timeout !== core_1.config.timeout * 1000) {
-                core_1.config.timeout = args.timeout * 1000;
+            if (args.timeout && args.timeout !== (core_1.config.get('timeout') || 1000) * 1000) {
+                core_1.config.set('timeout', args.timeout * 1000);
             }
             const perform = async (connection, mibOrType, version) => {
                 clearTimeout(timeout);
@@ -37,7 +37,7 @@ function makeAddressHandler(action, breakout = false) {
             const wait = () => {
                 count -= 1;
                 if (count > 0) {
-                    timeout = setTimeout(wait, core_1.config.timeout);
+                    timeout = setTimeout(wait, core_1.config.get('timeout') || 1000);
                 }
                 else {
                     close();
@@ -77,7 +77,7 @@ function makeAddressHandler(action, breakout = false) {
                     process.nextTick(close);
                 }
             });
-            timeout = setTimeout(wait, core_1.config.timeout);
+            timeout = setTimeout(wait, core_1.config.get('timeout') || 1000);
         });
     });
 }

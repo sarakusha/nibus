@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createExecuteProgramInvocation = exports.createNmsVerifyDomainChecksum = exports.createNmsTerminateDownloadSequence = exports.createNmsDownloadSegment = exports.createNmsInitiateDownloadSequence = exports.createNmsRequestDomainDownload = exports.createNmsUploadSegment = exports.createNmsRequestDomainUpload = exports.createNmsInitiateUploadSequence = exports.createNmsWrite = exports.createNmsRead = exports.getNmsType = exports.NmsDatagram = exports.NmsValueType = exports.NmsServiceType = void 0;
 const lodash_1 = __importDefault(require("lodash"));
+const common_1 = require("../common");
 const nbconst_1 = require("../nbconst");
-const config_1 = __importDefault(require("../nibus/config"));
 const nms_1 = require("./nms");
 Object.defineProperty(exports, "getNmsType", { enumerable: true, get: function () { return nms_1.getNmsType; } });
 const NmsDatagram_1 = __importDefault(require("./NmsDatagram"));
@@ -96,7 +96,7 @@ function createNmsInitiateDownloadSequence(destination, id) {
         destination,
         id,
         service: NmsServiceType_1.default.InitiateDownloadSequence,
-        timeout: 5 * config_1.default.timeout,
+        timeout: 5 * (common_1.config.get('timeout') || 1000),
     });
 }
 exports.createNmsInitiateDownloadSequence = createNmsInitiateDownloadSequence;
@@ -124,7 +124,7 @@ function createNmsTerminateDownloadSequence(destination, id) {
         destination,
         id,
         service: NmsServiceType_1.default.TerminateDownloadSequence,
-        timeout: config_1.default.timeout * 10,
+        timeout: (common_1.config.get('timeout') || 1000) * 10,
     });
 }
 exports.createNmsTerminateDownloadSequence = createNmsTerminateDownloadSequence;
@@ -144,7 +144,7 @@ function createNmsVerifyDomainChecksum(destination, id, offset, size, crc) {
         id,
         nms,
         service: NmsServiceType_1.default.VerifyDomainChecksum,
-        timeout: config_1.default.timeout * 10,
+        timeout: (common_1.config.get('timeout') || 1000) * 10,
     });
 }
 exports.createNmsVerifyDomainChecksum = createNmsVerifyDomainChecksum;
@@ -164,7 +164,7 @@ function createExecuteProgramInvocation(destination, id, notReply = false, ...ar
         nms,
         notReply,
         service: NmsServiceType_1.default.ExecuteProgramInvocation,
-        timeout: config_1.default.timeout * 3,
+        timeout: (common_1.config.get('timeout') || 1000) * 3,
     });
 }
 exports.createExecuteProgramInvocation = createExecuteProgramInvocation;

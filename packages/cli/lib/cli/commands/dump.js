@@ -144,13 +144,13 @@ const dumpCommand = {
         const wait = () => {
             count -= 1;
             if (count > 0) {
-                timeout = setTimeout(wait, core_1.config.timeout);
+                timeout = setTimeout(wait, core_1.config.get('timeout') || 1000);
             }
             else {
                 close();
             }
         };
-        timeout = setTimeout(wait, core_1.config.timeout);
+        timeout = setTimeout(wait, core_1.config.get('timeout') || 1000);
     })),
 };
 exports.default = dumpCommand;

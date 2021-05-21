@@ -23,4 +23,3 @@ export {
   MCDVI_TYPE,
   VersionInfo,
 } from './NibusConnection';
-export { default as config } from './config';

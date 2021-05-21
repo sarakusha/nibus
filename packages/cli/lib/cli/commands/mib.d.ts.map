@@ -1,1 +1,0 @@
-{"version":3,"file":"mib.d.ts","sourceRoot":"","sources":["../../../src/cli/commands/mib.ts"],"names":[],"mappings":"AAYA,OAAO,EAAE,aAAa,EAAE,MAAM,OAAO,CAAC;AAItC,OAAO,EAAE,UAAU,EAAE,MAAM,YAAY,CAAC;AAExC,aAAK,OAAO,GAAG,UAAU,GAAG;IAC1B,OAAO,EAAE,MAAM,CAAC;CACjB,CAAC;AACF,QAAA,MAAM,UAAU,EAAE,aAAa,CAAC,UAAU,EAAE,OAAO,CAmBlD,CAAC;AAEF,eAAe,UAAU,CAAC"}

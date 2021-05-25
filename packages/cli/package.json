@@ -79,7 +79,7 @@
     "tail": "^2.0.2",
     "tiny-typed-emitter": "^2.0.3",
     "usb-detection": "^4.5.0",
-    "yargs": "^16.0.3"
+    "yargs": "^17.0.1"
   },
   "jest": {
     "preset": "ts-jest",

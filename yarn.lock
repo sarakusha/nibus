@@ -3047,9 +3047,9 @@
   integrity sha512-1Bx7KgoCLP8LuKaY9whWiX0Y8JMEB9gmZHNJigainwFuv3gEkZvTx0AGNvnA5nSu1daQcJDKScm9tNpW/ZjpjA==
 
 "@types/tail@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/tail/-/tail-2.0.0.tgz#d1d035cd0caa5a2ed4a5b805acc6596fc6a233a2"
-  integrity sha512-TYTfnILhrZUAZKGNgot5+sBDap7oPIzV3818p7g4VhKGc81+/eoEZ93wKBTGnSg/tpDjzWSb8Wx5E737FCH/Sw==
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/@types/tail/-/tail-2.2.0.tgz#5d2f5514ac03c99f586dc9d25d1f558fda232440"
+  integrity sha512-QbZv/z5OhoOPVhlXTFlcA/zAGUAtRcvZ0n7WB8dhAMJAu68BivcJU1Q+AEI4SFYK3iA5O9mT+x/zw46BL+1FjQ==
 
 "@types/tapable@^1", "@types/tapable@^1.0.5":
   version "1.0.7"
@@ -3497,9 +3497,9 @@ ajv@^6.1.0, ajv@^6.10.0, ajv@^6.10.1, ajv@^6.10.2, ajv@^6.12.0, ajv@^6.12.3, ajv
     uri-js "^4.2.2"
 
 ajv@^8.0.0, ajv@^8.0.1, ajv@^8.0.5, ajv@^8.1.0:
-  version "8.4.0"
-  resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.4.0.tgz#48984fdb2ce225cab15795f0772a8d85669075e4"
-  integrity sha512-7QD2l6+KBSLwf+7MuYocbWvRPdOu63/trReTLu2KFwkgctnub1auoF+Y1WYcm09CTM7quuscrzqmASaLHC/K4Q==
+  version "8.5.0"
+  resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.5.0.tgz#695528274bcb5afc865446aa275484049a18ae4b"
+  integrity sha512-Y2l399Tt1AguU3BPRP9Fn4eN+Or+StUGWCUpbnFyXSo8NZ9S4uj+AG2pjs5apK+ZMOwYOz1+a+VKvKH7CudXgQ==
   dependencies:
     fast-deep-equal "^3.1.1"
     json-schema-traverse "^1.0.0"

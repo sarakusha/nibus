@@ -22,7 +22,7 @@
     "eslint-plugin-react-hooks": "^4.1.2",
     "husky": "^6.0.0",
     "jest": "^26.5.2",
-    "lerna": "^3.19.0",
+    "lerna": "^4.0.0",
     "prettier-airbnb-config": "^1.0.0",
     "shx": "^0.3.2",
     "supports-color": "^9.0.0",

@@ -9,6 +9,7 @@
  */
 /* eslint-disable no-bitwise */
 import {
+  config,
   Config,
   Fields,
   getMibFile,
@@ -22,7 +23,6 @@ import {
   printBuffer,
   toInt,
 } from '@nibus/core';
-import Configstore from 'configstore';
 import { isLeft } from 'fp-ts/lib/Either';
 import fs from 'fs';
 import _ from 'lodash';
@@ -40,17 +40,11 @@ import detector from './detector';
 const { version } = require('../../package.json');
 
 const bonjour = Bonjour();
-const pkgName = '@nata/nibus.js'; // = require('../../package.json');
-const conf = new Configstore(pkgName, {
-  logLevel: 'none',
-  omit: ['priority'],
-});
-
 const debug = debugFactory('nibus:service');
 const debugIn = debugFactory('nibus:<<<');
 const debugOut = debugFactory('nibus:>>>');
 
-debug(`config path: ${conf.path}`);
+debug(`config path: ${config.path}`);
 
 const noop = (): void => {};
 
@@ -71,7 +65,7 @@ const minVersionToInt = (str?: string): number => {
 
 async function updateMibTypes(): Promise<void> {
   const mibs = await getMibs();
-  conf.set('mibs', mibs);
+  config.set('mibs', mibs);
   const mibTypes: Config['mibTypes'] = {};
   mibs.forEach(mib => {
     const mibfile = getMibFile(mib);
@@ -91,7 +85,7 @@ async function updateMibTypes(): Promise<void> {
       mibTypes[type] = _.sortBy(currentMibs, 'minVersion');
     }
   });
-  conf.set('mibTypes', mibTypes);
+  config.set('mibTypes', mibTypes);
 }
 
 updateMibTypes().catch(e => debug(`<error> ${e.message}`));
@@ -101,8 +95,8 @@ const decoderIn = new NibusDecoder();
 decoderIn.on('data', (datagram: NibusDatagram) => {
   debugIn(
     datagram.toString({
-      pick: conf.get('pick') as Fields,
-      omit: conf.get('omit') as Fields,
+      pick: config.get('pick') as Fields,
+      omit: config.get('omit') as Fields,
     })
   );
 });
@@ -110,8 +104,8 @@ const decoderOut = new NibusDecoder();
 decoderOut.on('data', (datagram: NibusDatagram) => {
   debugOut(
     datagram.toString({
-      pick: conf.get('pick') as Fields,
-      omit: conf.get('omit') as Fields,
+      pick: config.get('pick') as Fields,
+      omit: config.get('omit') as Fields,
     })
   );
 });
@@ -167,7 +161,7 @@ export class NibusService {
   }
 
   updateLogger(connection?: SerialTee): void {
-    const logger: SerialLogger | null = loggers[conf.get('logLevel') as LogLevel];
+    const logger: SerialLogger | null = loggers[config.get('logLevel') as LogLevel];
     const connections = connection ? [connection] : Object.values(this.server.ports);
     connections.forEach(con => con.setLogger(logger));
   }
@@ -232,13 +226,13 @@ export class NibusService {
   ): void => {
     debug(`setLogLevel: ${logLevel}`);
     if (logLevel) {
-      conf.set('logLevel', logLevel);
+      config.set('logLevel', logLevel);
       this.server
         .broadcast('logLevel', logLevel)
         .catch(e => debug(`error while broadcast: ${e.message}`));
     }
-    // pickFields && conf.set('pick', pickFields);
-    // omitFields && conf.set('omit', omitFields);
+    // pickFields && config.set('pick', pickFields);
+    // omitFields && config.set('omit', omitFields);
     this.updateLogger();
   };
 
@@ -259,9 +253,9 @@ export class NibusService {
         version: os.version(),
       })
       .catch(err => debug(`<error> while send 'host': ${err.message}`));
-    debug(`logLevel`, conf.get('logLevel'));
+    debug(`logLevel`, config.get('logLevel'));
     server
-      .send(socket, 'logLevel', conf.get('logLevel'))
+      .send(socket, 'logLevel', config.get('logLevel'))
       .catch(e => debug(`error while send logLevel ${e.message}`));
   };
 

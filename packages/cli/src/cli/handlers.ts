@@ -41,8 +41,8 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
         resolve();
       };
       const mac = new Address(args.mac);
-      if (args.timeout && args.timeout !== config.timeout * 1000) {
-        config.timeout = args.timeout * 1000;
+      if (args.timeout && args.timeout !== (config.get('timeout') || 1000) * 1000) {
+        config.set('timeout', args.timeout * 1000);
       }
 
       const perform = async (
@@ -64,7 +64,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
       const wait = (): void => {
         count -= 1;
         if (count > 0) {
-          timeout = setTimeout(wait, config.timeout);
+          timeout = setTimeout(wait, config.get('timeout') || 1000);
         } else {
           close();
         }
@@ -104,7 +104,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
         }
       });
 
-      timeout = setTimeout(wait, config.timeout);
+      timeout = setTimeout(wait, config.get('timeout') || 1000);
     });
   });
 }

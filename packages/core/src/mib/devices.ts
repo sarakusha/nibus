@@ -17,7 +17,6 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import _, { Dictionary } from 'lodash';
 import path from 'path';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { config as xdgConfig } from 'xdg-basedir';
 import debugFactory from '../debug';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
@@ -40,7 +39,7 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { chunkArray, Config, ConfigV } from '../common';
+import { chunkArray, config, Config, ConfigV } from '../common';
 import timeid from '../timeid';
 import {
   booleanConverter,
@@ -69,8 +68,6 @@ import {
   withValue,
 } from './mib';
 
-const pkgName = '@nata/nibus.js'; // require('../../package.json').name;
-
 const debug = debugFactory('nibus:devices');
 
 const $values = Symbol('values');
@@ -89,8 +86,8 @@ enum PrivateProps {
 
 // type DeviceConstructor = new (address: Address) => any;
 interface DeviceConstructor extends Function {
-  (this: DevicePrototype, address: Address): void;
   prototype: DevicePrototype;
+  (this: DevicePrototype, address: Address): void;
 }
 
 const mibTypesCache: { [mibname: string]: DeviceConstructor } = {};
@@ -952,13 +949,12 @@ interface DevicePrototype {
 }
 
 export const getMibTypes = (): Config['mibTypes'] => {
-  const conf = path.resolve(xdgConfig || '/tmp', 'configstore', pkgName);
-  if (!fs.existsSync(`${conf}.json`)) return {};
-  const validate = ConfigV.decode(JSON.parse(fs.readFileSync(`${conf}.json`).toString()));
+  const validate = ConfigV.decode(config.all);
   //   const validate = ConfigV.decode(require(conf));
   if (isLeft(validate)) {
-    throw new Error(`Invalid config file ${conf}
-  ${PathReporter.report(validate).join('\n')}`);
+    throw new Error(
+      `Invalid config file ${config.path} ${PathReporter.report(validate).join('\n')}`
+    );
   }
   const { mibTypes } = validate.right;
   return mibTypes;

@@ -188,13 +188,13 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
         const wait = (): void => {
           count -= 1;
           if (count > 0) {
-            timeout = setTimeout(wait, config.timeout);
+            timeout = setTimeout(wait, config.get('timeout') || 1000);
           } else {
             close();
           }
         };
 
-        timeout = setTimeout(wait, config.timeout);
+        timeout = setTimeout(wait, config.get('timeout') || 1000);
       })
   ),
 };

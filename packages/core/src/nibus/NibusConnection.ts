@@ -27,8 +27,7 @@ import { BootloaderFunction, LikeArray, slipChunks, SlipDatagram } from '../slip
 import NibusDatagram from './NibusDatagram';
 import NibusEncoder from './NibusEncoder';
 import NibusDecoder from './NibusDecoder';
-import config from './config';
-import { Datagram, delay, tuplify } from '../common';
+import { config, Datagram, delay, tuplify } from '../common';
 import type { IDevice } from '../mib';
 
 export const MINIHOST_TYPE = 0xabc6;
@@ -67,7 +66,7 @@ class WaitedNmsDatagram {
       counter -= step;
       clearTimeout(timer);
       if (counter > 0) {
-        timer = global.setTimeout(timeout, req.timeout || config.timeout);
+        timer = global.setTimeout(timeout, req.timeout || config.get('timeout') || 1000);
       } else if (counter === 0) {
         callback(this);
       }
@@ -209,7 +208,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     return new Promise<SarpDatagram>((resolve, reject) => {
       const timeout = setTimeout(
         () => reject(new TimeoutError("Device didn't respond")),
-        config.timeout
+        config.get('timeout') || 1000
       );
       sarpHandler = sarpDatagram => {
         clearTimeout(timeout);

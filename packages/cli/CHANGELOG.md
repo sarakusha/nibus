@@ -1,14 +1,11 @@
-# Changelog
-> **Tags:**
->
-> - [New Feature]
-> - [Bug Fix]
-> - [Breaking Change]
-> - [Documentation]
-> - [Internal]
-> - [Polish]
-> - [Experimental]
-> - [Deprecation]
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [3.2.2](https://github.com/sarakusha/nibus/compare/v3.2.1...v3.2.2) (2021-05-25)
+
+**Note:** Version bump only for package @nibus/cli
 
 # 2.0.5
 - **New Feature**
@@ -117,4 +114,3 @@
 - **Internal**
   - add <abbr title="Run Type Type Information">RTTI</abbr> and validation to mib file parser
   - change `responce` to `response` and remove `service` type in some mib-files
-  

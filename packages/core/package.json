@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "3.2.0",
+  "version": "3.2.2",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -18,7 +18,10 @@
   "files": [
     "lib",
     "mibs",
-    "EULA.md"
+    "!**/*.spec.*",
+    "EULA.md",
+    "CHANGELOG.md",
+    "README.md"
   ],
   "repository": {
     "type": "git",
@@ -26,10 +29,10 @@
     "directory": "packages/core"
   },
   "scripts": {
+    "build": "cross-env BABEL_ENV=production tsc",
+    "rebuild": "yarn clean && yarn build",
     "test": "jest src",
     "type-check": "tsc --noEmit",
-    "rebuild": "yarn clean && yarn build",
-    "build": "cross-env BABEL_ENV=production tsc",
     "clean": "shx rm -rf lib tsconfig.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
@@ -43,12 +46,12 @@
     "@types/debug": "^4.1.3",
     "@types/lodash": "^4.14.149",
     "@types/pump": "^1.1.1",
-    "@types/xdg-basedir": "^4.0.2",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-tsdoc": "^0.2.0",
     "typedoc": "^0.20.20"
   },
   "dependencies": {
+    "configstore": "^5",
     "crc": "^3.8.0",
     "debug": "^4.1.1",
     "electron-log": "^4.3.1",
@@ -66,7 +69,6 @@
     "reflect-metadata": "^0.1.13",
     "sax": "^1.2.4",
     "tiny-typed-emitter": "^2.0.3",
-    "xdg-basedir": "5",
     "xpipe": "^1.0.5"
   },
   "sideEffects": false,

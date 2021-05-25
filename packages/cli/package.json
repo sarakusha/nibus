@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "3.2.0",
+  "version": "3.2.2",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -28,7 +28,10 @@
   },
   "files": [
     "lib",
-    "detection.yml"
+    "assets",
+    "!**/*.spec.*",
+    "CHANGELOG.md",
+    "README.md"
   ],
   "repository": {
     "type": "git",
@@ -54,7 +57,7 @@
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
-    "@nibus/core": "^3",
+    "@nibus/core": "3.2.2",
     "@serialport/bindings": "^9.0.1",
     "bonjour-hap": "^3.6.2",
     "chalk": "^4.1.0",
@@ -79,22 +82,11 @@
     "yargs": "^16.0.3"
   },
   "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.(ts|tsx)$": "babel-jest"
-    },
-    "globals": {
-      "ts-jest": {
-        "tsConfigFile": "tsconfig.json"
-      }
-    },
+    "preset": "ts-jest",
+    "testEnvironment": "node",
     "testMatch": [
-      "**/__tests__/*.+(ts|tsx|js)",
-      "**/src/**/*.spec.+(ts|tsx|js)"
+      "**/__tests__/*.+[tj]sx?",
+      "**/src/**/*.spec.+[tj]sx?"
     ]
   },
   "pkg": {

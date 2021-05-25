@@ -28,7 +28,10 @@
   },
   "files": [
     "lib",
-    "detection.yml"
+    "assets",
+    "!**/*.spec.*",
+    "CHANGELOG.md",
+    "README.md"
   ],
   "repository": {
     "type": "git",

@@ -18,7 +18,10 @@
   "files": [
     "lib",
     "mibs",
-    "EULA.md"
+    "!**/*.spec.*",
+    "EULA.md",
+    "CHANGELOG.md",
+    "README.md"
   ],
   "repository": {
     "type": "git",
@@ -26,10 +29,10 @@
     "directory": "packages/core"
   },
   "scripts": {
+    "build": "cross-env BABEL_ENV=production tsc",
+    "rebuild": "yarn clean && yarn build",
     "test": "jest src",
     "type-check": "tsc --noEmit",
-    "rebuild": "yarn clean && yarn build",
-    "build": "cross-env BABEL_ENV=production tsc",
     "clean": "shx rm -rf lib tsconfig.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",

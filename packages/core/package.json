@@ -29,8 +29,7 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "build": "cross-env BABEL_ENV=production tsc",
-    "rebuild": "yarn clean && yarn build",
+    "build": "yarn clean && tsc",
     "test": "jest src",
     "type-check": "tsc --noEmit",
     "clean": "shx rm -rf lib tsconfig.tsbuildinfo",

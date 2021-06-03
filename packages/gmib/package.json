@@ -50,7 +50,7 @@
     "@novastar/codec": "^1.0.5",
     "@reduxjs/toolkit": "^1.5.0",
     "@serialport/bindings": "^9.0.1",
-    "@types/node": "^14.14.20",
+    "@types/node": "^15.9.0",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",
     "ajv": "^8.0.5",

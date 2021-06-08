@@ -957,7 +957,7 @@ export const getMibTypes = (): Config['mibTypes'] => {
     );
   }
   const { mibTypes } = validate.right;
-  return mibTypes;
+  return mibTypes || {};
 };
 
 export function findMibByType(type: number, version?: number): string | undefined {

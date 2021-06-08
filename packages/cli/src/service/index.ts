@@ -170,12 +170,16 @@ export class NibusService {
     if (this.isStarted) return;
     await this.server.listen(this.port, process.env.NIBUS_HOST);
     this.isStarted = true;
-    this.ad = bonjour.publish({
-      name: os.hostname().replace(/\.local\.?$/, ''),
-      type: 'nibus',
-      port: this.port,
-      txt: { version },
-    });
+    try {
+      this.ad = bonjour.publish({
+        name: os.hostname().replace(/\.local\.?$/, ''),
+        type: 'nibus',
+        port: this.port,
+        txt: { version },
+      });
+    } catch (err) {
+      debug(`error while bonjour.publish: ${err.message}`);
+    }
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');
     detector.on('add', this.addHandler);

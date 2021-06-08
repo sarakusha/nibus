@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.3](https://github.com/sarakusha/nibus/compare/v3.2.1...v3.2.3) (2021-06-08)
+
+### Bug Fixes
+
+* **desktop-entry:** add option --no-sandbox for linux ([3447bf7](https://github.com/sarakusha/nibus/commit/3447bf725cc5bba8ad2e7adbff27fe606fcdd768))
+* **tray:** change icon in astra linux ([c939a41](https://github.com/sarakusha/nibus/commit/c939a414269d96702f9e159b405424c6002f3150))
+* global setTimeout ([551248c](https://github.com/sarakusha/nibus/commit/551248c7c54d3680d8bcd3ba3f72703997f41317))
+* increase initial timeout ([b3a1d57](https://github.com/sarakusha/nibus/commit/b3a1d57e5a87877df076301278615a010cb8f965))
+* **bonjour:** catch errors ([0570c09](https://github.com/sarakusha/nibus/commit/0570c0901b1eca54347a08c2818e9078dd18741a))
+* **config:** skip null values ([3deaef6](https://github.com/sarakusha/nibus/commit/3deaef6cff1a9dbd443c7219619865bc7f05a215))
+
 ## [3.2.2](https://github.com/sarakusha/nibus/compare/v3.2.1...v3.2.2) (2021-05-25)
 
 

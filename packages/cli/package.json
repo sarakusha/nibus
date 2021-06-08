@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -23,9 +23,6 @@
   },
   "author": "Andrei Sarakeev <avs@nata-info.ru>",
   "license": "MIT",
-  "directories": {
-    "lib": "lib"
-  },
   "files": [
     "lib",
     "assets",
@@ -57,8 +54,7 @@
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
-    "@nibus/core": "3.2.2",
-    "@serialport/bindings": "^9.0.1",
+    "@nibus/core": "3.2.3",
     "bonjour-hap": "^3.6.2",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",

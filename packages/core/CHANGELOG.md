@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.2.3](https://github.com/sarakusha/nibus/compare/v3.2.1...v3.2.3) (2021-06-08)
+
+
+### Bug Fixes
+
+* global setTimeout ([551248c](https://github.com/sarakusha/nibus/commit/551248c7c54d3680d8bcd3ba3f72703997f41317))
+
+
+
+
+
 ## [3.2.2](https://github.com/sarakusha/nibus/compare/v3.2.1...v3.2.2) (2021-05-25)
 
 **Note:** Version bump only for package @nibus/core

@@ -50,7 +50,7 @@
     "@types/serialport": "^8.0.0",
     "@types/tail": "^2.0.0",
     "@types/xdg-basedir": "^4.0.2",
-    "@types/yargs": "^16.0.0",
+    "@types/yargs": "^17.0.0",
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
@@ -68,14 +68,14 @@
     "lodash": "^4.17.10",
     "monocle-ts": "^2.0.1",
     "newtype-ts": "^0.3.2",
-    "pm2": "^4.2.2",
+    "pm2": "^5.0.0",
     "progress": "^2.0.3",
     "serialport": "^9.0.1",
     "table-layout": "^1.0.0",
     "tail": "^2.0.2",
     "tiny-typed-emitter": "^2.0.3",
     "usb-detection": "^4.5.0",
-    "yargs": "^16.0.3"
+    "yargs": "^17.0.1"
   },
   "jest": {
     "preset": "ts-jest",

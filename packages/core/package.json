@@ -8,7 +8,7 @@
     "sarakusha"
   ],
   "author": "Andrei Sarakeev <sarakusha@gmail.com>",
-  "homepage": "https://github.com/sarakusha/nibus/package/core#readme",
+  "homepage": "https://github.com/sarakusha/nibus/packages/core#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

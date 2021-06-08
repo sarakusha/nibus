@@ -65,7 +65,7 @@ const { argv } = yargs
   //   default: true,
   // })
   .option('timeout', {
-    desc: 'тймаут в секундах',
+    desc: 'таймаут в секундах',
     number: true,
     default: 1,
   })

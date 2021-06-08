@@ -61,7 +61,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
           debug(`error while open serial port: ${err.message}`);
           process.platform === 'linux' &&
             debug(
-              `WARNING! You would add user '${process.env.USER}' to the dialout group: "sudo usermode -aG dialout ${process.env.USER}"`
+              `WARNING! You would add user '${process.env.USER}' to the dialout group: "sudo usermod -aG dialout ${process.env.USER}"`
             );
           this.close();
         }

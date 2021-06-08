@@ -155,7 +155,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     // this.socket = connect(xpipe.eq(getSocketPath(path)));
     this.socket = connect(port, host, () => {
       this.socket.write(path);
-      window.setTimeout(() => {
+      setTimeout(() => {
         // pump(pump(this.encoder, this.socket), this.decoder, () => this.close());
         pump(this.encoder, this.socket, this.decoder, () => this.close());
         // this.socket.pipe(this.decoder);

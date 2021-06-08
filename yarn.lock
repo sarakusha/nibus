@@ -14586,9 +14586,9 @@ supports-color@^7.0.0, supports-color@^7.1.0:
     has-flag "^4.0.0"
 
 supports-color@^9.0.0:
-  version "9.0.0"
-  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-9.0.0.tgz#201a80bcefe03598cd2439f7a2ab9a855ab15570"
-  integrity sha512-8E5dgZd3FsJaYM+TEbKnwX4VWsP+0gDDsI2CKZQidScJv2QDbt0K8ZM6bHP1nq/pUrH6Nm/ZQvBFdvFVLRuuQQ==
+  version "9.0.1"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-9.0.1.tgz#bcc43ff901cb8088d680144ac0b6553d242abd26"
+  integrity sha512-e8HnXOAd61fVNyYRcKoqGNpnpceN/+IbDlWCBVjeqfASq/kbH4JwNj1Y4TFrve+w838Ff4eupPKXtY03zhCBKQ==
   dependencies:
     has-flag "^5.0.0"
 

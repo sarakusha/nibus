@@ -9,7 +9,8 @@
  */
 
 /* eslint-disable max-classes-per-file */
-import { parseJSON, toError, isLeft } from 'fp-ts/lib/Either';
+import { toError, isRight, isLeft } from 'fp-ts/lib/Either';
+import { parse } from 'fp-ts/Json';
 /* tslint:disable:variable-name */
 /* eslint-disable max-classes-per-file */
 import * as t from 'io-ts';
@@ -143,15 +144,20 @@ class FromStringType<A> extends t.Type<A, string> {
       (m, c) => {
         const sv = t.string.validate(m, c);
         if (isLeft(sv)) return sv;
-        const jv = parseJSON(sv.right, e => [
-          {
-            value: sv.right,
-            context: c,
-            message: toError(e).message,
-          },
-        ]);
-        if (isLeft(jv)) return jv;
-        return type.validate(jv.right, c);
+        const jv = parse(sv.right);
+        // if (isLeft(jv)) return jv;
+        return type.validate(
+          isRight(jv)
+            ? jv.right
+            : [
+                {
+                  value: sv.right,
+                  context: c,
+                  message: toError(jv.left).message,
+                },
+              ],
+          c
+        );
       },
       JSON.stringify
     );

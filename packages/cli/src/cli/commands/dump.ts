@@ -17,7 +17,6 @@ import {
   IDevice,
   INibusConnection,
   SarpQueryType,
-  config,
   getMibPrototype,
   getDefaultSession,
 } from '@nibus/core';
@@ -156,10 +155,19 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
           if (process.platform === 'win32') {
             count *= 3;
           }
+          const wait = (): void => {
+            count -= 1;
+            if (count > 0) {
+              timeout = setTimeout(wait, (argv.timeout ?? 1) * 1000);
+            } else {
+              close();
+            }
+          };
+
+          timeout = setTimeout(wait, (argv.timeout ?? 1) * 3000);
         });
         // console.log('RUN DUMP');
         session.on('found', async ({ address, connection }) => {
-          // console.log('FOUND', connection.description);
           try {
             if (connection.description.link) {
               if (mac) {
@@ -184,17 +192,6 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
             close(e.message || e);
           }
         });
-
-        const wait = (): void => {
-          count -= 1;
-          if (count > 0) {
-            timeout = setTimeout(wait, config.get('timeout') || 1000);
-          } else {
-            close();
-          }
-        };
-
-        timeout = setTimeout(wait, config.get('timeout') || 1000);
       })
   ),
 };

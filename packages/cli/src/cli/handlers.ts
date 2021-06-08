@@ -9,7 +9,7 @@
  */
 
 import { Arguments, Defined } from 'yargs';
-import { getDefaultSession, IDevice, Address, config, INibusConnection } from '@nibus/core';
+import { getDefaultSession, IDevice, Address, INibusConnection } from '@nibus/core';
 
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
@@ -41,9 +41,9 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
         resolve();
       };
       const mac = new Address(args.mac);
-      if (args.timeout && args.timeout !== (config.get('timeout') || 1000) * 1000) {
-        config.set('timeout', args.timeout * 1000);
-      }
+      // if (args.timeout && args.timeout * 1000 !== config.get('timeout')) {
+      //   config.set('timeout', args.timeout * 1000);
+      // }
 
       const perform = async (
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,7 +64,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
       const wait = (): void => {
         count -= 1;
         if (count > 0) {
-          timeout = setTimeout(wait, config.get('timeout') || 1000);
+          timeout = setTimeout(wait, (args.timeout ?? 1) * 1000);
         } else {
           close();
         }
@@ -104,7 +104,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
         }
       });
 
-      timeout = setTimeout(wait, config.get('timeout') || 1000);
+      timeout = setTimeout(wait, (args.timeout ?? 1) * 3000);
     });
   });
 }

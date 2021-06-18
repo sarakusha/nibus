@@ -44,7 +44,7 @@
     "@types/pump": "^1.1.1",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-tsdoc": "^0.2.0",
-    "typedoc": "^0.20.20"
+    "typedoc": "^0.21.0"
   },
   "dependencies": {
     "configstore": "^5",

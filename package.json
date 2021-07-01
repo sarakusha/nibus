@@ -20,7 +20,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "eslint-plugin-react": "^7.17.0",
     "eslint-plugin-react-hooks": "^4.1.2",
-    "husky": "^6.0.0",
+    "husky": "^7.0.0",
     "jest": "^27.0.4",
     "lerna": "^4.0.0",
     "prettier-airbnb-config": "^1.0.0",

@@ -22,7 +22,7 @@ const debug = debugFactory('nibus:IPCClient');
 
 const PING_TIMEOUT = 500;
 
-interface ClientEvents {
+interface ServerEvents {
   ports: (ports: PortArg[]) => void;
   add: (port: PortArg) => void;
   remove: (port: PortArg) => void;
@@ -32,13 +32,14 @@ interface ClientEvents {
   log: (line: string) => void;
   online: (isOnline: boolean) => void;
   displays: (value: Display[]) => void;
+  health: (health: Record<string, unknown>) => void;
 }
 
 export interface Client {
-  on<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;
-  once<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;
-  off<U extends keyof ClientEvents>(event: U, listener: ClientEvents[U]): this;
-  emit<U extends keyof ClientEvents>(event: U, ...args: Parameters<ClientEvents[U]>): boolean;
+  on<U extends keyof ServerEvents>(event: U, listener: ServerEvents[U]): this;
+  once<U extends keyof ServerEvents>(event: U, listener: ServerEvents[U]): this;
+  off<U extends keyof ServerEvents>(event: U, listener: ServerEvents[U]): this;
+  emit<U extends keyof ServerEvents>(event: U, ...args: Parameters<ServerEvents[U]>): boolean;
 }
 
 type RemoteServer = {

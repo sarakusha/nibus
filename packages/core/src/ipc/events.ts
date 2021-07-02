@@ -111,6 +111,10 @@ export const BrightnessHistoryEventV = eventType('brightnessHistory', t.array(Br
 
 export interface BrightnessHistoryEvent extends t.TypeOf<typeof BrightnessHistoryEventV> {}
 
+export const HealthEventV = eventType('health', t.UnknownRecord);
+
+export interface HealthEvent extends t.TypeOf<typeof HealthEventV> {}
+
 export const EventV = t.union([
   PortsEventV,
   PortAddedEventV,
@@ -122,6 +126,7 @@ export const EventV = t.union([
   PongEventV,
   DisplaysEventV,
   BrightnessHistoryEventV,
+  HealthEventV,
 ]);
 
 export type Event =
@@ -134,7 +139,8 @@ export type Event =
   | LogLineEvent
   | PongEvent
   | DisplaysEvent
-  | BrightnessHistoryEvent;
+  | BrightnessHistoryEvent
+  | HealthEvent;
 
 class FromStringType<A> extends t.Type<A, string> {
   constructor(name: string, type: t.Mixed) {

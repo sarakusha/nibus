@@ -15,8 +15,7 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { delay, LogLevel, noop, asyncSerialMap, tuplify } from '../common';
 import debugFactory from '../debug';
-import { Client, Host, PortArg, Display } from '../ipc';
-import { BrightnessHistory } from '../ipc/events';
+import { Client, Host, PortArg, Display, BrightnessHistory } from '../ipc';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
@@ -52,6 +51,7 @@ export interface NibusSessionEvents {
   online: (isOnline: boolean) => void;
   displays: (value: Display[]) => void;
   foreign: (port: PortArg) => void;
+  health: (health: Record<string, unknown>) => void;
 }
 // noinspection JSUnusedLocalSymbols
 export interface INibusSession {
@@ -146,6 +146,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
       });
       this.socket.on('host', hostOpts => this.emit('host', hostOpts));
       this.socket.on('log', line => this.emit('log', line));
+      this.socket.on('health', health => this.emit('health', health));
     });
   }
 

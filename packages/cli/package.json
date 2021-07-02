@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "3.2.4",
+  "version": "3.3.0",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -54,7 +54,7 @@
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
-    "@nibus/core": "3.2.4",
+    "@nibus/core": "3.3.0",
     "bonjour-hap": "^3.6.2",
     "chalk": "^4.1.0",
     "cli-table3": "^0.6.0",

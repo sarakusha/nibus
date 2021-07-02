@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.3.0](https://github.com/sarakusha/nibus/compare/v3.2.2...v3.3.0) (2021-07-02)
+
+
+### Bug Fixes
+
+* call terminate on error ([9576d1b](https://github.com/sarakusha/nibus/commit/9576d1b24c730ced0088ba7c2982d27770290ccf))
+* global setTimeout ([551248c](https://github.com/sarakusha/nibus/commit/551248c7c54d3680d8bcd3ba3f72703997f41317))
+
+
+### Features
+
+* add `health` event ([2114345](https://github.com/sarakusha/nibus/commit/211434543d5c4a01eacd060a1e3e5f657ee5ed2d))
+
+
+
+
+
 ## [3.2.4](https://github.com/sarakusha/nibus/compare/v3.2.2...v3.2.4) (2021-06-10)
 
 

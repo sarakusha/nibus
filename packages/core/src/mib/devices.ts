@@ -843,6 +843,11 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     const initDownload = createNmsInitiateDownloadSequence(this.address, id);
     const { status: initStat } = (await connection.sendDatagram(initDownload)) as NmsDatagram;
     if (initStat !== 0) {
+      try {
+        await terminate();
+      } catch (e) {
+        debug(`error while terminate: ${e.message}`);
+      }
       throw new NibusError(initStat!, this, 'Initiate download domain error');
     }
     this.emit('downloadStart', {

@@ -343,6 +343,14 @@ export class Flasher extends TypedEmitter<FlasherEvents> {
     };
   }
 
+  async resetModule(moduleSelect: number): Promise<void> {
+    const { device } = this;
+    device.selector = 0;
+    device.moduleSelect = moduleSelect;
+    await device.drain();
+    await this.device.execute('reloadModule');
+  }
+
   flash(kind: Kind, source: string, moduleSelect?: number): { total: number; offset: number };
 
   flash(source: string, moduleSelect?: number): { total: number; offset: number };

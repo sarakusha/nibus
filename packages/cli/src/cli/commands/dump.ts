@@ -19,6 +19,7 @@ import {
   SarpQueryType,
   getMibPrototype,
   getDefaultSession,
+  toMessage,
 } from '@nibus/core';
 
 import debugFactory from '../../debug';
@@ -189,7 +190,7 @@ const dumpCommand: CommandModule<CommonOpts, DumpOpts> = {
               process.nextTick(close);
             }
           } catch (e) {
-            close(e.message || e);
+            close(toMessage(e));
           }
         });
       })

@@ -147,3 +147,14 @@ export const config = new Configstore('nibus-js', {
   timeout: 1000,
   attempts: 3,
 });
+
+const removeBraces = (str: string): string => str.replace(/^"(.*)"$/, '$1');
+
+const toString = (e: unknown): string => removeBraces(JSON.stringify(e));
+
+export const toError = (e: unknown): Error => (e instanceof Error ? e : new Error(toString(e)));
+
+export const toMessage = (e: unknown): string => toError(e).message;
+
+export const toStack = (e: unknown): string =>
+  e instanceof Error ? e.stack || e.message : toString(e);

@@ -39,7 +39,7 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { chunkArray, config, Config, ConfigV } from '../common';
+import { chunkArray, config, Config, ConfigV, toError, toMessage } from '../common';
 import timeid from '../timeid';
 import {
   booleanConverter,
@@ -660,7 +660,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
             )
           );
         } catch (e) {
-          console.error('Error while create NMS datagram', e.message);
+          console.error('Error while create NMS datagram', toError(e).message);
           invalidNms.push(-id);
         }
       }
@@ -743,7 +743,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
           Object.assign(result, parseResult(id, status!, value))
         );
       } catch (e) {
-        chunkIds.forEach(id => Object.assign(result, parseResult(id, e)));
+        chunkIds.forEach(id => Object.assign(result, parseResult(id, toError(e))));
       }
       return result;
     }, Promise.resolve({} as { [name: string]: any }));
@@ -807,7 +807,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       });
       return result;
     } catch (e) {
-      this.emit('uploadError', e);
+      this.emit('uploadError', toError(e));
       throw e;
     }
   }
@@ -846,7 +846,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       try {
         await terminate();
       } catch (e) {
-        debug(`error while terminate: ${e.message}`);
+        debug(`error while terminate: ${toMessage(e)}`);
       }
       throw new NibusError(initStat!, this, 'Initiate download domain error');
     }

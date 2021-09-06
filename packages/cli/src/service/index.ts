@@ -22,6 +22,7 @@ import {
   NibusDecoder,
   printBuffer,
   toInt,
+  toMessage,
 } from '@nibus/core';
 import { isLeft } from 'fp-ts/lib/Either';
 import fs from 'fs';
@@ -178,7 +179,7 @@ export class NibusService {
         txt: { version },
       });
     } catch (err) {
-      debug(`error while bonjour.publish: ${err.message}`);
+      debug(`error while bonjour.publish: ${toMessage(err)}`);
     }
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');

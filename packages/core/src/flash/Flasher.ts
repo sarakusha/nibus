@@ -16,7 +16,7 @@ import _ from 'lodash';
 import xmlParser from 'fast-xml-parser';
 import path from 'path';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { delay } from '../common';
+import { delay, toError, toMessage } from '../common';
 
 import { IDevice, DownloadDataListener } from '../mib';
 import { getDefaultSession } from '../session';
@@ -328,8 +328,9 @@ export class Flasher extends TypedEmitter<FlasherEvents> {
           await connection.execBootloader(BootloaderFunction.EXECUTE, [0]);
           return this.emit('finish');
         } catch (e) {
-          console.error(e.message);
-          return this.emit('error', e);
+          const err = toError(e);
+          console.error(err.message);
+          return this.emit('error', err);
         }
       })
       .finally(() => {
@@ -446,14 +447,14 @@ export class Flasher extends TypedEmitter<FlasherEvents> {
               msg = `Модуль ${xy}: Таймаут ожидания валидности страницы`;
             }
             if (data[3] & 0b10000) {
-              msg = `Модуль ${xy}: Ошибка в работе флеш памяти`;
+              msg = `Модуль ${xy}: Ошибка в работе флэш памяти`;
             }
             this.emit('module', { ...moduleOpts, msg });
             return true;
           } catch (err) {
             this.emit('module', {
               ...moduleOpts,
-              msg: `Ошибка проверки ${xy}: ${err.message || err}`,
+              msg: `Ошибка проверки ${xy}: ${toMessage(err)}`,
             });
             return false;
           }
@@ -478,7 +479,7 @@ export class Flasher extends TypedEmitter<FlasherEvents> {
                   moduleSelect: device.moduleSelect,
                   x,
                   y,
-                  msg: err.message ?? err,
+                  msg: toMessage(err),
                 });
                 break;
               }

@@ -10,7 +10,7 @@
 
 /* eslint-disable no-bitwise,no-plusplus */
 import { crc81wire } from 'crc';
-import { Datagram, replaceBuffers } from '../common';
+import { Datagram, replaceBuffers, toMessage } from '../common';
 
 // eslint-disable-next-line no-shadow
 export const enum BootloaderFunction {
@@ -125,7 +125,7 @@ export const trySlipDecode = (data: LikeArray): SlipResponse | undefined => {
       arg: rest.length > 0 ? rest : undefined,
     };
   } catch (e) {
-    console.error('error while trying decode SLIP', e.message);
+    console.error('error while trying decode SLIP', toMessage(e));
     return undefined;
   }
 };

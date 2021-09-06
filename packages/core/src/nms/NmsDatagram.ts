@@ -9,7 +9,7 @@
  */
 
 /* eslint-disable no-bitwise */
-import { printBuffer } from '../common';
+import { printBuffer, toMessage } from '../common';
 /*
  * @license
  * Copyright (c) 2019. OOO Nata-Info
@@ -166,7 +166,7 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
         return length < index + getSizeOf(type) ? undefined : decodeValue(type, nms, index);
       } catch (e) {
         // const v = nms.slice(index);
-        debug(`${e.message}, id: ${this.id}, buffer: ${printBuffer(this.raw)}`);
+        debug(`${toMessage(e)}, id: ${this.id}, buffer: ${printBuffer(this.raw)}`);
         return 0;
       }
     };

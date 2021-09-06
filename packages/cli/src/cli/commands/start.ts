@@ -8,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+import { toMessage } from '@nibus/core';
 import pm2, { StartOptions } from 'pm2';
 import { CommandModule } from 'yargs';
 import path from 'path';
@@ -80,12 +81,12 @@ const startCommand: CommandModule<CommonOpts, StartOpts> = {
             try {
               await startup(argc.auto);
             } catch (error) {
-              console.error('Не удалось зарегистрировать сервис', error.message);
+              console.error('Не удалось зарегистрировать сервис', toMessage(error));
             }
           }
           pm2.disconnect();
           if (e) {
-            console.error('error while start nibus.service:', e);
+            console.error('error while start nibus.service:', toMessage(e));
             process.exit(2);
           }
           console.info(

@@ -9,7 +9,7 @@
  */
 
 import { Arguments, Defined } from 'yargs';
-import { getDefaultSession, IDevice, Address, INibusConnection } from '@nibus/core';
+import { getDefaultSession, IDevice, Address, INibusConnection, toMessage } from '@nibus/core';
 
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
@@ -95,7 +95,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
             }
           }
         } catch (e) {
-          close(e.message || e);
+          close(toMessage(e));
         }
         count -= 1;
         if (count === 0) {

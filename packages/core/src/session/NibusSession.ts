@@ -13,7 +13,7 @@ import fs from 'fs';
 import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
-import { delay, LogLevel, noop, asyncSerialMap, tuplify } from '../common';
+import { delay, LogLevel, noop, asyncSerialMap, tuplify, toMessage } from '../common';
 import debugFactory from '../debug';
 import { Client, Host, PortArg, Display, BrightnessHistory } from '../ipc';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
@@ -330,8 +330,9 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
         }, Promise.resolve())
         .catch(noop);
     } catch (e) {
-      console.error(e);
-      debug(`error while new connection ${e.message}`);
+      const message = toMessage(e);
+      console.error(message);
+      debug(`error while new connection: ${message}`);
     }
   };
 
@@ -397,7 +398,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
                 this.connectDevice(devs[0], connection);
               }
             } catch (e) {
-              debug(`SARP error: ${e.message}, ${JSON.stringify(connection.description)}`);
+              debug(`SARP error: ${toMessage(e)}, ${JSON.stringify(connection.description)}`);
               if (!connection.isClosed) setTimeout(() => tryFind(), 5000);
               // if (category === 'minihost' && !connection.description?.mib) {
               //   debug(`inactive device ${category} was found on ${connection.path}`);

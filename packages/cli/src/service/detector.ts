@@ -24,6 +24,7 @@ import {
   IKnownPort,
   asyncSerialMap,
   notEmpty,
+  toStack,
 } from '@nibus/core';
 
 import debugFactory, { isElectron } from '../debug';
@@ -268,7 +269,7 @@ async function reloadDevicesAsync(
     });
     return ports.filter(notEmpty);
   } catch (err) {
-    debug(`Error: reload devices was failed (${err.stack || err})`);
+    debug(`Error: reload devices was failed (${toStack(err)})`);
     return [];
   }
 }

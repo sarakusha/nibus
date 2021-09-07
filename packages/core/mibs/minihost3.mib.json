@@ -1248,10 +1248,10 @@
     "vDirectionType": {
       "base": "xs:boolean",
       "enumeration": {
-        "false": {
+        "true": {
           "annotation": "сверху вниз"
         },
-        "true": {
+        "false": {
           "annotation": "снизу вверх"
         }
       }

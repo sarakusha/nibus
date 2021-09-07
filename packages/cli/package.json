@@ -45,7 +45,7 @@
     "@types/jest-diff": "^24.3.0",
     "@types/js-yaml": "^4.0.0",
     "@types/lodash": "^4.14.149",
-    "@types/mdns": "^0.0.33",
+    "@types/mdns": "^0.0.34",
     "@types/progress": "^2.0.3",
     "@types/serialport": "^8.0.0",
     "@types/tail": "^2.0.0",

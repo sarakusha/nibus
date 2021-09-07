@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.5.0](https://github.com/sarakusha/nibus/compare/v3.2.2...v3.5.0) (2021-09-07)
+
+
+### Bug Fixes
+
+* **KnownPorts:** pnpId maybe null ([a8e2449](https://github.com/sarakusha/nibus/commit/a8e24499b64eecde35a638eaea9786d93bbf6082))
+* **minihost:** invert vertical direction ([a25a78c](https://github.com/sarakusha/nibus/commit/a25a78ca7904fdc5ff6157d84fc10be6f7ee2802))
+
+
 # [3.4.0](https://github.com/sarakusha/nibus/compare/v3.2.2...v3.4.0) (2021-09-07)
 
 

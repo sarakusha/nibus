@@ -46,12 +46,12 @@ export const KnownPortV = t.intersection([
     vendorId: t.number,
   }),
   t.partial({
-    manufacturer: t.string,
-    serialNumber: t.string,
+    manufacturer: t.union([t.string, t.null]),
+    serialNumber: t.union([t.string, t.null]),
     pnpId: t.union([t.string, t.null]),
-    locationId: t.string,
-    deviceAddress: t.number,
-    device: t.string,
+    locationId: t.union([t.string, t.null]),
+    deviceAddress: t.union([t.number, t.null]),
+    device: t.union([t.string, t.null]),
     category: CategoryV,
   }),
 ]);

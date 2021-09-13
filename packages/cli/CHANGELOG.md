@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.1](https://github.com/sarakusha/nibus/compare/v3.2.2...v3.5.1) (2021-09-13)
+
+
+### Bug Fixes
+
+* **bonjour:** catch errors ([0570c09](https://github.com/sarakusha/nibus/commit/0570c0901b1eca54347a08c2818e9078dd18741a))
+* increase initial timeout ([b3a1d57](https://github.com/sarakusha/nibus/commit/b3a1d57e5a87877df076301278615a010cb8f965))
+
+
+
+
+
 # [3.5.0](https://github.com/sarakusha/nibus/compare/v3.2.2...v3.5.0) (2021-09-07)
 
 

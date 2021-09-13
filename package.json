@@ -45,7 +45,7 @@
     "clean": "rimraf packages/*/{lib,build,.next}",
     "release:publish": "lerna publish from-package --dist-tag latest && git push --follow-tags origin master",
     "release:publish:dry-run": "lerna publish from-package --dist-tag latest --registry=\"http://localhost:4873/\"",
-    "release:version": "lerna version --exact --no-push --no-git-tag-version",
+    "release:version": "lerna version --no-push",
     "prepare": "husky install"
   },
   "config": {

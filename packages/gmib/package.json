@@ -111,7 +111,7 @@
     "@types/valid-url": "^1.0.3",
     "babel-loader": "^8.2.2",
     "babel-plugin-macros": "^3.0.1",
-    "css-loader": "^5.0.0",
+    "css-loader": "^6.3.0",
     "cz-conventional-changelog": "3.3.0",
     "devtron": "^1.4.0",
     "electron": "13.2.3",

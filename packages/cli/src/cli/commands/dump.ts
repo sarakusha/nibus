@@ -20,6 +20,7 @@ import {
   getMibPrototype,
   getDefaultSession,
   toMessage,
+  config,
 } from '@nibus/core';
 
 import debugFactory from '../../debug';
@@ -62,7 +63,9 @@ async function dumpDevice(
   if (argv.id) {
     ids = argv.id.map(id => device.getId(id));
   }
+  config.set('timeout', argv.timeout ? argv.timeout * 1000 : 1000);
   const result = await device.read(...ids);
+  config.set('timeout', 1000);
   const rows: RowType[] = Object.keys(result).map(key => {
     const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
     return {

@@ -9,7 +9,14 @@
  */
 
 import { Arguments, Defined } from 'yargs';
-import { getDefaultSession, IDevice, Address, INibusConnection, toMessage } from '@nibus/core';
+import {
+  getDefaultSession,
+  IDevice,
+  Address,
+  INibusConnection,
+  toMessage,
+  config,
+} from '@nibus/core';
 
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
@@ -41,8 +48,9 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
         resolve();
       };
       const mac = new Address(args.mac);
+      config.set('timeout', args.timeout ? args.timeout * 1000 : 1000);
       // if (args.timeout && args.timeout * 1000 !== config.get('timeout')) {
-      //   config.set('timeout', args.timeout * 1000);
+      //   console.log({ core: config.path, timeout: config.get('timeout') });
       // }
 
       const perform = async (
@@ -58,6 +66,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
             : devices.create(mac, mibOrType, version);
         device.connection = connection;
         await action(device, args);
+        config.set('timeout', 1000);
         hasFound = true;
       };
 

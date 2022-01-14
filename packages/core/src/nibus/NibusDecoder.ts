@@ -1,7 +1,6 @@
-/* eslint-disable no-underscore-dangle */
 /*
  * @license
- * Copyright (c) 2021. Nata-Info
+ * Copyright (c) 2022. Nata-Info
  * @author Andrei Sarakeev <avs@nata-info.ru>
  *
  * This file is part of the "@nibus" project.
@@ -9,6 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
+/* eslint-disable no-underscore-dangle */
 import { crc16ccitt } from 'crc';
 import { Transform, TransformCallback, TransformOptions } from 'stream';
 import { MAX_DATA_LENGTH, Offsets, PREAMBLE, SERVICE_INFO_LENGTH } from '../nbconst';

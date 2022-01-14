@@ -13,7 +13,7 @@ import { crc16ccitt } from 'crc';
 import fs from 'fs';
 import { parse } from 'intel-hex';
 import _ from 'lodash';
-import xmlParser from 'fast-xml-parser';
+import { XMLParser } from 'fast-xml-parser';
 import path from 'path';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { delay, toError, toMessage } from '../common';
@@ -101,13 +101,11 @@ const decConvert = (data: Buffer): Buffer => {
   return Buffer.from(_.flatten(raw.map(word => [word & 0xff, (word >> 8) & 0xff])));
 };
 
+const xmlParser = new XMLParser();
+
 const xmlConvert = (data: Buffer): Buffer => {
   const xml = data.toString();
-  const valid = xmlParser.validate(xml);
-  if (valid !== true) {
-    throw new Error(valid.err.msg);
-  }
-  const { Configuration = null } = xmlParser.parse(xml);
+  const { Configuration = null } = xmlParser.parse(xml, true);
   if (!Configuration) throw new Error('Invalid xml config');
   const buffer = Buffer.alloc(140, 0);
   let offset = 0;

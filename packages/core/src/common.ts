@@ -60,7 +60,10 @@ export interface Datagram {
   toJSON(): unknown;
   toString(): string;
 }
-export const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+export const delay = (ms: number): Promise<void> =>
+  new Promise(resolve => {
+    setTimeout(resolve, ms);
+  });
 export function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
   return value !== null && value !== undefined;
 }

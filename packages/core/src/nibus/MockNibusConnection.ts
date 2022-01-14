@@ -38,7 +38,20 @@ export default class MockNibusConnection
 
   constructor(public readonly session: INibusSession, readonly devices: Devices) {
     super();
-    this.description = { type: 0xabc6, find: 'sarp', category: 'minihost', mib: 'minihost3' };
+    this.description = {
+      type: 0xabc6,
+      find: 'sarp',
+      category: 'minihost',
+      mib: 'minihost3',
+    };
+  }
+
+  get isClosed(): boolean {
+    return this.closed;
+  }
+
+  static pingImpl(): Promise<number> {
+    return Promise.resolve(Math.round(Math.random() * 100));
   }
 
   close(): void {
@@ -75,7 +88,7 @@ export default class MockNibusConnection
         case NmsServiceType.Read:
           return this.nmsReadResponse(nmsDatagram);
         case NmsServiceType.Write:
-          return new Promise(resolve =>
+          return new Promise(resolve => {
             process.nextTick(() =>
               resolve(
                 new NmsDatagram({
@@ -86,17 +99,13 @@ export default class MockNibusConnection
                   service: NmsServiceType.Write,
                 })
               )
-            )
-          );
+            );
+          });
         default:
           throw new TypeError(`NotImpl ${NmsServiceType[nmsDatagram.service]}`);
       }
     }
     return Promise.resolve(undefined);
-  }
-
-  get isClosed(): boolean {
-    return this.closed;
   }
 
   nmsReadResponse(nmsDatagram: NmsDatagram): Promise<NmsDatagram[]> {
@@ -140,9 +149,5 @@ export default class MockNibusConnection
 
   execBootloader(): Promise<SlipDatagram> {
     return Promise.resolve(new SlipDatagram(Buffer.alloc(0)));
-  }
-
-  static pingImpl(): Promise<number> {
-    return Promise.resolve(Math.round(Math.random() * 100));
   }
 }

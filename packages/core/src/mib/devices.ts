@@ -749,7 +749,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     }, Promise.resolve({} as { [name: string]: any }));
   }
 
-  async upload(domain: string, offset = 0, size?: number): Promise<Buffer> {
+  async upload(domain: string, offset = 0, size: number | undefined = undefined): Promise<Buffer> {
     const { connection } = this;
     try {
       if (!connection) throw new Error('disconnected');

@@ -453,7 +453,7 @@ let defaultSession: INibusSession | undefined;
 
 export const getNibusSession = (
   port = +(process.env.NIBUS_PORT ?? 9001),
-  host?: string
+  host: string | undefined = undefined
 ): INibusSession => {
   const key = getKey(port, host);
   if (!sessions.has(key)) {

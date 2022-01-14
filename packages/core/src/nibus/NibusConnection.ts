@@ -179,7 +179,9 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
       this.ready = this.ready.finally(async () => {
         if (closed) return reject(new Error('Closed'));
         if (!encoder.write(datagram)) {
-          await new Promise(cb => encoder.once('drain', cb));
+          await new Promise(cb => {
+            encoder.once('drain', cb);
+          });
         }
         if (!(datagram instanceof NmsDatagram) || datagram.notReply) {
           return resolve(undefined);
@@ -215,7 +217,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
         resolve(sarpDatagram);
       };
       this.once('sarp', sarpHandler);
-      return this.sendDatagram(sarp);
+      this.sendDatagram(sarp).catch(reject);
     }).finally(() => this.off('sarp', sarpHandler));
   }
 

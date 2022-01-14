@@ -63,6 +63,33 @@ export default class IPCClient extends Socket implements Client {
     return this.online;
   }
 
+  static connect(remoteServer: RemoteServer, connectionListener?: () => void): IPCClient {
+    const client = new IPCClient();
+    client.connect(remoteServer.port, remoteServer.host ?? 'localhost', () => {
+      client.setNoDelay();
+      if (remoteServer.host) {
+        const pingTimer = setInterval(() => {
+          client.send('ping').catch(() => {});
+          window.clearTimeout(client.timeoutTimer);
+          client.timeoutTimer = window.setTimeout(() => {
+            client.setOnline(false);
+          }, PING_TIMEOUT);
+        }, PING_TIMEOUT * 2);
+        client.on('end', () => {
+          clearInterval(pingTimer);
+        });
+      } else {
+        client.setOnline(true);
+      }
+      client.write('NIBUS');
+      connectionListener && connectionListener();
+    });
+    client.once('error', error => {
+      debug(`<error> ${error.message}`);
+    });
+    return client;
+  }
+
   setOnline(value: boolean): void {
     if (this.online !== value) {
       this.online = value;
@@ -100,35 +127,8 @@ export default class IPCClient extends Socket implements Client {
       event,
       args,
     };
-    return new Promise(resolve =>
-      this.write(`${JSON.stringify(data)}${MSG_DELIMITER}`, () => resolve())
-    );
-  }
-
-  static connect(remoteServer: RemoteServer, connectionListener?: () => void): IPCClient {
-    const client = new IPCClient();
-    client.connect(remoteServer.port, remoteServer.host ?? 'localhost', () => {
-      client.setNoDelay();
-      if (remoteServer.host) {
-        const pingTimer = setInterval(() => {
-          client.send('ping').catch(() => {});
-          window.clearTimeout(client.timeoutTimer);
-          client.timeoutTimer = window.setTimeout(() => {
-            client.setOnline(false);
-          }, PING_TIMEOUT);
-        }, PING_TIMEOUT * 2);
-        client.on('end', () => {
-          clearInterval(pingTimer);
-        });
-      } else {
-        client.setOnline(true);
-      }
-      client.write('NIBUS');
-      connectionListener && connectionListener();
+    return new Promise(resolve => {
+      this.write(`${JSON.stringify(data)}${MSG_DELIMITER}`, () => resolve());
     });
-    client.once('error', error => {
-      debug(`<error> ${error.message}`);
-    });
-    return client;
   }
 }

@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.4](https://github.com/sarakusha/nibus/compare/v3.5.3...v3.5.4) (2022-01-14)
+
+
+### Bug Fixes
+
+* **detection:** removed manufacturer restriction ([e51b51b](https://github.com/sarakusha/nibus/commit/e51b51b600afa29470892f65a779720121cc59cd))
+* update timeout ([cc78561](https://github.com/sarakusha/nibus/commit/cc78561e31e537a0b04db0d035b6013b34c998ad))
+
+
+
+
+
 ## [3.5.3](https://github.com/sarakusha/nibus/compare/v3.5.2...v3.5.3) (2021-09-13)
 
 

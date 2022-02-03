@@ -8795,10 +8795,10 @@ ignore@^5.1.4:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-5.1.8.tgz#f150a8b50a34289b33e22f5889abd4d8016f0e57"
   integrity sha512-BMpfD7PpiETpBl/A6S498BaIJ6Y/ABT93ETbby2fP00v4EbvPBXWEoaR1UBPKs3iR53pJY7EtZk5KACI57i1Uw==
 
-imask@^6.1.0:
-  version "6.2.0"
-  resolved "https://registry.yarnpkg.com/imask/-/imask-6.2.0.tgz#e659d394b9ea52e0a7060d75aabd3112ad57a278"
-  integrity sha512-DWwRahwavQTD9OCbnrIWF4uhcoZ/V5kcDnAxE5s4gjz+rwoXcC3USwpjcLo49zoQRrQp4tgUvYjTZ+yGh/tfUA==
+imask@^6.4.0:
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/imask/-/imask-6.4.0.tgz#76e48e6bbf5306f7de058f8a1b90fd2282d446bc"
+  integrity sha512-iXXgSQA6TJX/RSKivKoTYYoCc4ZmVseMcoDIxMrlW1JPpc8LU9FtCp3f80vg1eUQvmVfEQbh+vybFVDRt2o9TQ==
 
 immediate@~3.0.5:
   version "3.0.6"
@@ -13059,12 +13059,12 @@ react-dom@^17.0.0:
     object-assign "^4.1.1"
     scheduler "^0.20.2"
 
-react-imask@6.1:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/react-imask/-/react-imask-6.1.0.tgz#0b9b5e9b210aa82eb570f4b5b45199a888a0f8e7"
-  integrity sha512-wOiF9Vgce7HtWpk4mv0YOCOf6lpJdlA6RK0XTmX/XX2qZnA0+YpLIdVCq8Ym5zBxoeN07Nft3FAarHOuj+XhCA==
+react-imask@6.4:
+  version "6.4.0"
+  resolved "https://registry.yarnpkg.com/react-imask/-/react-imask-6.4.0.tgz#7284aec3ff8b0b27b88ccd7725f2f213ea2567f8"
+  integrity sha512-7rFR0gkT5cgtizLyegNcdA3b9VWt0G6gDslGZocjQBmBSNi3iv4rPBllAdOkmApz2Kv0TDACqEir14BRFJTjQw==
   dependencies:
-    imask "^6.1.0"
+    imask "^6.4.0"
     prop-types "^15.7.2"
 
 react-is@^16.12.0, react-is@^16.13.1, react-is@^16.7.0, react-is@^16.8.1:

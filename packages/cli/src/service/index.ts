@@ -32,7 +32,7 @@ import os from 'os';
 import { createInterface } from 'readline';
 import Bonjour from 'bonjour-hap';
 
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import { SerialTee, Server, Direction, SerialLogger } from '../ipc';
 
 import detector from './detector';

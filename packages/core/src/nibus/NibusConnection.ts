@@ -15,7 +15,7 @@ import _ from 'lodash';
 import { Socket, connect } from 'net';
 import pump from 'pump';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import Address, { AddressParam } from '../Address';
 import { TimeoutError } from '../errors';
 import { createExecuteProgramInvocation, createNmsRead, NmsDatagram } from '../nms';

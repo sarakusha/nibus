@@ -16,7 +16,7 @@ import Table from 'table-layout';
 import { Client, PortArg } from '@nibus/core';
 import { CommonOpts } from '../options';
 import serviceWrapper from '../serviceWrapper';
-import debugFactory from '../../debug';
+import debugFactory from 'debug';
 
 const debug = debugFactory('nibus:list');
 

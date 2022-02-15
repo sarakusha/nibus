@@ -11,7 +11,7 @@
 /* eslint-disable class-methods-use-this,no-bitwise */
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { chunkArray, tuplify } from '../common';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import Address, { AddressParam } from '../Address';
 import type { Devices } from '../mib';
 

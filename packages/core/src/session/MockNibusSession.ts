@@ -10,7 +10,7 @@
 
 /* eslint-disable class-methods-use-this */
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import Address, { AddressParam } from '../Address';
 import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';

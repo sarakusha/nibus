@@ -12,7 +12,7 @@ import { ClientEventsArgs, ClientEventsArgsV, LogLevel, MSG_DELIMITER } from '@n
 import { isRight } from 'fp-ts/lib/Either';
 import net, { Server, Socket } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import type SerialTee from './SerialTee';
 import { Direction } from './SerialTee';
 

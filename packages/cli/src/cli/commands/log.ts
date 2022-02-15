@@ -14,7 +14,7 @@ import path from 'path';
 import { homedir } from 'os';
 import { Client, LogLevel } from '@nibus/core';
 import { CommonOpts } from '../options';
-import debugFactory from '../../debug';
+import debugFactory from 'debug';
 import serviceWrapper from '../serviceWrapper';
 
 const debug = debugFactory('nibus:log');

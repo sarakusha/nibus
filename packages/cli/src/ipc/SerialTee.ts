@@ -12,7 +12,7 @@ import { IKnownPort, MibDescription } from '@nibus/core';
 import { Socket } from 'net';
 import SerialPort, { OpenOptions } from 'serialport';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 
 const debug = debugFactory('nibus:serial-tee');
 const portOptions: OpenOptions = {

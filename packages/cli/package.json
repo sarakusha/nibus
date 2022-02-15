@@ -59,8 +59,6 @@
     "chalk": "^5.0.0",
     "cli-table3": "^0.6.0",
     "configstore": "^6.0.0",
-    "debug": "^4.1.0",
-    "electron-log": "^4.0.4",
     "fp-ts": "^2.4.1",
     "io-ts": "^2.0.5",
     "io-ts-types": "^0.5.5",
@@ -76,6 +74,9 @@
     "tiny-typed-emitter": "^2.0.3",
     "usb-detection": "git://github.com/sarakusha/node-usb-detection.git#fix_segfault_on_close",
     "yargs": "^17.0.1"
+  },
+  "peerDependencies": {
+    "debug": "^4.3.0"
   },
   "jest": {
     "preset": "ts-jest",

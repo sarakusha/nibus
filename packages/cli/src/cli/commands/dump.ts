@@ -23,7 +23,7 @@ import {
   config,
 } from '@nibus/core';
 
-import debugFactory from '../../debug';
+import debugFactory from 'debug';
 import { CommonOpts } from '../options';
 import serviceWrapper from '../serviceWrapper';
 

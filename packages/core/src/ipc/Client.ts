@@ -14,7 +14,7 @@ import { isLeft } from 'fp-ts/lib/Either';
 // import xpipe from 'xpipe';
 import { LogLevel, MSG_DELIMITER } from '../common';
 
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import { ClientEventsArgs } from './clientEvents';
 import { Display, EventFromString, Host, PortArg } from './events';
 

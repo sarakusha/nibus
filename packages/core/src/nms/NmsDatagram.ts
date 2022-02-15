@@ -19,7 +19,7 @@ import { printBuffer, toMessage } from '../common';
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import Address from '../Address';
 import { NMS_MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
 import NibusDatagram, {

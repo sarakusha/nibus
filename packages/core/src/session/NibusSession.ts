@@ -14,7 +14,7 @@ import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
 import { delay, LogLevel, noop, asyncSerialMap, tuplify, toMessage } from '../common';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import { Client, Host, PortArg, Display, BrightnessHistory } from '../ipc';
 import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
 

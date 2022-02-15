@@ -27,11 +27,13 @@ import {
   toStack,
 } from '@nibus/core';
 
-import debugFactory, { isElectron } from '../debug';
+import debugFactory from 'debug';
 
 function safeGet<E, A>(e: Either<E, A>): A | undefined {
   return getOrElse<E, A | undefined>(() => undefined)(e);
 }
+
+export const isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
 
 const debug = debugFactory('nibus:detector');
 export const detectionPath =

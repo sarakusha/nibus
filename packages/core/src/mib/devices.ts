@@ -17,7 +17,7 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import _, { Dictionary } from 'lodash';
 import path from 'path';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from '../debug';
+import debugFactory from 'debug';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';

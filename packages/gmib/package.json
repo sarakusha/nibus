@@ -59,7 +59,7 @@
     "electron-log": "^4.0.3",
     "electron-store": "^8.0.0",
     "electron-updater": "^4.2.0",
-    "highcharts": "^9.0.0",
+    "highcharts": "^10.0.0",
     "highcharts-react-official": "^3.0.0",
     "hotkeys-js": "^3.7.3",
     "iput": "^1.1.2",

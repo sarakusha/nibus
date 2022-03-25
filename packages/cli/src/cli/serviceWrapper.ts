@@ -13,7 +13,9 @@ import type { NibusService } from '../service';
 export type Handler<U> = (args: Arguments<U>) => Promise<void>;
 
 const delay = (sec: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, sec * 1000));
+  new Promise(resolve => {
+    setTimeout(resolve, sec * 1000);
+  });
 
 export default function serviceWrapper<U>(handler: Handler<U>): Handler<U> {
   return async (args: Arguments<U>) => {

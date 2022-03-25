@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { WriteOptions } from 'electron-log';
+// import { WriteOptions } from 'electron-log';
 /* eslint-disable no-bitwise */
 import { Arguments, CommandModule } from 'yargs';
 import Progress from 'progress';
@@ -23,10 +23,7 @@ export type FlashOpts = MacOptions & {
   source: string;
 };
 
-export async function action(
-  device: IDevice,
-  args: Arguments<FlashOpts & WriteOptions>
-): Promise<void> {
+export async function action(device: IDevice, args: Arguments<FlashOpts>): Promise<void> {
   const isModule = (await writeAction(device, args)).includes('moduleSelect');
   const flasher = new Flasher(device.id);
   const { total, offset } = flasher.flash(args.source, isModule ? device.moduleSelect : undefined);
@@ -43,7 +40,9 @@ export async function action(
     if (!msg) console.info(`Модуль ${x},${y}: Ok`);
     else console.error(msg);
   });
-  return new Promise(resolve => flasher.once('finish', resolve));
+  return new Promise(resolve => {
+    flasher.once('finish', resolve);
+  });
   /*
   if (isModule) {
     device.selector = 0;

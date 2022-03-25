@@ -20,6 +20,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.17.0",
     "eslint-plugin-react-hooks": "^4.1.2",
+    "eslint-plugin-unused-imports": "^2.0.0",
     "husky": "^7.0.0",
     "jest": "^27.0.4",
     "lerna": "^4.0.0",
@@ -54,5 +55,9 @@
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
+  },
+  "resolutions": {
+    "node-abi": "^3.8.0",
+    "supports-color": "^8"
   }
 }

@@ -11,13 +11,13 @@
 import { isRight } from 'fp-ts/lib/Either';
 import {
   EventFromString,
-  PortsEventV,
-  PortsEvent,
-  PortAddedEventV,
-  PortAddedEvent,
-  PortRemovedEventV,
-  PortRemovedEvent,
   EventV,
+  PortAddedEvent,
+  PortAddedEventV,
+  PortRemovedEvent,
+  PortRemovedEventV,
+  PortsEvent,
+  PortsEventV,
 } from './events';
 
 const portsEvent: PortsEvent = {

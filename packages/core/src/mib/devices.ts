@@ -23,6 +23,7 @@ import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import { INibusConnection } from '../nibus';
 import {
+  TypedValue,
   createExecuteProgramInvocation,
   createNmsDownloadSegment,
   createNmsInitiateDownloadSequence,
@@ -35,13 +36,18 @@ import {
   createNmsVerifyDomainChecksum,
   createNmsWrite,
   getNmsType,
-  TypedValue,
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { chunkArray, config, Config, ConfigV, toError, toMessage } from '../common';
+import { Config, ConfigV, chunkArray, config, toError, toMessage } from '../common';
 import timeid from '../timeid';
 import {
+  IConverter,
+  IMibDevice,
+  IMibDeviceType,
+  IMibProperty,
+  IMibType,
+  MibDeviceV,
   booleanConverter,
   convertFrom,
   convertTo,
@@ -49,13 +55,7 @@ import {
   evalConverter,
   fixedPointNumber4Converter,
   getIntSize,
-  IConverter,
-  IMibDevice,
-  IMibDeviceType,
-  IMibProperty,
-  IMibType,
   maxInclusiveConverter,
-  MibDeviceV,
   minInclusiveConverter,
   packed8floatConverter,
   percentConverter,

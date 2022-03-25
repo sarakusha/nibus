@@ -12,11 +12,11 @@
 import fs from 'fs';
 import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import Address, { AddressParam } from '../Address';
-import { delay, LogLevel, noop, asyncSerialMap, tuplify, toMessage } from '../common';
 import debugFactory from 'debug';
-import { Client, Host, PortArg, Display, BrightnessHistory } from '../ipc';
-import { Devices, getMibFile, IDevice, IMibDeviceType, toInt, DeviceId } from '../mib';
+import Address, { AddressParam } from '../Address';
+import { LogLevel, asyncSerialMap, delay, noop, toMessage, tuplify } from '../common';
+import { BrightnessHistory, Client, Display, Host, PortArg } from '../ipc';
+import { DeviceId, Devices, IDevice, IMibDeviceType, getMibFile, toInt } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
 import { NibusEvents, VersionInfo } from '../nibus/NibusConnection';

@@ -12,9 +12,9 @@ import { Socket, SocketConstructorOpts } from 'net';
 import { PathReporter } from 'io-ts/lib/PathReporter';
 import { isLeft } from 'fp-ts/lib/Either';
 // import xpipe from 'xpipe';
+import debugFactory from 'debug';
 import { LogLevel, MSG_DELIMITER } from '../common';
 
-import debugFactory from 'debug';
 import { ClientEventsArgs } from './clientEvents';
 import { Display, EventFromString, Host, PortArg } from './events';
 

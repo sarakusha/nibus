@@ -10,19 +10,19 @@
 
 /* eslint-disable class-methods-use-this,no-bitwise */
 import { TypedEmitter } from 'tiny-typed-emitter';
-import { chunkArray, tuplify } from '../common';
 import debugFactory from 'debug';
+import { chunkArray, tuplify } from '../common';
 import Address, { AddressParam } from '../Address';
 import type { Devices } from '../mib';
 
 import { MibDescription } from '../MibDescription';
-import { getNmsType, NmsDatagram } from '../nms';
+import { NmsDatagram, getNmsType } from '../nms';
 import { getSizeOf } from '../nms/nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import type { SarpDatagram } from '../sarp';
 import type { INibusSession } from '../session';
 import { SlipDatagram } from '../slip';
-import { NibusEvents, INibusConnection, VersionInfo } from './NibusConnection';
+import { INibusConnection, NibusEvents, VersionInfo } from './NibusConnection';
 import NibusDatagram, { Protocol } from './NibusDatagram';
 
 const debug = debugFactory('nibus:mock-connection');

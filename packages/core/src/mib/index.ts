@@ -10,4 +10,5 @@
 
 export * from './devices';
 export { convert, convertDir, mib2json, getMibs, getMibsSync } from './mib2json';
-export { toInt, MibDeviceV, IMibDeviceType } from './mib';
+export { toInt, MibDeviceV } from './mib';
+export type { IMibDeviceType } from './mib';

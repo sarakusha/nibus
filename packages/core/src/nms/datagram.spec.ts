@@ -13,7 +13,7 @@ import { crc16ccitt } from 'crc';
 import Address from '../Address';
 import { Offsets, PREAMBLE } from '../nbconst';
 import NmsDatagram, { INmsOptions } from './NmsDatagram';
-import { createNmsRead, NmsServiceType } from './index';
+import { NmsServiceType, createNmsRead } from './index';
 
 describe('NmsDatagram tests', () => {
   const options: INmsOptions = {

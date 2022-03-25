@@ -22,7 +22,9 @@ type PingOpts = MacOptions & {
 const session = getDefaultSession();
 
 export const delay = (timeout: number): Promise<void> =>
-  new Promise(resolve => setTimeout(resolve, timeout * 1000));
+  new Promise(resolve => {
+    setTimeout(resolve, timeout * 1000);
+  });
 const round = (val: number): number => Math.round(val * 10) / 10;
 
 const pingCommand: CommandModule<CommonOpts, PingOpts> = {

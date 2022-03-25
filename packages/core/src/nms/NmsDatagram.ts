@@ -9,17 +9,8 @@
  */
 
 /* eslint-disable no-bitwise */
-import { printBuffer, toMessage } from '../common';
-/*
- * @license
- * Copyright (c) 2019. OOO Nata-Info
- * @author Andrei Sarakeev <avs@nata-info.ru>
- *
- * This file is part of the "@nata" project.
- * For the full copyright and license information, please view
- * the EULA file that was distributed with this source code.
- */
 import debugFactory from 'debug';
+import { printBuffer, toMessage } from '../common';
 import Address from '../Address';
 import { NMS_MAX_DATA_LENGTH, Offsets, PREAMBLE } from '../nbconst';
 import NibusDatagram, {
@@ -196,7 +187,7 @@ export default class NmsDatagram extends NibusDatagram implements INmsOptions {
   }
 
   public toJSON(): INmsDatagramJSON {
-    const { data, ...props } = super.toJSON();
+    const { data: _, ...props } = super.toJSON();
     const result: INmsDatagramJSON = {
       ...props,
       id: this.id,

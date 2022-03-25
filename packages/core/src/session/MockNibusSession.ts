@@ -16,7 +16,7 @@ import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';
 import MockNibusConnection from '../nibus/MockNibusConnection';
 import { VersionInfo } from '../nibus';
-import { NibusSessionEvents, INibusSession } from './NibusSession';
+import { INibusSession, NibusSessionEvents } from './NibusSession';
 
 const debug = debugFactory('nibus:mock-session');
 

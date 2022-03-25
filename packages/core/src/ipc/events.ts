@@ -9,7 +9,7 @@
  */
 
 /* eslint-disable max-classes-per-file */
-import { toError, isRight, isLeft } from 'fp-ts/lib/Either';
+import { isLeft, isRight, toError } from 'fp-ts/lib/Either';
 import { parse } from 'fp-ts/Json';
 /* tslint:disable:variable-name */
 /* eslint-disable max-classes-per-file */

@@ -13,7 +13,8 @@ import SarpDatagram, { ISarpOptions } from './SarpDatagram';
 import SarpQueryType from './SarpQueryType';
 
 export { SarpQueryType };
-export { SarpDatagram, ISarpOptions };
+export { SarpDatagram };
+export type { ISarpOptions };
 
 export function createSarp(
   queryType: SarpQueryType,

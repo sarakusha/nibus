@@ -7,19 +7,10 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-export {
-  default as NibusDatagram,
-  INibusOptions,
-  INibusCommon,
-  INibusDatagramJSON,
-  Protocol,
-} from './NibusDatagram';
+export { default as NibusDatagram, Protocol } from './NibusDatagram';
+export type { INibusOptions, INibusCommon, INibusDatagramJSON } from './NibusDatagram';
+
 export { default as NibusEncoder } from './NibusEncoder';
 export { default as NibusDecoder } from './NibusDecoder';
-export {
-  default as NibusConnection,
-  INibusConnection,
-  MINIHOST_TYPE,
-  MCDVI_TYPE,
-  VersionInfo,
-} from './NibusConnection';
+export { default as NibusConnection, MINIHOST_TYPE, MCDVI_TYPE } from './NibusConnection';
+export type { INibusConnection, VersionInfo } from './NibusConnection';

@@ -10,17 +10,11 @@
 
 import { IKnownPort, MibDescription } from '@nibus/core';
 import { Socket } from 'net';
-import SerialPort, { OpenOptions } from 'serialport';
+import { SerialPort } from 'serialport';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
 
 const debug = debugFactory('nibus:serial-tee');
-const portOptions: OpenOptions = {
-  baudRate: 115200,
-  dataBits: 8,
-  parity: 'none',
-  stopBits: 1,
-};
 
 // eslint-disable-next-line no-shadow
 export enum Direction {
@@ -50,11 +44,12 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     const { path } = portInfo;
     const win32 = (process.platform === 'win32' && description.win32) || {};
     this.serial = new SerialPort(
-      path,
       {
-        ...portOptions,
+        path,
+        dataBits: 8,
+        stopBits: 1,
         baudRate: description.baudRate || 115200,
-        parity: win32.parity || description.parity || portOptions.parity,
+        parity: win32.parity || description.parity || 'none',
       },
       err => {
         if (err) {

@@ -14,14 +14,15 @@ import fs, { Stats } from 'fs';
 import yaml from 'js-yaml';
 import _ from 'lodash';
 import path from 'path';
-import SerialPort from 'serialport';
+import { SerialPort } from 'serialport';
+import { PortInfo } from '@serialport/bindings-cpp';
 import usbDetection from 'usb-detection';
 import {
-  MibDescription,
   Category,
   CategoryV,
   HexOrNumber,
   IKnownPort,
+  MibDescription,
   asyncSerialMap,
   notEmpty,
   toStack,
@@ -151,7 +152,7 @@ detector.reload = reloadDevices;
 const getId = (id?: HexOrNumber): number | undefined =>
   typeof id === 'string' ? parseInt(id, 16) : id;
 
-function equals(port: SerialPort.PortInfo, device: usbDetection.IDevice): boolean {
+function equals(port: PortInfo, device: usbDetection.IDevice): boolean {
   return (
     getId(port.productId) === device.productId &&
     getId(port.vendorId) === device.vendorId &&
@@ -159,10 +160,7 @@ function equals(port: SerialPort.PortInfo, device: usbDetection.IDevice): boolea
   );
 }
 
-async function detectDevice(
-  port: SerialPort.PortInfo,
-  lastAdded?: usbDetection.IDevice
-): Promise<IKnownPort> {
+async function detectDevice(port: PortInfo, lastAdded?: usbDetection.IDevice): Promise<IKnownPort> {
   let detected: usbDetection.IDevice | undefined;
   if (lastAdded && equals(port, lastAdded)) {
     detected = lastAdded;
@@ -230,7 +228,7 @@ async function reloadDevicesAsync(
     if (detection == null) {
       detection = loadDetection();
     }
-    const list: SerialPort.PortInfo[] = await SerialPort.list();
+    const list: PortInfo[] = await SerialPort.list();
     const externalPorts = list.filter(port => !!port.productId);
     debug('externalPorts', JSON.stringify(externalPorts));
 
@@ -257,7 +255,7 @@ async function reloadDevicesAsync(
       }
     };
 
-    const ports = await asyncSerialMap(externalPorts, async portInfo => {
+    const ports = await asyncSerialMap(externalPorts, async (portInfo: PortInfo) => {
       const index = _.findIndex(prevPorts, { path: portInfo.path });
       let port: IKnownPort;
       if (index !== -1) {

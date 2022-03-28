@@ -36,9 +36,7 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/@serialport/bindings",
-      "**/usb-detection",
-      "**/serialport"
+      "**/usb-detection"
     ]
   },
   "scripts": {
@@ -57,7 +55,6 @@
     }
   },
   "resolutions": {
-    "node-abi": "^3.8.0",
     "supports-color": "^8"
   }
 }

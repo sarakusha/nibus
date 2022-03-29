@@ -141,7 +141,8 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
     this.clients.length = 0;
     this.server.close();
     // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
-    setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
+    // setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
+    Object.values(this.ports).forEach(serial => serial.close());
     // this.raw && this.push(null);
     debug(`${JSON.stringify(path)} closed`);
   };

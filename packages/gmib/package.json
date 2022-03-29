@@ -121,7 +121,7 @@
     "electron-webpack": "^2.7.4",
     "electron-webpack-ts": "^4.0.1",
     "env-cmd": "^10.0.1",
-    "react-refresh": "^0.10.0",
+    "react-refresh": "^0.12.0",
     "webpack": "4",
     "webpack-build-notifier": "^2.0.0"
   },

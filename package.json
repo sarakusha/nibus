@@ -35,7 +35,8 @@
       "packages/*"
     ],
     "nohoist": [
-      "**/usb-detection"
+      "**/usb-detection",
+      "**/@serialport/bindings-cpp"
     ]
   },
   "scripts": {
@@ -54,7 +55,8 @@
     }
   },
   "resolutions": {
-    "supports-color": "^8"
+    "supports-color": "^8",
+    "onetime": "^5"
   },
   "dependencies": {}
 }

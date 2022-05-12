@@ -17,6 +17,7 @@ import debugFactory from 'debug';
 const debug = debugFactory('nibus:serial-tee');
 
 // eslint-disable-next-line no-shadow
+/*
 export enum Direction {
   in,
   out,
@@ -25,6 +26,7 @@ export enum Direction {
 export interface SerialLogger {
   (data: Buffer, dir: Direction): void;
 }
+*/
 
 interface SerialTeeEvents {
   close: (path: string) => void;
@@ -37,7 +39,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
 
   private closed = false;
 
-  private logger: SerialLogger | null = null;
+  // private logger: SerialLogger | null = null;
 
   constructor(public readonly portInfo: IKnownPort, public readonly description: MibDescription) {
     super();
@@ -86,6 +88,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     this.emit('close', this.portInfo.path);
   };
 
+  /*
   public setLogger(logger: SerialLogger | null): void {
     // if (this.logger) {
     //   this.server.off('raw', this.logger);
@@ -95,6 +98,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     //   this.server.on('raw', this.logger);
     // }
   }
+*/
 
   toJSON(): { portInfo: IKnownPort; description: MibDescription } {
     const { portInfo, description } = this;
@@ -105,17 +109,17 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
   }
 
   broadcast = (data: Buffer): void => {
-    const { logger, closed, connections } = this;
+    const { closed, connections } = this;
     if (closed) return;
     connections.forEach(socket => socket.write(data));
-    logger && logger(data, Direction.out);
+    // logger && logger(data, Direction.out);
   };
 
   send = (data: Buffer): void => {
-    const { logger, closed, serial } = this;
+    const { closed, serial } = this;
     if (closed) return;
     serial.write(data);
-    logger && logger(data, Direction.in);
+    // logger && logger(data, Direction.in);
   };
 
   private releaseSocket(socket: Socket): void {

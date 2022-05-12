@@ -41,7 +41,7 @@ export const schema: Schema<Config> = {
 
 let current: NibusConfig | undefined;
 
-type NibusConfig = Pick<Conf<Config>, 'get' | 'set' | 'has'>;
+type NibusConfig = Pick<Conf<Config>, 'get' | 'set' | 'has' | 'path'>;
 
 export function config(newValue?: NibusConfig): NibusConfig {
   if (newValue !== undefined) {

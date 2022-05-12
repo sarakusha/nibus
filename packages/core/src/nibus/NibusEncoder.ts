@@ -9,10 +9,13 @@
  */
 
 import { Transform, TransformCallback, TransformOptions } from 'stream';
-import { Datagram } from '../common';
-// import debugFactory from '../debug';
+import debugFactory from 'debug';
+import { printBuffer } from '../common';
+import { config } from '../config';
 
-// const debug = debugFactory('nibus:encoder');
+import NibusDatagram from './NibusDatagram';
+
+const debug = debugFactory('nibus:encoder');
 
 export default class NibusEncoder extends Transform {
   constructor(options?: TransformOptions) {
@@ -25,9 +28,16 @@ export default class NibusEncoder extends Transform {
   // eslint-disable-next-line
   public _transform(chunk: any, _encoding: string, callback: TransformCallback): void {
     const chunks = Array.isArray(chunk) ? chunk : [chunk];
-    chunks.forEach((datagram: Datagram) => {
-      // debug('datagram send', JSON.stringify(datagram.toJSON()));
-      // debugSerial(printBuffer(datagram.raw));
+    const logLevel = config().get('logLevel');
+    chunks.forEach((datagram: NibusDatagram) => {
+      if (logLevel === 'nibus') {
+        debug({
+          pick: config().get('pick'),
+          omit: config().get('omit'),
+        });
+      } else if (logLevel === 'hex') {
+        debug(printBuffer(datagram.raw));
+      }
       this.push(datagram.raw);
     });
     callback();

@@ -11,20 +11,31 @@
 /* eslint-disable no-underscore-dangle */
 import { crc16ccitt } from 'crc';
 import { Transform, TransformCallback, TransformOptions } from 'stream';
+import debugFactory from 'debug';
+
 import { MAX_DATA_LENGTH, Offsets, PREAMBLE, SERVICE_INFO_LENGTH } from '../nbconst';
 import { NmsDatagram } from '../nms';
 import { SarpDatagram } from '../sarp';
 import { END, SlipDatagram, trySlipDecode } from '../slip';
 import NibusDatagram from './NibusDatagram';
-// import { printBuffer } from '../common';
-// import debugFactory from '../debug';
+import { printBuffer } from '../common';
+import { config } from '../config';
 
-// const debug = debugFactory('nibus:decoder');
-// const debugSerial = debugFactory('nibus-serial:decoder');
+const debug = debugFactory('nibus:decoder');
 
 const crcNibus = (buf: Buffer): boolean => crc16ccitt(buf, 0) === 0;
 
 const empty = Buffer.alloc(0);
+
+const createDatagram = (raw: Buffer): NibusDatagram | undefined => {
+  if (crcNibus(raw.slice(1))) {
+    if (NmsDatagram.isNmsFrame(raw)) return new NmsDatagram(raw);
+    if (SarpDatagram.isSarpFrame(raw)) return new SarpDatagram(raw);
+
+    return new NibusDatagram(raw);
+  }
+  return undefined;
+};
 
 export default class NibusDecoder extends Transform {
   private buf = empty;
@@ -58,6 +69,10 @@ export default class NibusDecoder extends Transform {
   }
 
   private recognize(data: Buffer): Buffer {
+    const logLevel = config().get('logLevel');
+    if (logLevel === 'hex') {
+      debug(printBuffer(data));
+    }
     if (this.slipMode) {
       // Для SLIP актуален только последний ответ. Ищем один раз начиная с конца
       const pos = data.lastIndexOf(END);
@@ -65,7 +80,9 @@ export default class NibusDecoder extends Transform {
         const raw = data.slice(pos);
         const slip = trySlipDecode(raw);
         if (slip) {
-          this.push(new SlipDatagram(Buffer.from(raw), slip));
+          const datagram = new SlipDatagram(Buffer.from(raw), slip);
+          if (logLevel === 'nibus') debug(datagram.toString());
+          this.push(datagram);
         } else {
           return raw;
         }
@@ -81,16 +98,19 @@ export default class NibusDecoder extends Transform {
       if (length - 1 <= MAX_DATA_LENGTH) {
         const total = length + SERVICE_INFO_LENGTH + 2 - 1;
         if (frame.length < total) return frame;
-        const datagram = frame.slice(0, total);
-        if (crcNibus(datagram.slice(1))) {
-          if (NmsDatagram.isNmsFrame(datagram)) {
-            this.push(new NmsDatagram(datagram));
-          } else if (SarpDatagram.isSarpFrame(datagram)) {
-            this.push(new SarpDatagram(datagram));
-          } else {
-            this.push(new NibusDatagram(datagram));
-          }
+        const raw = frame.slice(0, total);
+        const datagram = createDatagram(raw);
+        if (datagram) {
+          this.push(datagram);
           offset = start + total;
+          if (logLevel === 'nibus') {
+            debug(
+              datagram.toString({
+                pick: config().get('pick'),
+                omit: config().get('omit'),
+              })
+            );
+          }
         }
       }
       if (offset <= start) {

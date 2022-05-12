@@ -8,23 +8,14 @@
  * the EULA file that was distributed with this source code.
  */
 /* eslint-disable no-bitwise */
-import {
-  config,
-  Fields,
-  IKnownPort,
-  LogLevel,
-  NibusDatagram,
-  NibusDecoder,
-  printBuffer,
-  toMessage,
-} from '@nibus/core';
+import { config, IKnownPort, LogLevel, toMessage } from '@nibus/core';
 import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
 import Bonjour from 'bonjour-hap';
 
 import debugFactory from 'debug';
-import { SerialTee, Server, Direction, SerialLogger } from '../ipc';
+import { SerialTee, Server } from '../ipc';
 
 import detector from './detector';
 
@@ -33,8 +24,8 @@ const version = process.env['npm_package_version'] ?? 'N/A';
 
 const bonjour = Bonjour();
 const debug = debugFactory('nibus:service');
-const debugIn = debugFactory('nibus:<<<');
-const debugOut = debugFactory('nibus:>>>');
+// const debugIn = debugFactory('nibus:<<<');
+// const debugOut = debugFactory('nibus:>>>');
 
 const noop = (): void => {};
 
@@ -48,6 +39,7 @@ if (process.platform === 'win32') {
 }
 
 // const direction = (dir: Direction) => dir === Direction.in ? '<<<' : '>>>';
+/*
 const decoderIn = new NibusDecoder();
 decoderIn.on('data', (datagram: NibusDatagram) => {
   debugIn(
@@ -96,6 +88,7 @@ const loggers = {
     }
   },
 };
+*/
 
 export class NibusService {
   readonly port = +(process.env.NIBUS_PORT ?? 9001);
@@ -117,11 +110,13 @@ export class NibusService {
     return this.server.path;
   }
 
-  updateLogger(connection?: SerialTee): void {
-    const logger: SerialLogger | null = loggers[config().get('logLevel') as LogLevel];
-    const connections = connection ? [connection] : Object.values(this.server.ports);
-    connections.forEach(con => con.setLogger(logger));
-  }
+  /*
+    updateLogger(connection?: SerialTee): void {
+      const logger: SerialLogger | null = loggers[config().get('logLevel') as LogLevel];
+      const connections = connection ? [connection] : Object.values(this.server.ports);
+      connections.forEach(con => con.setLogger(logger));
+    }
+  */
 
   public async start(): Promise<void> {
     if (this.isStarted) return;
@@ -146,7 +141,7 @@ export class NibusService {
     process.once('SIGINT', () => this.stop());
     process.once('SIGTERM', () => this.stop());
     debug('started');
-    console.log('nibus started');
+    // console.log('nibus started');
     await detector.getPorts();
   }
 
@@ -195,7 +190,7 @@ export class NibusService {
     }
     // pickFields && config.set('pick', pickFields);
     // omitFields && config.set('omit', omitFields);
-    this.updateLogger();
+    // this.updateLogger();
   };
 
   private connectionHandler = (socket: Socket): void => {
@@ -229,7 +224,7 @@ export class NibusService {
       serial.on('close', (path: string) => this.removeHandler({ path }));
       this.server.ports[serial.path] = serial;
       this.server.broadcast('add', serial.toJSON()).catch(noop);
-      this.updateLogger(serial);
+      // this.updateLogger(serial);
       // this.find(connection);
     }
   };

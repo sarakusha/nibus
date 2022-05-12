@@ -8,49 +8,9 @@
  * the EULA file that was distributed with this source code.
  */
 
-import Configstore from 'configstore';
-import * as t from 'io-ts';
-import _ from 'lodash';
-
-/**
- * Путь к сокету для обмена данными IPC
- */
-// export const PATH = '/tmp/nibus.service.sock';
-
-export const LogLevelV = t.keyof({
-  none: null,
-  hex: null,
-  nibus: null,
-});
-
-/** @internal */
-const MibTypeV = t.array(
-  t.intersection([t.type({ mib: t.string }), t.partial({ minVersion: t.number })])
-);
-
-/** @internal */
-export const ConfigV = t.intersection([
-  t.partial({
-    logLevel: LogLevelV,
-    omit: t.union([t.array(t.string), t.null]),
-    pick: t.union([t.array(t.string), t.null]),
-    mibs: t.array(t.string),
-    mibTypes: t.record(t.string, MibTypeV),
-  }),
-  t.type({
-    timeout: t.number,
-    attempts: t.number,
-  }),
-]);
-
-// type MibType = t.TypeOf<typeof MibTypeV>;
-/**
- * Конфигурация сервиса NiBUS
- */
-export type Config = t.TypeOf<typeof ConfigV>;
+import isPlainObject from 'lodash/isPlainObject';
 
 export type Fields = string[] | undefined;
-export type LogLevel = t.TypeOf<typeof LogLevelV>;
 export type ObjectType = Record<string, unknown>;
 export type ProtoType = ObjectType;
 export const noop = (): void => {};
@@ -60,18 +20,20 @@ export interface Datagram {
   toJSON(): unknown;
   toString(): string;
 }
+
 export const delay = (ms: number): Promise<void> =>
   new Promise(resolve => {
     setTimeout(resolve, ms);
   });
+
 export function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
   return value !== null && value !== undefined;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Arrayable = any[] | Buffer | string;
+type ArrayLike = any[] | Buffer | string;
 
-export function chunkArray<T extends Arrayable>(array: T, len: number): T[] {
+export function chunkArray<T extends ArrayLike>(array: T, len: number): T[] {
   const ret: T[] = [];
   const size = Math.ceil(array.length / len);
   ret.length = size;
@@ -108,7 +70,8 @@ export type SubType<Base, Condition> = Pick<Base, AllowedNames<Base, Condition>>
 export type ReplaceType<Base, Condition, Type> = Pick<Base, ExcludeNames<Base, Condition>> &
   Record<AllowedNames<Base, Condition>, Type>;
 
-// const x: ReplaceType<{ a: string | undefined, b: boolean | undefined }, string | undefined, number | undefined> = { a: 1, b: 1 }
+// const x: ReplaceType<{ a: string | undefined, b: boolean | undefined }, string | undefined,
+// number | undefined> = { a: 1, b: 1 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const replaceBuffers = <T extends object>(obj: T): ReplaceType<T, Buffer, string> =>
@@ -117,7 +80,7 @@ export const replaceBuffers = <T extends object>(obj: T): ReplaceType<T, Buffer,
       ...result,
       [name]: Buffer.isBuffer(value)
         ? printBuffer(value)
-        : _.isPlainObject(value)
+        : isPlainObject(value)
         ? replaceBuffers(value as ObjectType)
         : value,
     }),
@@ -144,13 +107,6 @@ export function tuplify<T extends unknown[]>(...args: T): T {
 
 export const MSG_DELIMITER = '\n';
 
-export const config = new Configstore('nibus-js', {
-  logLevel: 'none',
-  omit: ['priority'],
-  timeout: 1000,
-  attempts: 3,
-});
-
 const removeBraces = (str: string): string => str.replace(/^"(.*)"$/, '$1');
 
 const toString = (e: unknown): string => removeBraces(JSON.stringify(e));
@@ -161,3 +117,24 @@ export const toMessage = (e: unknown): string => toError(e).message;
 
 export const toStack = (e: unknown): string =>
   e instanceof Error ? e.stack || e.message : toString(e);
+export const MINIHOST_TYPE = 0xabc6;
+export const MCDVI_TYPE = 0x1b;
+// const FIRMWARE_VERSION_ID = 0x85;
+export const VERSION_ID = 2;
+export const logLevels = {
+  none: null,
+  hex: null,
+  nibus: null,
+} as const;
+export type LogLevel = keyof typeof logLevels;
+/**
+ * Конфигурация сервиса NiBUS
+ */
+export type Config = {
+  logLevel: LogLevel;
+  omit: string[];
+  pick: string[];
+  // mibTypes?: Record<string, number | undefined>;
+  timeout: number;
+  attempts: number;
+};

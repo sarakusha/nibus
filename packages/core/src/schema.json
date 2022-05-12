@@ -1,0 +1,37 @@
+{
+  "type": "object",
+  "properties": {
+    "logLevel": {
+      "enum": [
+        "none",
+        "hex",
+        "nibus"
+      ],
+      "default": "none"
+    },
+    "omit": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "priority"
+      ]
+    },
+    "pick": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "timeout": {
+      "type": "integer",
+      "default": 1000
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 3
+    }
+  }
+}

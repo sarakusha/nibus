@@ -38,3 +38,4 @@ gen
 /yarn-error.log
 /tsconfig.tsbuildinfo
 /lib/
+/build/

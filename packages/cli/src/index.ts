@@ -10,8 +10,8 @@
  * the EULA file that was distributed with this source code.
  */
 
+import { getMibNames } from '@nibus/mibs/index';
 import yargs from 'yargs';
-import { getMibsSync } from '@nibus/core';
 import dump from './cli/commands/dump';
 import list from './cli/commands/list';
 import ping from './cli/commands/ping';
@@ -46,7 +46,7 @@ const { argv } = yargs
   })
   .option('mib', {
     desc: 'mib-файл',
-    choices: getMibsSync(),
+    choices: getMibNames(),
     string: true,
   })
   .option('compact', {

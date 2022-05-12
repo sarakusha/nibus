@@ -11,7 +11,7 @@
 /* eslint-disable no-bitwise */
 import _ from 'lodash';
 import { AddressParam } from '../Address';
-import { config } from '../common';
+import { config } from '../config';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import { encodeValue, getNmsType, getSizeOf, writeValue } from './nms';
 import NmsDatagram from './NmsDatagram';
@@ -29,7 +29,7 @@ export function createNmsRead(destination: AddressParam, ...ids: number[]): NmsD
   }
   const [id, ...rest] = ids;
   const nms = _.flatten(
-    rest.map(next => [(NmsServiceType.Read << 3) | (next >> 8), next & 0xff, 0])
+    rest.map(next => [(NmsServiceType.Read << 3) | (next >> 8), next & 0xff, 0]),
   );
   return new NmsDatagram({
     destination,
@@ -45,7 +45,7 @@ export function createNmsWrite(
   id: number,
   type: NmsValueType,
   value: unknown,
-  notReply = false
+  notReply = false,
 ): NmsDatagram {
   const nms = encodeValue(type, value);
   return new NmsDatagram({
@@ -59,7 +59,7 @@ export function createNmsWrite(
 
 export function createNmsInitiateUploadSequence(
   destination: AddressParam,
-  id: number
+  id: number,
 ): NmsDatagram {
   return new NmsDatagram({
     destination,
@@ -70,7 +70,7 @@ export function createNmsInitiateUploadSequence(
 
 export function createNmsRequestDomainUpload(
   destination: AddressParam,
-  domain: string
+  domain: string,
 ): NmsDatagram {
   if (domain.length !== 8) {
     throw new Error('domain must be string of 8 characters');
@@ -87,7 +87,7 @@ export function createNmsUploadSegment(
   destination: AddressParam,
   id: number,
   offset: number,
-  length: number
+  length: number,
 ): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
@@ -108,7 +108,7 @@ export function createNmsUploadSegment(
 
 export function createNmsRequestDomainDownload(
   destination: AddressParam,
-  domain: string
+  domain: string,
 ): NmsDatagram {
   if (domain.length !== 8) {
     throw new Error('domain must be string of 8 characters');
@@ -123,13 +123,13 @@ export function createNmsRequestDomainDownload(
 
 export function createNmsInitiateDownloadSequence(
   destination: AddressParam,
-  id: number
+  id: number,
 ): NmsDatagram {
   return new NmsDatagram({
     destination,
     id,
     service: NmsServiceType.InitiateDownloadSequence,
-    timeout: 5 * (config.get('timeout') || 1000),
+    timeout: 5 * (config().get('timeout') || 1000),
   });
 }
 
@@ -138,7 +138,7 @@ export function createNmsDownloadSegment(
   id: number,
   offset: number,
   data: Buffer,
-  notReply = false
+  notReply = false,
 ): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
@@ -161,13 +161,13 @@ export function createNmsDownloadSegment(
 
 export function createNmsTerminateDownloadSequence(
   destination: AddressParam,
-  id: number
+  id: number,
 ): NmsDatagram {
   return new NmsDatagram({
     destination,
     id,
     service: NmsServiceType.TerminateDownloadSequence,
-    timeout: (config.get('timeout') || 1000) * 10,
+    timeout: (config().get('timeout') || 1000) * 10,
   });
 }
 
@@ -176,7 +176,7 @@ export function createNmsVerifyDomainChecksum(
   id: number,
   offset: number,
   size: number,
-  crc: number
+  crc: number,
 ): NmsDatagram {
   if (offset < 0) {
     throw new Error('Invalid offset');
@@ -193,7 +193,7 @@ export function createNmsVerifyDomainChecksum(
     id,
     nms,
     service: NmsServiceType.VerifyDomainChecksum,
-    timeout: (config.get('timeout') || 1000) * 10,
+    timeout: (config().get('timeout') || 1000) * 10,
   });
 }
 
@@ -221,6 +221,6 @@ export function createExecuteProgramInvocation(
     nms,
     notReply,
     service: NmsServiceType.ExecuteProgramInvocation,
-    timeout: (config.get('timeout') || 1000) * 3,
+    timeout: (config().get('timeout') || 1000) * 3,
   });
 }

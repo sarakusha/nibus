@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 import * as t from 'io-ts';
-import { LogLevelV } from '../common';
+import { LogLevelV } from './events';
 
 export const ClientMessagesV = t.keyof({
   setLogLevel: null,

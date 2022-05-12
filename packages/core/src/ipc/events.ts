@@ -14,9 +14,11 @@ import { parse } from 'fp-ts/Json';
 /* tslint:disable:variable-name */
 /* eslint-disable max-classes-per-file */
 import * as t from 'io-ts';
-import { LogLevelV } from '../common';
+import { logLevels } from '../common';
 import { MibDescription, MibDescriptionV } from '../MibDescription';
 import { IKnownPort, KnownPortV } from '../session/KnownPorts';
+
+export const LogLevelV = t.keyof(logLevels);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const eventType = <A extends t.Mixed, B extends t.Mixed>(name: string, a: A, b?: B) =>

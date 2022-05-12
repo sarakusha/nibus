@@ -10,7 +10,6 @@
 
 import * as t from 'io-ts';
 
-export type HexOrNumber = string | number;
 /** @internal */
 export const CategoryV = t.union([
   t.keyof({

@@ -206,38 +206,8 @@ export const convertDir = (dir: string): Promise<void> =>
         .map(file =>
           convert(path.join(dir, file))
             .then(() => console.info(`${file}: success`))
-            .catch(error => console.error(`${file}: ${error.message}`))
+            .catch(error => console.error(`${file}: ${error.message}`)),
         );
       return resolve(Promise.all(promises).then(() => {}));
     });
   });
-
-let mibs: string[] = [];
-const mibsDir = path.resolve(__dirname, '../../mibs');
-
-function filesToMibs(files: string[]): string[] {
-  return files
-    .map(file => jsonMibRe.exec(file))
-    .filter(matches => matches != null)
-    .map(matches => matches![1]);
-}
-
-export function getMibs(): Promise<string[]> {
-  return new Promise((resolve, reject) => {
-    fs.readdir(mibsDir, (err, files) => {
-      if (err) {
-        mibs = [];
-        return reject(err);
-      }
-      mibs = filesToMibs(files);
-      return resolve(mibs);
-    });
-  });
-}
-
-export function getMibsSync(): string[] {
-  if (!mibs || mibs.length === 0) {
-    mibs = filesToMibs(fs.readdirSync(mibsDir));
-  }
-  return mibs;
-}

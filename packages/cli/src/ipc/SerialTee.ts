@@ -76,7 +76,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     if (this.closed) return;
     const { serial } = this;
     if (serial.isOpen) {
-      debug('close serial', serial.path);
+      debug(`close serial: ${serial.path}`);
       serial.close();
     }
     const connections = this.connections.slice();

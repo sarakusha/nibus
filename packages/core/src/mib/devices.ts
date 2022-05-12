@@ -9,15 +9,26 @@
  */
 
 /* eslint-disable max-classes-per-file,@typescript-eslint/no-explicit-any */
+import 'reflect-metadata';
+
 import { crc16ccitt } from 'crc';
 import { EventEmitter } from 'events';
-import { isLeft } from 'fp-ts/lib/Either';
-import fs from 'fs';
-import { PathReporter } from 'io-ts/lib/PathReporter';
-import _, { Dictionary } from 'lodash';
-import path from 'path';
+import sortBy from 'lodash/sortBy';
+import type { Dictionary } from 'lodash';
+import findLast from 'lodash/findLast';
+import flatten from 'lodash/flatten';
+import transform from 'lodash/transform';
+import without from 'lodash/without';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
+import {
+  IMibDevice,
+  IMibDeviceType,
+  IMibProperty,
+  IMibType,
+  getMib,
+  getMibNames,
+} from '@nibus/mibs';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
@@ -39,15 +50,10 @@ import {
 } from '../nms';
 import NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
-import { Config, ConfigV, chunkArray, config, toError, toMessage } from '../common';
+import { chunkArray, toError, toMessage } from '../common';
 import timeid from '../timeid';
 import {
   IConverter,
-  IMibDevice,
-  IMibDeviceType,
-  IMibProperty,
-  IMibType,
-  MibDeviceV,
   booleanConverter,
   convertFrom,
   convertTo,
@@ -388,12 +394,12 @@ function defineMibProperty(
   return [id, propertyKey];
 }
 
-export function getMibFile(mibname: string): string {
-  return path.resolve(__dirname, '../../mibs/', `${mibname}.mib.json`);
-}
+// export function getMibFile(mibname: string): string {
+//   return path.resolve(__dirname, '../../mibs/', `${mibname}.mib.json`);
+// }
 
 class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
-  // will be override for an instance
+  // will be overridden for an instance
   $countRef = 1;
 
   $read?: Promise<any>;
@@ -402,18 +408,12 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
 
   constructor(mibname: string) {
     super();
-    const mibfile = getMibFile(mibname);
-    const mibValidation = MibDeviceV.decode(JSON.parse(fs.readFileSync(mibfile).toString()));
-    if (isLeft(mibValidation)) {
-      throw new Error(
-        `Invalid mib file ${mibfile} ${PathReporter.report(mibValidation).join('\n')}`
-      );
-    }
-    const mib = mibValidation.right;
+    const mib = getMib(mibname);
+    if (!mib) throw new TypeError(`Unknown mib: ${mibname}`);
     const { types, subroutines } = mib;
     const device = types[mib.device] as IMibDeviceType;
     Reflect.defineMetadata('mib', mibname, this);
-    Reflect.defineMetadata('mibfile', mibfile, this);
+    // Reflect.defineMetadata('mibfile', `${mibname}.mib.json`, this);
     Reflect.defineMetadata('annotation', device.annotation, this);
     Reflect.defineMetadata('mibVersion', device.appinfo.mib_version, this);
     Reflect.defineMetadata('deviceType', toInt(device.appinfo.device_type), this);
@@ -426,7 +426,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       Reflect.defineMetadata('errorType', (types.errorType as IMibType).enumeration, this);
 
     if (subroutines) {
-      const metasubs = _.transform(
+      const metasubs = transform(
         subroutines,
         (result, sub, name) => {
           result[name] = {
@@ -612,7 +612,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
 
   public addref(): number {
     this.$countRef += 1;
-    debug('addref', new Error('addref').stack);
+    // debug('addref', new Error('addref').stack);
     return this.$countRef;
   }
 
@@ -754,9 +754,11 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     try {
       if (!connection) throw new Error('disconnected');
       const reqUpload = createNmsRequestDomainUpload(this.address, domain.padEnd(8, '\0'));
-      const { id, value: domainSize, status } = (await connection.sendDatagram(
-        reqUpload
-      )) as NmsDatagram;
+      const {
+        id,
+        value: domainSize,
+        status,
+      } = (await connection.sendDatagram(reqUpload)) as NmsDatagram;
       if (status !== 0) {
         // debug('<error>', status);
         throw new NibusError(status!, this, 'Request upload domain error');
@@ -953,16 +955,35 @@ interface DevicePrototype {
   [mibProperty: string]: any;
 }
 
-export const getMibTypes = (): Config['mibTypes'] => {
-  const validate = ConfigV.decode(config.all);
-  //   const validate = ConfigV.decode(require(conf));
-  if (isLeft(validate)) {
-    throw new Error(
-      `Invalid config file ${config.path} ${PathReporter.report(validate).join('\n')}`
-    );
+type MibTypes = Record<string, { mib: string; minVersion: number }[]>;
+let mibTypes: MibTypes | undefined;
+
+const minVersionToInt = (str?: string): number => {
+  if (!str) return 0;
+  const [high, low] = str.split('.', 2);
+  return (toInt(high) << 8) + toInt(low);
+};
+
+export const getMibTypes = (): MibTypes => {
+  if (!mibTypes) {
+    const current: MibTypes = {};
+    getMibNames().forEach(mibname => {
+      const mib = getMib(mibname);
+      if (!mib) return;
+      const { types, device: deviceType } = mib;
+      const device = types[deviceType] as IMibDeviceType;
+      const type = toInt(device.appinfo.device_type);
+      const minVersion = minVersionToInt(device.appinfo.min_version);
+      const mibs = current[type] ?? [];
+      mibs.push({
+        mib: mibname,
+        minVersion,
+      });
+      current[type] = sortBy(mibs, 'minVersion');
+    });
+    mibTypes = current;
   }
-  const { mibTypes } = validate.right;
-  return mibTypes || {};
+  return mibTypes;
 };
 
 export function findMibByType(type: number, version?: number): string | undefined {
@@ -971,7 +992,7 @@ export function findMibByType(type: number, version?: number): string | undefine
   if (mibs && mibs.length) {
     let mibType = mibs[0];
     if (version && mibs.length > 1) {
-      mibType = _.findLast(mibs, ({ minVersion = 0 }) => minVersion <= version) || mibType;
+      mibType = findLast(mibs, ({ minVersion = 0 }) => minVersion <= version) || mibType;
     }
     return mibType.mib;
   }
@@ -1026,7 +1047,7 @@ export interface CreateDevice {
 export class Devices extends TypedEmitter<DevicesEvents> {
   private deviceMap: { [address: string]: IDevice[] } = {};
 
-  get = (): IDevice[] => _.flatten(_.values(this.deviceMap));
+  get = (): IDevice[] => flatten(Object.values(this.deviceMap));
 
   findById(id: DeviceId): IDevice | undefined {
     return this.get().find(item => item.id === id);
@@ -1079,7 +1100,7 @@ export class Devices extends TypedEmitter<DevicesEvents> {
     }
     // if (!targetAddress.isEmpty) {
     const key = targetAddress.toString();
-    this.deviceMap[key] = (this.deviceMap[key] || []).concat(device);
+    this.deviceMap[key] = (this.deviceMap[key] ?? []).concat(device);
     device.on('release', this.onReleaseDevice);
     process.nextTick(() => this.emit('new', device));
     // }
@@ -1089,7 +1110,7 @@ export class Devices extends TypedEmitter<DevicesEvents> {
   private onReleaseDevice = (device: IDevice): void => {
     if (!device) return;
     const key = device.address.toString();
-    this.deviceMap[key] = _.without(this.deviceMap[key], device);
+    this.deviceMap[key] = without(this.deviceMap[key], device);
     device.off('release', this.onReleaseDevice);
     if (this.deviceMap[key].length === 0) {
       delete this.deviceMap[key];

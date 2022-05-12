@@ -8,32 +8,30 @@
  * the EULA file that was distributed with this source code.
  */
 
+import 'reflect-metadata';
+
+import debugFactory from 'debug';
 /* eslint-disable max-classes-per-file,no-plusplus,no-bitwise,no-await-in-loop */
 import { isLeft } from 'fp-ts/lib/Either';
 import { PathReporter } from 'io-ts/lib/PathReporter';
-import _ from 'lodash';
-import { Socket, connect } from 'net';
+import remove from 'lodash/remove';
+import { connect, Socket } from 'net';
 import pump from 'pump';
 import { TypedEmitter } from 'tiny-typed-emitter';
-import debugFactory from 'debug';
 import Address, { AddressParam } from '../Address';
+import { Datagram, delay, MINIHOST_TYPE, tuplify, VERSION_ID } from '../common';
 import { TimeoutError } from '../errors';
-import { NmsDatagram, createExecuteProgramInvocation, createNmsRead } from '../nms';
-import NmsServiceType from '../nms/NmsServiceType';
-import { SarpDatagram, SarpQueryType, createSarp } from '../sarp';
-import { MibDescription, MibDescriptionV } from '../MibDescription';
-import type { INibusSession } from '../session';
-import { BootloaderFunction, LikeArray, SlipDatagram, slipChunks } from '../slip';
-import NibusDatagram from './NibusDatagram';
-import NibusEncoder from './NibusEncoder';
-import NibusDecoder from './NibusDecoder';
-import { Datagram, config, delay, tuplify } from '../common';
 import type { IDevice } from '../mib';
-
-export const MINIHOST_TYPE = 0xabc6;
-export const MCDVI_TYPE = 0x1b;
-// const FIRMWARE_VERSION_ID = 0x85;
-const VERSION_ID = 2;
+import { MibDescription, MibDescriptionV } from '../MibDescription';
+import { createExecuteProgramInvocation, createNmsRead, NmsDatagram } from '../nms';
+import NmsServiceType from '../nms/NmsServiceType';
+import { createSarp, SarpDatagram, SarpQueryType } from '../sarp';
+import type { INibusSession } from '../session';
+import { BootloaderFunction, LikeArray, slipChunks, SlipDatagram } from '../slip';
+import NibusDatagram from './NibusDatagram';
+import NibusDecoder from './NibusDecoder';
+import NibusEncoder from './NibusEncoder';
+import { config } from '../config';
 
 const debug = debugFactory('nibus:connection');
 
@@ -66,7 +64,7 @@ class WaitedNmsDatagram {
       counter -= step;
       clearTimeout(timer);
       if (counter > 0) {
-        timer = global.setTimeout(timeout, req.timeout || config.get('timeout') || 1000);
+        timer = global.setTimeout(timeout, req.timeout || config().get('timeout') || 1000);
       } else if (counter === 0) {
         callback(this);
       }
@@ -210,7 +208,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     return new Promise<SarpDatagram>((resolve, reject) => {
       const timeout = setTimeout(
         () => reject(new TimeoutError("Device didn't respond")),
-        config.get('timeout') || 1000
+        config().get('timeout') || 1000
       );
       sarpHandler = sarpDatagram => {
         clearTimeout(timeout);
@@ -252,7 +250,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
   };
 
   private stopWaiting = (waited: WaitedNmsDatagram): void => {
-    _.remove(this.waited, waited);
+    remove(this.waited, waited);
   };
 
   private onDatagram = (datagram: Datagram): void => {

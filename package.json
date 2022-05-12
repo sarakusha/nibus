@@ -24,7 +24,11 @@
     "husky": "^7.0.0",
     "jest": "^27.0.4",
     "lerna": "^4.0.0",
+    "mkdirp": "^1.0.4",
+    "npm-run-all": "^4.1.5",
     "prettier-airbnb-config": "^1.0.0",
+    "replace-in-file": "^6.3.2",
+    "rimraf": "^3.0.2",
     "shx": "^0.3.2",
     "ts-jest": "^27.0.3",
     "ts-node": "^10.0.0",
@@ -47,7 +51,8 @@
     "release:publish": "lerna publish from-package --dist-tag latest && git push --follow-tags origin master",
     "release:publish:dry-run": "lerna publish from-package --dist-tag latest --registry=\"http://localhost:4873/\"",
     "release:version": "lerna version --no-push",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "yalc:push": "lerna run yalc:push"
   },
   "config": {
     "commitizen": {

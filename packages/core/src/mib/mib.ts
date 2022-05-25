@@ -8,9 +8,11 @@
  * the EULA file that was distributed with this source code.
  */
 
+import 'reflect-metadata';
+
+import { IMibType } from '@nibus/mibs/index';
 /* eslint-disable no-bitwise,no-eval */
 /* tslint:disable:no-eval */
-import * as t from 'io-ts';
 import printf from 'printf';
 
 export function validJsName(name: string): string {
@@ -63,6 +65,7 @@ export function precisionConverter(precision: string): IConverter {
   };
 }
 
+/*
 const MibPropertyAppInfoV = t.intersection([
   t.type({
     nms_id: t.union([t.string, t.Int]),
@@ -170,6 +173,7 @@ export const MibDeviceV = t.intersection([
 export interface MibSubroutines extends t.TypeOf<typeof MibSubroutineV> {}
 
 export interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {}
+*/
 
 export function enumerationConverter(enumerationValues: IMibType['enumeration']): IConverter {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -352,11 +356,15 @@ export const evalConverter = (get: string, set: string): IConverter => ({
   to: eval(get),
 });
 
-export const convertTo = (converters: IConverter[]) => (value: ResultType): ResultType =>
-  converters.reduceRight(
-    (result, converter) => result !== undefined && converter.to(result),
-    value
-  );
+export const convertTo =
+  (converters: IConverter[]) =>
+  (value: ResultType): ResultType =>
+    converters.reduceRight(
+      (result, converter) => result !== undefined && converter.to(result),
+      value
+    );
 
-export const convertFrom = (converters: IConverter[]) => (value: PresentType): PresentType =>
-  converters.reduce((present, converter) => converter.from(present), value);
+export const convertFrom =
+  (converters: IConverter[]) =>
+  (value: PresentType): PresentType =>
+    converters.reduce((present, converter) => converter.from(present), value);

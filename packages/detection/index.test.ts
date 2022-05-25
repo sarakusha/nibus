@@ -7,7 +7,10 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
+import loadDetection from './index';
 
-export * from './devices';
-export { convert, convertDir, mib2json } from './mib2json';
-export { toInt } from './mib';
+describe('detection', () => {
+  it('decode', () => {
+    expect(() => loadDetection()).not.toThrow();
+  });
+});

@@ -8,3 +8,5 @@
  * the EULA file that was distributed with this source code.
  */
 export * from './Flasher';
+export { KindMap, FlashKinds } from './FlashKinds';
+export type { Ext, Kind } from './FlashKinds';

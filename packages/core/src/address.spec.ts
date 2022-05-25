@@ -40,8 +40,8 @@ describe('Address', () => {
       const address2 = new Address('::45:77');
       const empty = new Address('::0');
       expect(address).toHaveProperty('type', AddressType.mac);
-      expect(address.mac && address.mac.equals(Buffer.from([1, 0, 0, 0, 255, 0x23]))).toBe(true);
-      expect(address2.mac && address2.mac.equals(Buffer.from([0, 0, 0, 0, 0x45, 0x77]))).toBe(true);
+      expect(address.mac).toEqual([1, 0, 0, 0, 255, 0x23]);
+      expect(address2.mac).toEqual([0, 0, 0, 0, 0x45, 0x77]);
       expect(empty).toHaveProperty('type', AddressType.empty);
     });
 
@@ -49,7 +49,7 @@ describe('Address', () => {
       const array = [1, 2, 3, 4, 5, 6];
       const mac = new Uint8Array(array);
       const address = new Address(mac);
-      expect(address.mac && address.mac.equals(mac)).toBe(true);
+      expect(address.mac).toEqual([...mac]);
       expect(address).toHaveProperty('type', AddressType.mac);
     });
     test('should be ::8E:14', () => {

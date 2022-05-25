@@ -1,0 +1,50 @@
+{
+  "name": "@nibus/detection",
+  "version": "3.5.5",
+  "license": "MIT",
+  "description": "nibus.js auto detection config",
+  "keywords": [
+    "nata-info",
+    "nibus",
+    "sarakusha"
+  ],
+  "author": "Andrei Sarakeev <sarakusha@gmail.com>",
+  "homepage": "https://github.com/sarakusha/nibus/packages/detection#readme",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "module": "index.mjs",
+  "files": [
+    "detection.yml",
+    "index.js",
+    "index.d.ts",
+    "index.mjs",
+    "EULA.md",
+    "CHANGELOG.md",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sarakusha/nibus.git",
+    "directory": "packages/detection"
+  },
+  "dependencies": {
+    "fp-ts": "^2.11.10",
+    "io-ts": "^2.2.16",
+    "js-yaml": "^4.1.0"
+  },
+  "peerDependencies": {
+    "@nibus/core": "^3.5.4"
+  },
+  "scripts": {
+    "build": "yarn build:module && yarn rename && yarn build:main",
+    "build:main": "tsc --inlineSourceMap --declaration index.ts",
+    "build:module": "tsc --inlineSourceMap --moduleResolution node --target es2021 index.ts",
+    "rename": "rimraf index.mjs && node -e \"require('fs').rename('index.js', 'index.mjs', err => err && console.error(err.message))\"",
+    "yalc:push": "yalc push"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  },
+  "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
+}

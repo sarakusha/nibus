@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -9,14 +9,19 @@
   ],
   "main": "lib/service/index.js",
   "types": "lib/service/index.d.ts",
+  "module": "lib/service/index.mjs",
   "scripts": {
     "type-check": "tsc --noEmit",
     "service": "cross-env NODE_ENV=production DEBUG=nibus:*,-nibus:decoder pm2 --name=nibus.service start lib/service/daemon.js",
-    "build": "cross-env BABEL_ENV=production yarn clean && tsc && shx chmod a+x lib/index.js",
+    "build": "run-p build:* && yarn hybrid",
+    "build:main": "tsc -p tsconfig.json",
+    "build:module": "tsc -p tsconfig.module.json",
+    "hybrid": "node ../../scripts/hybrid.mjs",
     "compile": "cross-env NODE_ENV=development tsc",
     "clean": "shx rm -rf lib tsconfig.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/"
+    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
+    "yalc:push": "yalc push"
   },
   "bin": {
     "nibus": "lib/index.js"
@@ -54,7 +59,7 @@
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
-    "@nibus/core": "^3.5.4",
+    "@serialport/bindings-cpp": "^10.7.0",
     "bonjour-hap": "^3.6.2",
     "chalk": "^5.0.0",
     "cli-table3": "^0.6.0",
@@ -62,20 +67,22 @@
     "fp-ts": "^2.4.1",
     "io-ts": "^2.0.5",
     "io-ts-types": "^0.5.5",
-    "js-yaml": "^4.0.0",
     "lodash": "^4.17.10",
     "monocle-ts": "^2.0.1",
     "newtype-ts": "^0.3.2",
     "pm2": "^5.0.0",
     "progress": "^2.0.3",
-    "serialport": "^9.2.8",
+    "serialport": "^10.4.0",
     "table-layout": "^1.0.0",
     "tail": "^2.0.2",
     "tiny-typed-emitter": "^2.0.3",
-    "usb-detection": "https://github.com/sarakusha/node-usb-detection.git#fix_segfault_on_close",
+    "usb-detection": "^4.14.1",
     "yargs": "^17.0.1"
   },
   "peerDependencies": {
+    "@nibus/core": "^3.5.4",
+    "@nibus/detection": "^3.5.4",
+    "@nibus/mibs": "^3.5.4",
     "debug": "^4.3.0"
   },
   "jest": {
@@ -93,5 +100,6 @@
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

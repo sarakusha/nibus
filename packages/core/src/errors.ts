@@ -9,6 +9,8 @@
  */
 /* eslint-disable max-classes-per-file */
 
+import 'reflect-metadata';
+
 import Address from './Address';
 import { ProtoType } from './common';
 

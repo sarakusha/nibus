@@ -8,44 +8,24 @@
  * the EULA file that was distributed with this source code.
  */
 /* eslint-disable no-bitwise */
-import {
-  config,
-  Config,
-  Fields,
-  getMibFile,
-  getMibs,
-  IKnownPort,
-  IMibDeviceType,
-  LogLevel,
-  MibDeviceV,
-  NibusDatagram,
-  NibusDecoder,
-  printBuffer,
-  toInt,
-  toMessage,
-} from '@nibus/core';
-import { isLeft } from 'fp-ts/lib/Either';
-import fs from 'fs';
-import _ from 'lodash';
+import { config, IKnownPort, LogLevel, toMessage } from '@nibus/core';
 import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
 import Bonjour from 'bonjour-hap';
 
 import debugFactory from 'debug';
-import { SerialTee, Server, Direction, SerialLogger } from '../ipc';
+import { SerialTee, Server } from '../ipc';
 
 import detector from './detector';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
-const { version } = require('../../package.json');
+const version = process.env['npm_package_version'] ?? 'N/A';
 
 const bonjour = Bonjour();
 const debug = debugFactory('nibus:service');
-const debugIn = debugFactory('nibus:<<<');
-const debugOut = debugFactory('nibus:>>>');
-
-debug(`config path: ${config.path}`);
+// const debugIn = debugFactory('nibus:<<<');
+// const debugOut = debugFactory('nibus:>>>');
 
 const noop = (): void => {};
 
@@ -58,46 +38,14 @@ if (process.platform === 'win32') {
   rl.on('SIGINT', () => process.emit('SIGINT', 'SIGINT'));
 }
 
-const minVersionToInt = (str?: string): number => {
-  if (!str) return 0;
-  const [high, low] = str.split('.', 2);
-  return (toInt(high) << 8) + toInt(low);
-};
-
-async function updateMibTypes(): Promise<void> {
-  const mibs = await getMibs();
-  config.set('mibs', mibs);
-  const mibTypes: Config['mibTypes'] = {};
-  mibs.forEach(mib => {
-    const mibfile = getMibFile(mib);
-    const validation = MibDeviceV.decode(JSON.parse(fs.readFileSync(mibfile).toString()));
-    if (isLeft(validation)) {
-      debug(`<error>: Invalid mib file ${mibfile}`);
-    } else {
-      const { types } = validation.right;
-      const device = types[validation.right.device] as IMibDeviceType;
-      const type = toInt(device.appinfo.device_type);
-      const minVersion = minVersionToInt(device.appinfo.min_version);
-      const currentMibs = mibTypes[type] || [];
-      currentMibs.push({
-        mib,
-        minVersion,
-      });
-      mibTypes[type] = _.sortBy(currentMibs, 'minVersion');
-    }
-  });
-  config.set('mibTypes', mibTypes);
-}
-
-updateMibTypes().catch(e => debug(`<error> ${e.message}`));
-
 // const direction = (dir: Direction) => dir === Direction.in ? '<<<' : '>>>';
+/*
 const decoderIn = new NibusDecoder();
 decoderIn.on('data', (datagram: NibusDatagram) => {
   debugIn(
     datagram.toString({
-      pick: config.get('pick') as Fields,
-      omit: config.get('omit') as Fields,
+      pick: config().get('pick') as Fields,
+      omit: config().get('omit') as Fields,
     })
   );
 });
@@ -105,8 +53,8 @@ const decoderOut = new NibusDecoder();
 decoderOut.on('data', (datagram: NibusDatagram) => {
   debugOut(
     datagram.toString({
-      pick: config.get('pick') as Fields,
-      omit: config.get('omit') as Fields,
+      pick: config().get('pick') as Fields,
+      omit: config().get('omit') as Fields,
     })
   );
 });
@@ -140,6 +88,7 @@ const loggers = {
     }
   },
 };
+*/
 
 export class NibusService {
   readonly port = +(process.env.NIBUS_PORT ?? 9001);
@@ -161,11 +110,13 @@ export class NibusService {
     return this.server.path;
   }
 
-  updateLogger(connection?: SerialTee): void {
-    const logger: SerialLogger | null = loggers[config.get('logLevel') as LogLevel];
-    const connections = connection ? [connection] : Object.values(this.server.ports);
-    connections.forEach(con => con.setLogger(logger));
-  }
+  /*
+    updateLogger(connection?: SerialTee): void {
+      const logger: SerialLogger | null = loggers[config().get('logLevel') as LogLevel];
+      const connections = connection ? [connection] : Object.values(this.server.ports);
+      connections.forEach(con => con.setLogger(logger));
+    }
+  */
 
   public async start(): Promise<void> {
     if (this.isStarted) return;
@@ -190,6 +141,7 @@ export class NibusService {
     process.once('SIGINT', () => this.stop());
     process.once('SIGTERM', () => this.stop());
     debug('started');
+    // console.log('nibus started');
     await detector.getPorts();
   }
 
@@ -231,14 +183,14 @@ export class NibusService {
   ): void => {
     debug(`setLogLevel: ${logLevel}`);
     if (logLevel) {
-      config.set('logLevel', logLevel);
+      config().set('logLevel', logLevel);
       this.server
         .broadcast('logLevel', logLevel)
         .catch(e => debug(`error while broadcast: ${e.message}`));
     }
     // pickFields && config.set('pick', pickFields);
     // omitFields && config.set('omit', omitFields);
-    this.updateLogger();
+    // this.updateLogger();
   };
 
   private connectionHandler = (socket: Socket): void => {
@@ -258,9 +210,9 @@ export class NibusService {
         version: os.version(),
       })
       .catch(err => debug(`<error> while send 'host': ${err.message}`));
-    debug(`logLevel`, config.get('logLevel'));
+    debug(`logLevel: ${config().get('logLevel')}`);
     server
-      .send(socket, 'logLevel', config.get('logLevel'))
+      .send(socket, 'logLevel', config().get('logLevel'))
       .catch(e => debug(`error while send logLevel ${e.message}`));
   };
 
@@ -272,7 +224,7 @@ export class NibusService {
       serial.on('close', (path: string) => this.removeHandler({ path }));
       this.server.ports[serial.path] = serial;
       this.server.broadcast('add', serial.toJSON()).catch(noop);
-      this.updateLogger(serial);
+      // this.updateLogger(serial);
       // this.find(connection);
     }
   };
@@ -288,7 +240,5 @@ export class NibusService {
 }
 
 const service = new NibusService();
-
-export { detectionPath } from './detector';
 
 export default service;

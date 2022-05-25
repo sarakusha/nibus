@@ -10,19 +10,14 @@
 
 import { IKnownPort, MibDescription } from '@nibus/core';
 import { Socket } from 'net';
-import SerialPort, { OpenOptions } from 'serialport';
+import { SerialPort } from 'serialport';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
 
 const debug = debugFactory('nibus:serial-tee');
-const portOptions: OpenOptions = {
-  baudRate: 115200,
-  dataBits: 8,
-  parity: 'none',
-  stopBits: 1,
-};
 
 // eslint-disable-next-line no-shadow
+/*
 export enum Direction {
   in,
   out,
@@ -31,6 +26,7 @@ export enum Direction {
 export interface SerialLogger {
   (data: Buffer, dir: Direction): void;
 }
+*/
 
 interface SerialTeeEvents {
   close: (path: string) => void;
@@ -43,18 +39,19 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
 
   private closed = false;
 
-  private logger: SerialLogger | null = null;
+  // private logger: SerialLogger | null = null;
 
   constructor(public readonly portInfo: IKnownPort, public readonly description: MibDescription) {
     super();
     const { path } = portInfo;
     const win32 = (process.platform === 'win32' && description.win32) || {};
     this.serial = new SerialPort(
-      path,
       {
-        ...portOptions,
+        path,
+        dataBits: 8,
+        stopBits: 1,
         baudRate: description.baudRate || 115200,
-        parity: win32.parity || description.parity || portOptions.parity,
+        parity: win32.parity || description.parity || 'none',
       },
       err => {
         if (err) {
@@ -81,7 +78,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     if (this.closed) return;
     const { serial } = this;
     if (serial.isOpen) {
-      debug('close serial', serial.path);
+      debug(`close serial: ${serial.path}`);
       serial.close();
     }
     const connections = this.connections.slice();
@@ -91,6 +88,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     this.emit('close', this.portInfo.path);
   };
 
+  /*
   public setLogger(logger: SerialLogger | null): void {
     // if (this.logger) {
     //   this.server.off('raw', this.logger);
@@ -100,6 +98,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     //   this.server.on('raw', this.logger);
     // }
   }
+*/
 
   toJSON(): { portInfo: IKnownPort; description: MibDescription } {
     const { portInfo, description } = this;
@@ -110,17 +109,17 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
   }
 
   broadcast = (data: Buffer): void => {
-    const { logger, closed, connections } = this;
+    const { closed, connections } = this;
     if (closed) return;
     connections.forEach(socket => socket.write(data));
-    logger && logger(data, Direction.out);
+    // logger && logger(data, Direction.out);
   };
 
   send = (data: Buffer): void => {
-    const { logger, closed, serial } = this;
+    const { closed, serial } = this;
     if (closed) return;
     serial.write(data);
-    logger && logger(data, Direction.in);
+    // logger && logger(data, Direction.in);
   };
 
   private releaseSocket(socket: Socket): void {

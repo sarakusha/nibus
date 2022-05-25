@@ -57,7 +57,7 @@ const logCommand: CommandModule<CommonOpts, LogOpts> = {
           resolved ? resolve() : reject();
         });
         socket.on('error', err => {
-          debug('<error>', err);
+          debug(`<error>: ${err}`);
         });
         socket.on('connect', async () => {
           try {

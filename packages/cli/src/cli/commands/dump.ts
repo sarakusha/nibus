@@ -63,9 +63,10 @@ async function dumpDevice(
   if (argv.id) {
     ids = argv.id.map(id => device.getId(id));
   }
-  config.set('timeout', argv.timeout ? argv.timeout * 1000 : 1000);
+  const save = config().get('timeout');
+  argv.timeout && config().set('timeout', argv.timeout * 1000);
   const result = await device.read(...ids);
-  config.set('timeout', 1000);
+  config().set('timeout', save);
   const rows: RowType[] = Object.keys(result).map(key => {
     const value = raw ? device.getError(key) || device.getRawValue(key) : result[key];
     return {
@@ -119,7 +120,7 @@ function findDevices(mib: string, connection: INibusConnection, argv: Arguments<
   count += 1;
   const proto = getMibPrototype(mib);
   const type = Reflect.getMetadata('deviceType', proto) as number;
-  connection.findByType(type).catch(e => debug('error while findByType', e.stack));
+  connection.findByType(type).catch(e => debug(`error while findByType ${e.stack}`));
   connection.on('sarp', datagram => {
     count += 1;
     if (datagram.queryType !== SarpQueryType.ByType || datagram.deviceType !== type) return;

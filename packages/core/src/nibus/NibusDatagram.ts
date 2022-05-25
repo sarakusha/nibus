@@ -9,6 +9,7 @@
  */
 
 /* eslint-disable no-bitwise */
+import 'reflect-metadata';
 import { crc16ccitt } from 'crc';
 import _ from 'lodash';
 import Address, { AddressParam } from '../Address';
@@ -126,10 +127,10 @@ ${leadZero(ts.getSeconds())}.${ts.getMilliseconds()}`,
   toString(opts?: { pick?: string[]; omit?: string[] }): string {
     let self = replaceBuffers(this.toJSON()) as Record<string, unknown>;
     if (opts) {
-      if (opts.pick) {
+      if (opts.pick?.length) {
         self = _.pick(self, opts.pick);
       }
-      if (opts.omit) {
+      if (opts.omit?.length) {
         self = _.omit(self, opts.omit);
       }
     }

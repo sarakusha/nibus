@@ -13,7 +13,8 @@ import { PathReporter } from 'io-ts/lib/PathReporter';
 import { CommandModule } from 'yargs';
 import path from 'path';
 import fs from 'fs';
-import { convert, MibDeviceV } from '@nibus/core';
+import { convert } from '@nibus/core';
+import { MibDeviceV } from '@nibus/mibs';
 import { CommonOpts } from '../options';
 
 type MibOpts = CommonOpts & {
@@ -30,7 +31,7 @@ const mibCommand: CommandModule<CommonOpts, MibOpts> = {
       })
       .demandOption('mibfile'),
   handler: async ({ mibfile }) => {
-    const dest = path.resolve(__dirname, '../../../../core/mibs');
+    const dest = path.join(require.resolve('@nibus/core'), );
     const jsonPath = await convert(mibfile as string, dest);
     const validation = MibDeviceV.decode(fs.readFileSync(jsonPath));
     if (isLeft(validation)) {

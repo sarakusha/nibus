@@ -9,19 +9,21 @@
  */
 
 /* eslint-disable no-param-reassign */
-import fs from 'fs';
+import 'reflect-metadata';
+
 import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
 import Address, { AddressParam } from '../Address';
-import { LogLevel, asyncSerialMap, delay, noop, toMessage, tuplify } from '../common';
+import { asyncSerialMap, delay, LogLevel, noop, toMessage, tuplify } from '../common';
 import { BrightnessHistory, Client, Display, Host, PortArg } from '../ipc';
-import { DeviceId, Devices, IDevice, IMibDeviceType, getMibFile, toInt } from '../mib';
+import { DeviceId, Devices, IDevice, toInt } from '../mib';
 
 import { INibusConnection, NibusConnection } from '../nibus';
 import { NibusEvents, VersionInfo } from '../nibus/NibusConnection';
 import { NmsDatagram, NmsServiceType } from '../nms';
 import { Category } from './KnownPorts';
+import { getMib, IMibDeviceType } from '@nibus/mibs';
 
 const debug = debugFactory('nibus:session');
 
@@ -215,6 +217,16 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     return timeout;
   }
 
+  /*
+  emit: TypedEmitter<NibusSessionEvents>['emit'] = (...args) => {
+    if (args && args.length > 0) {
+      console.log('EMIT', args[0]);
+      return super.emit(...args);
+    }
+    return false;
+  };
+*/
+
   // public async start(watch = true) {
   //   if (this.isStarted) return;
   //   const { detection } = detector;
@@ -331,7 +343,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
         .catch(noop);
     } catch (e) {
       const message = toMessage(e);
-      console.error(message);
+      console.error((e as Error).stack);
       debug(`error while new connection: ${message}`);
     }
   };
@@ -374,7 +386,9 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
           case 'sarp': {
             let { type } = desc;
             if (type === undefined) {
-              const mib = JSON.parse(fs.readFileSync(getMibFile(desc.mib!)).toString());
+              if (!desc.mib) throw new Error('Unknown mib');
+              const mib = getMib(desc.mib);
+              if (!mib) throw new Error(`Unknown mib: ${desc.mib}`);
               const { types } = mib;
               const device = types[mib.device] as IMibDeviceType;
               type = toInt(device.appinfo.device_type);

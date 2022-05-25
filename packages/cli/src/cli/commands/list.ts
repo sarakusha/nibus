@@ -35,7 +35,7 @@ const listCommand: CommandModule<CommonOpts, ListOpts> = {
           resolved ? resolve() : reject(error && error.message);
         });
         socket.on('ports', (ports: PortArg[]) => {
-          debug('ports', ports);
+          debug(`ports: ${ports}`);
           const rows = _.sortBy(ports, [_.property('description.category')]).map(
             ({ portInfo: { manufacturer, category, device, path } }) => ({
               manufacturer,

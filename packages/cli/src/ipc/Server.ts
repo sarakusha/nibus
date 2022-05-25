@@ -14,7 +14,7 @@ import net, { Server, Socket } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
 import type SerialTee from './SerialTee';
-import { Direction } from './SerialTee';
+// import { Direction } from './SerialTee';
 
 const debug = debugFactory('nibus:IPCServer');
 
@@ -23,7 +23,7 @@ interface IPCServerEvents {
   'client:error': (socket: Socket, err: Error) => void;
   'client:setLogLevel': (
     client: Socket,
-    logLevel: LogLevel | undefined,
+    logLevel: LogLevel | undefined
     // pickFields: Fields,
     // omitFields: Fields,
   ) => void;
@@ -31,7 +31,7 @@ interface IPCServerEvents {
   'client:config': (socket: Socket, config: Record<string, unknown>) => void;
   'client:getBrightnessHistory': (socket: Socket, dt?: number) => void;
   // 'client:ping': (socket: Socket) => void;
-  raw: (data: Buffer, dir: Direction) => void;
+  raw: (data: Buffer /*, dir: Direction*/) => void;
 }
 
 /*
@@ -78,14 +78,17 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
   listen(port: number, host?: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.server.once('error', reject);
-      this.server.listen({
-        port,
-        host,
-      }, () => {
-        debug('listening on %o', this.server.address());
-        this.server.off('error', reject);
-        resolve();
-      });
+      this.server.listen(
+        {
+          port,
+          host,
+        },
+        () => {
+          debug('listening on %o', this.server.address());
+          this.server.off('error', reject);
+          resolve();
+        }
+      );
     });
   }
 
@@ -116,10 +119,7 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
     };
     return new Promise(resolve => {
       try {
-        client.write(
-          `${JSON.stringify(data)}${MSG_DELIMITER}`,
-          () => resolve(),
-        );
+        client.write(`${JSON.stringify(data)}${MSG_DELIMITER}`, () => resolve());
       } catch (err) {
         debug(`error while send ${JSON.stringify(data)}`);
         resolve();
@@ -128,9 +128,9 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
   }
 
   broadcast(event: string, ...args: unknown[]): Promise<void> {
-    return Promise.all(
-      this.clients.map(client => this.send(client, event, ...args)),
-    ).then(() => {});
+    return Promise.all(this.clients.map(client => this.send(client, event, ...args))).then(
+      () => {}
+    );
   }
 
   close = (): void => {
@@ -141,7 +141,8 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
     this.clients.length = 0;
     this.server.close();
     // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
-    setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
+    // setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
+    Object.values(this.ports).forEach(serial => serial.close());
     // this.raw && this.push(null);
     debug(`${JSON.stringify(path)} closed`);
   };
@@ -184,25 +185,24 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
       const chunks = data.toString().split(MSG_DELIMITER);
       chunks[0] = this.tail + chunks[0];
       [this.tail] = chunks.splice(-1, 1);
-      chunks.filter(line => line && line.trim().length > 0).forEach(line => {
-        try {
-          const {
-            event,
-            args,
-          } = JSON.parse(line);
-          const res = ClientEventsArgsV.decode([event, ...args].filter(item => !!item));
-          if (isRight(res)) {
-            const [name, ...opts]: ClientEventsArgs = res.right;
-            if (name === 'ping') {
-              this.send(socket, 'pong').catch(console.error);
-            } else {
-              this.emit(`client:${name}` as `client:${typeof name}`, ...[socket, ...opts] as never);
+      chunks
+        .filter(line => line && line.trim().length > 0)
+        .forEach(line => {
+          try {
+            const { event, args } = JSON.parse(line);
+            const res = ClientEventsArgsV.decode([event, ...args].filter(item => !!item));
+            if (isRight(res)) {
+              const [name, ...opts]: ClientEventsArgs = res.right;
+              if (name === 'ping') {
+                this.send(socket, 'pong').catch(console.error);
+              } else {
+                this.emit(`client:${name}`, ...([socket, ...opts] as never));
+              }
             }
+          } catch (err) {
+            debug(`error while parse ${line}`);
           }
-        } catch (err) {
-          debug(`error while parse ${line}`);
-        }
-      });
+        });
     };
     const removeClient = (): void => {
       const index = this.clients.findIndex(item => item === socket);

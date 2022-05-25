@@ -9,8 +9,8 @@
  */
 
 import 'reflect-metadata';
+import { getMib, getMibNames } from '@nibus/mibs/index';
 import session from '../session/MockNibusSession';
-import { getMibs } from './mib2json';
 
 const { devices } = session;
 
@@ -62,7 +62,7 @@ describe('Device', () => {
   //   expect(devices.get().length).toBe(count);
   // });
   test('mibs', async () => {
-    const mibs = await getMibs();
+    const mibs = getMibNames();
     expect(mibs.length).toBeGreaterThanOrEqual(43);
   });
 });

@@ -10,10 +10,10 @@
 
 /* eslint-disable no-bitwise */
 import { crc16ccitt } from 'crc';
+import { XMLParser } from 'fast-xml-parser';
 import fs from 'fs';
 import { parse } from 'intel-hex';
 import _ from 'lodash';
-import { XMLParser } from 'fast-xml-parser';
 import path from 'path';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import { delay, toError, toMessage } from '../common';
@@ -21,12 +21,11 @@ import { delay, toError, toMessage } from '../common';
 import { DownloadDataListener, IDevice } from '../mib';
 import { getDefaultSession } from '../session';
 // import session from '../session';
-import { BootloaderFunction, CHUNK_SIZE, FLASH_SIZE, encode, uint32ToBytes } from '../slip';
+import { BootloaderFunction, CHUNK_SIZE, encode, FLASH_SIZE, uint32ToBytes } from '../slip';
+import { FlashKinds, Kind } from './FlashKinds';
 
 const crcPrev = 0xaa55;
 
-export const FlashKinds = ['fpga', 'mcu', 'rbf', 'ttc', 'ctrl', 'tca', 'tcc'] as const;
-export type Kind = typeof FlashKinds[number];
 type Domains = 'RFLASH' | 'MCU' | 'FPGA';
 type Routines = 'reloadHost' | 'updateHost' | 'reloadModule' | 'updateModule';
 type KindOpts = {
@@ -38,17 +37,6 @@ type KindOpts = {
   domain: Domains;
 };
 type KindMeta = Record<Kind, KindOpts>;
-export type Ext = 'rbf' | 'tcc' | 'tca' | 'xml' | 'hex' | 'txt';
-
-export const KindMap: Record<Kind, readonly [ext: Ext, isModule: boolean, legacy: boolean]> = {
-  fpga: ['rbf', false, false],
-  mcu: ['hex', false, false],
-  rbf: ['rbf', true, false],
-  ctrl: ['txt', true, false],
-  ttc: ['xml', true, false],
-  tcc: ['tcc', true, true],
-  tca: ['tca', true, true],
-} as const;
 
 const ident = (buf: Buffer): Buffer => buf;
 

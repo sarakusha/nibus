@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [3.5.5](https://github.com/sarakusha/nibus/compare/v3.5.4...v3.5.5) (2022-05-25)
+
+
+### Bug Fixes
+
+* crashes when quitting electron and closing nibus ([6840b10](https://github.com/sarakusha/nibus/commit/6840b10405ae8824cf8c97bbe4dcc4ad809faebe))
+
+
+
+
+
 ## [3.5.4](https://github.com/sarakusha/nibus/compare/v3.5.3...v3.5.4) (2022-01-14)
 
 

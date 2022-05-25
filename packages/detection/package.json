@@ -1,6 +1,6 @@
 {
   "name": "@nibus/detection",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "license": "MIT",
   "description": "nibus.js auto detection config",
   "keywords": [
@@ -45,5 +45,6 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node"
-  }
+  },
+  "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

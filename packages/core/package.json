@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -80,5 +80,6 @@
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

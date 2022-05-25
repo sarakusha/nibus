@@ -1,6 +1,6 @@
 {
   "name": "@nibus/mibs",
-  "version": "3.5.4",
+  "version": "3.5.5",
   "keywords": [
     "nata-info",
     "nibus",
@@ -37,5 +37,6 @@
     "build:module": "tsc --inlineSourceMap --moduleResolution node --target es2021 index.ts",
     "rename": "rimraf index.mjs && node -e \"require('fs').rename('index.js', 'index.mjs', err => err && console.error(err.message))\"",
     "yalc:push": "yalc push"
-  }
+  },
+  "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

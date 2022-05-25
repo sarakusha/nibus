@@ -183,3 +183,10 @@ Temporary Items
 /.yalc/
 
 /yalc.lock
+/packages/gmib/
+/packages/detection/index.d.ts
+/packages/detection/index.js
+/packages/detection/index.mjs
+/packages/mibs/index.d.ts
+/packages/mibs/index.js
+/packages/mibs/index.mjs

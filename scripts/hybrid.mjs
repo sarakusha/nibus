@@ -2,7 +2,7 @@
 
 /* eslint-disable import/no-extraneous-dependencies */
 import { existsSync } from 'fs';
-import { copyFile, mkdir, readdir, rm, writeFile } from 'fs/promises';
+import { copyFile, mkdir, readdir, rm, writeFile, readFile } from 'fs/promises';
 import path from 'path';
 import mkdirp from 'mkdirp';
 import replaceInFile from 'replace-in-file';
@@ -23,6 +23,16 @@ async function* getFiles(dir) {
     }
   }
 }
+
+const copyFixSourceMap = async (src, dest) => {
+  const text = (await readFile(src)).toString();
+  await writeFile(dest,
+    text.replace(
+      `//# sourceMappingURL=${path.basename(src)}.map`,
+      `//# sourceMappingURL=${path.basename(dest)}.map`,
+    ),
+  );
+};
 
 (async () => {
   if (existsSync(hybrid)) {
@@ -49,8 +59,8 @@ async function* getFiles(dir) {
         if (isIndex) ignore.push(`${dir}/index.*`);
         const pkg = path.join(dir, 'package.json');
         const mjsSrc = path.resolve(es, relative);
-        await copyFile(src, path.join(dir, 'index.js'));
-        await copyFile(mjsSrc, path.join(dir, 'index.mjs'));
+        await copyFixSourceMap(src, path.join(dir, 'index.js'));
+        await copyFixSourceMap(mjsSrc, path.join(dir, 'index.mjs'));
         await writeFile(pkg, `{
   "sideEffects": false,
   "module": "./index.mjs",

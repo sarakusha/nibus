@@ -96,3 +96,6 @@ knownDevices:
   - vid: '10c4'
     pid: 'ea60'
     category: 'novastar'
+  - vid: '0483'
+    pid: '5720'
+    category: 'novastar'

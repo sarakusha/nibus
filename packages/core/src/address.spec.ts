@@ -28,6 +28,13 @@ describe('Address', () => {
       net.toHaveProperty('device', 0x34);
     });
 
+    test('255.255.1', () => {
+      const net = new Address('255.255.1');
+      expect(net.toString()).toBe('255.255.1');
+      expect([...net.raw]).toEqual([255, 0, 255, 1, 0, 0]);
+      expect(Address.toAddress(net)?.equals(net));
+    });
+
     test('should be group', () => {
       const group = expect(new Address('255.128'));
       group.toHaveProperty('domain', 255);

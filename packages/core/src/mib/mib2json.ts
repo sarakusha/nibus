@@ -193,7 +193,7 @@ export async function convert(mibpath: string, dir?: string): Promise<string> {
 }
 
 const xsdMibRe = /^\S+\.mib\.xsd$/i;
-const jsonMibRe = /^(\S+)\.mib\.json$/i;
+// const jsonMibRe = /^(\S+)\.mib\.json$/i;
 
 export const convertDir = (dir: string): Promise<void> =>
   new Promise((resolve, reject) => {
@@ -206,7 +206,7 @@ export const convertDir = (dir: string): Promise<void> =>
         .map(file =>
           convert(path.join(dir, file))
             .then(() => console.info(`${file}: success`))
-            .catch(error => console.error(`${file}: ${error.message}`)),
+            .catch(error => console.error(`${file}: ${error.message}`))
         );
       return resolve(Promise.all(promises).then(() => {}));
     });

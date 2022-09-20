@@ -11,8 +11,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as t from 'io-ts';
-import { isLeft } from 'fp-ts/lib/Either';
-import { PathReporter } from 'io-ts/lib/PathReporter';
+import { isLeft } from 'fp-ts/Either';
+import { PathReporter } from 'io-ts/PathReporter';
+
+import root from './json';
 
 const MibPropertyAppInfoV = t.intersection([
   t.type({
@@ -95,7 +97,7 @@ const MibSubroutineV = t.intersection([
       t.type({
         type: t.string,
         annotation: t.string,
-      }),
+      })
     ),
   }),
 ]);
@@ -124,15 +126,12 @@ export interface MibSubroutines extends t.TypeOf<typeof MibSubroutineV> {}
 
 export interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {}
 
-const root = path.join(__dirname, 'json');
-
 const decodeMib = (name: string): IMibDevice => {
-  const mibValidation = MibDeviceV.decode(JSON.parse(fs.readFileSync(`${root}/${name}.mib.json`)
-    .toString()));
+  const mibValidation = MibDeviceV.decode(
+    JSON.parse(fs.readFileSync(`${root}/${name}.mib.json`).toString())
+  );
   if (isLeft(mibValidation)) {
-    throw new Error(
-      `Invalid mib file ${name} ${PathReporter.report(mibValidation).join('\n')}`,
-    );
+    throw new Error(`Invalid mib file ${name} ${PathReporter.report(mibValidation).join('\n')}`);
   }
   return mibValidation.right;
 };
@@ -142,7 +141,9 @@ function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
 }
 
 const mibs = Object.fromEntries(
-  fs.readdirSync(root)
+  fs
+    .readdirSync(root)
+    .filter(file => file.endsWith('.mib.json'))
     .map(file => path.basename(file, '.mib.json'))
     .map(mibname => {
       try {
@@ -152,7 +153,9 @@ const mibs = Object.fromEntries(
         console.error(`Invalid mib ${mibname}: ${(err as Error).message}`);
         return undefined;
       }
-    }).filter(notEmpty)) as Record<string, IMibDevice>;
+    })
+    .filter(notEmpty)
+) as Record<string, IMibDevice>;
 
 export const getMibNames = (): string[] => Object.keys(mibs);
 

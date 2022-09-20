@@ -14,8 +14,9 @@ import 'reflect-metadata';
 import _ from 'lodash';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
+import { IMibDeviceType, getMib } from '@nibus/mibs';
 import Address, { AddressParam } from '../Address';
-import { asyncSerialMap, delay, LogLevel, noop, toMessage, tuplify } from '../common';
+import { LogLevel, asyncSerialMap, delay, noop, toMessage, tuplify } from '../common';
 import { BrightnessHistory, Client, Display, Host, PortArg } from '../ipc';
 import { DeviceId, Devices, IDevice, toInt } from '../mib';
 
@@ -23,7 +24,6 @@ import { INibusConnection, NibusConnection } from '../nibus';
 import { NibusEvents, VersionInfo } from '../nibus/NibusConnection';
 import { NmsDatagram, NmsServiceType } from '../nms';
 import { Category } from './KnownPorts';
-import { getMib, IMibDeviceType } from '@nibus/mibs';
 
 const debug = debugFactory('nibus:session');
 

@@ -8,8 +8,8 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { isLeft } from 'fp-ts/lib/Either';
-import { PathReporter } from 'io-ts/lib/PathReporter';
+import { isLeft } from 'fp-ts/Either';
+import { PathReporter } from 'io-ts/PathReporter';
 import { CommandModule } from 'yargs';
 import path from 'path';
 import fs from 'fs';
@@ -31,7 +31,7 @@ const mibCommand: CommandModule<CommonOpts, MibOpts> = {
       })
       .demandOption('mibfile'),
   handler: async ({ mibfile }) => {
-    const dest = path.join(require.resolve('@nibus/core'), );
+    const dest = path.join(require.resolve('@nibus/core'));
     const jsonPath = await convert(mibfile as string, dest);
     const validation = MibDeviceV.decode(fs.readFileSync(jsonPath));
     if (isLeft(validation)) {

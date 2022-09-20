@@ -9,14 +9,15 @@
  */
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import * as path from 'path';
 import * as t from 'io-ts';
-import { isLeft } from 'fp-ts/lib/Either';
-import { PathReporter } from 'io-ts/lib/PathReporter';
-import { MibDescriptionV } from '@nibus/core/lib/MibDescription';
-import { CategoryV } from '@nibus/core/lib/session/KnownPorts';
+import { isLeft } from 'fp-ts/Either';
+import { PathReporter } from 'io-ts/PathReporter';
+import { MibDescriptionV } from '@nibus/core/MibDescription';
+import { CategoryV } from '@nibus/core/session/KnownPorts';
 
-export const detectionPath = path.join(__dirname, 'detection.yml');
+import detectionPath from './assets';
+
+export { detectionPath };
 
 const HexOrNumberV = t.union([t.number, t.string]);
 

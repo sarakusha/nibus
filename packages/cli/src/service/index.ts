@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 /* eslint-disable no-bitwise */
-import { config, IKnownPort, LogLevel, toMessage } from '@nibus/core';
+import { IKnownPort, LogLevel, config, toMessage } from '@nibus/core';
 import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
@@ -20,7 +20,7 @@ import { SerialTee, Server } from '../ipc';
 import detector from './detector';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
-const version = process.env['npm_package_version'] ?? 'N/A';
+const version = process.env.npm_package_version ?? 'N/A';
 
 const bonjour = Bonjour();
 const debug = debugFactory('nibus:service');

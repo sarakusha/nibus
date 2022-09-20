@@ -9,7 +9,7 @@
  */
 
 import { ClientEventsArgs, ClientEventsArgsV, LogLevel, MSG_DELIMITER } from '@nibus/core';
-import { isRight } from 'fp-ts/lib/Either';
+import { isRight } from 'fp-ts/Either';
 import net, { Server, Socket } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
@@ -31,7 +31,7 @@ interface IPCServerEvents {
   'client:config': (socket: Socket, config: Record<string, unknown>) => void;
   'client:getBrightnessHistory': (socket: Socket, dt?: number) => void;
   // 'client:ping': (socket: Socket) => void;
-  raw: (data: Buffer /*, dir: Direction*/) => void;
+  raw: (data: Buffer /* , dir: Direction*/) => void;
 }
 
 /*

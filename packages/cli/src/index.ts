@@ -10,7 +10,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { getMibNames } from '@nibus/mibs/index';
+import { getMibNames } from '@nibus/mibs';
 import yargs from 'yargs';
 import dump from './cli/commands/dump';
 import list from './cli/commands/list';
@@ -27,8 +27,7 @@ import flash from './cli/commands/flash';
 import execute from './cli/commands/execute';
 import parse from './cli/commands/parse';
 
-// eslint-disable-next-line  @typescript-eslint/no-unused-vars
-const { argv } = yargs
+const { argv: _ } = yargs
   .option('mac', {
     alias: 'm',
     desc: 'Адрес устройства',

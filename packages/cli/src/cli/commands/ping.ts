@@ -10,7 +10,7 @@
 
 import { CommandModule } from 'yargs';
 import _ from 'lodash';
-import { getDefaultSession, TimeoutError } from '@nibus/core';
+import { TimeoutError, getDefaultSession } from '@nibus/core';
 import { CommonOpts, MacOptions } from '../options';
 import serviceWrapper from '../serviceWrapper';
 

@@ -9,7 +9,7 @@
  */
 
 import 'reflect-metadata';
-import { getMib, getMibNames } from '@nibus/mibs/index';
+import { getMibNames } from '@nibus/mibs';
 import session from '../session/MockNibusSession';
 
 const { devices } = session;

@@ -9,7 +9,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { Either, getOrElse } from 'fp-ts/lib/Either';
+import { Either, getOrElse } from 'fp-ts/Either';
 import find from 'lodash/find';
 import filter from 'lodash/filter';
 import findIndex from 'lodash/findIndex';

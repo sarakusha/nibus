@@ -9,7 +9,7 @@
  */
 
 import chalk from 'chalk';
-import Table, { HorizontalTableRow, GenericTable } from 'cli-table3';
+import Table, { GenericTable, HorizontalTableRow } from 'cli-table3';
 import _ from 'lodash';
 import { Arguments, CommandModule } from 'yargs';
 import {
@@ -17,10 +17,10 @@ import {
   IDevice,
   INibusConnection,
   SarpQueryType,
-  getMibPrototype,
-  getDefaultSession,
-  toMessage,
   config,
+  getDefaultSession,
+  getMibPrototype,
+  toMessage,
 } from '@nibus/core';
 
 import debugFactory from 'debug';

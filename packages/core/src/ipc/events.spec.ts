@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { isRight } from 'fp-ts/lib/Either';
+import { isRight } from 'fp-ts/Either';
 import {
   EventFromString,
   EventV,

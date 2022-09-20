@@ -49,13 +49,13 @@ export function config(newValue?: NibusConfig): NibusConfig {
     debug(`Config: ${JSON.stringify(current)}`);
   }
   if (!current) {
-    const config = new Conf<Config>({
-      schema: schema,
+    const value = new Conf<Config>({
+      schema,
       clearInvalidConfig: true,
       projectName: 'nibus',
     });
-    debug(`Config: ${config.path}`);
-    current = config;
+    debug(`Config: ${value.path}`);
+    current = value;
   }
   return current;
 }

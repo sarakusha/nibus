@@ -21,7 +21,7 @@ import { delay, toError, toMessage } from '../common';
 import { DownloadDataListener, IDevice } from '../mib';
 import { getDefaultSession } from '../session';
 // import session from '../session';
-import { BootloaderFunction, CHUNK_SIZE, encode, FLASH_SIZE, uint32ToBytes } from '../slip';
+import { BootloaderFunction, CHUNK_SIZE, FLASH_SIZE, encode, uint32ToBytes } from '../slip';
 import { FlashKinds, Kind } from './FlashKinds';
 
 const crcPrev = 0xaa55;

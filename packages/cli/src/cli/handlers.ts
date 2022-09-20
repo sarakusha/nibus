@@ -10,12 +10,12 @@
 
 import { Arguments, Defined } from 'yargs';
 import {
-  getDefaultSession,
-  IDevice,
   Address,
+  IDevice,
   INibusConnection,
-  toMessage,
   config,
+  getDefaultSession,
+  toMessage,
 } from '@nibus/core';
 
 import { CommonOpts } from './options';

@@ -197,7 +197,7 @@ export default class Address {
                 this.group = parseInt(group, radix);
                 if (!validNumbers(this.domain, this.group)) throw new Error('Invalid address');
                 this.type = AddressType.group;
-                this.view.setUint16(0, this.domain || 0);
+                this.view.setUint16(0, this.domain || 0, true);
                 this.view.setUint8(2, this.group || 0);
                 break;
               }
@@ -209,9 +209,9 @@ export default class Address {
                 if (!validNumbers(this.domain, this.subnet, this.device))
                   throw new Error('Invalid address');
                 this.type = AddressType.net;
-                this.view.setUint16(0, this.domain || 0);
+                this.view.setUint16(0, this.domain || 0, true);
                 this.view.setUint8(2, this.subnet || 0);
-                this.view.setUint16(3, this.device || 0);
+                this.view.setUint16(3, this.device || 0, true);
                 break;
               }
               default:
@@ -253,7 +253,7 @@ export default class Address {
           }
       }
     } else if (
-      (Array.isArray(address) ||address instanceof Uint8Array) &&
+      (Array.isArray(address) || address instanceof Uint8Array) &&
       address.length === MAC_LENGTH
     ) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -329,7 +329,7 @@ export default class Address {
   /**
    * Считать адрес из буфера
    * @param type - Тип адреса
-   * @param src
+   * @param src - source
    * @param offset - смещение
    */
   public static read(type: AddressType, src: number[] | Uint8Array, offset = 0): Address {
@@ -344,14 +344,14 @@ export default class Address {
         return new Address(buffer);
       case AddressType.net: {
         const net = [
-          view.getUint16(offset),
-          view.getUint8(offset + 2),
-          view.getUint16(offset + 3),
+          view.getUint16(0, true),
+          view.getUint8(2),
+          view.getUint16(3, true),
         ];
         return new Address(net.join('.'));
       }
       case AddressType.group: {
-        const group = [view.getUint16(offset), view.getUint8(offset + 2)];
+        const group = [view.getUint16(0, true), view.getUint8(2)];
         return new Address(group.join('.'));
       }
       default:

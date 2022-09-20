@@ -9,8 +9,8 @@
  */
 
 import { Socket, SocketConstructorOpts } from 'net';
-import { PathReporter } from 'io-ts/lib/PathReporter';
-import { isLeft } from 'fp-ts/lib/Either';
+import { PathReporter } from 'io-ts/PathReporter';
+import { isLeft } from 'fp-ts/Either';
 // import xpipe from 'xpipe';
 import debugFactory from 'debug';
 import { LogLevel, MSG_DELIMITER } from '../common';

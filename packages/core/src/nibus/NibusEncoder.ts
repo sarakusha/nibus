@@ -31,10 +31,10 @@ export default class NibusEncoder extends Transform {
     const logLevel = config().get('logLevel');
     chunks.forEach((datagram: NibusDatagram) => {
       if (logLevel === 'nibus') {
-        debug({
+        debug(datagram.toString({
           pick: config().get('pick'),
           omit: config().get('omit'),
-        });
+        }));
       } else if (logLevel === 'hex') {
         debug(printBuffer(datagram.raw));
       }

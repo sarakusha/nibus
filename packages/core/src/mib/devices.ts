@@ -987,8 +987,7 @@ export const getMibTypes = (): MibTypes => {
 };
 
 export function findMibByType(type: number, version?: number): string | undefined {
-  const mibTypes = getMibTypes();
-  const mibs = mibTypes![type];
+  const mibs = getMibTypes()[type];
   if (mibs && mibs.length) {
     let mibType = mibs[0];
     if (version && mibs.length > 1) {

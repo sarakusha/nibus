@@ -216,7 +216,7 @@ export const booleanConverter: IConverter = {
         return false;
       }
     }
-    return value;
+    return !!value;
   },
   to: value => {
     if (typeof value === 'boolean') {

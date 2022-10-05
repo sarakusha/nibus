@@ -17,11 +17,11 @@ import {
   IDevice,
   INibusConnection,
   SarpQueryType,
-  config,
   getDefaultSession,
   getMibPrototype,
   toMessage,
 } from '@nibus/core';
+import { config } from '@nibus/core/config';
 
 import debugFactory from 'debug';
 import { CommonOpts } from '../options';

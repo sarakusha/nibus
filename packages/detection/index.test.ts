@@ -11,6 +11,6 @@ import loadDetection from './index';
 
 describe('detection', () => {
   it('decode', () => {
-    expect(() => loadDetection()).not.toThrow();
+    expect(() => console.log(loadDetection())).not.toThrow();
   });
 });

@@ -16,7 +16,7 @@ import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
 import { IMibDeviceType, getMib } from '@nibus/mibs';
 import Address, { AddressParam } from '../Address';
-import { LogLevel, asyncSerialMap, delay, noop, toMessage, tuplify } from '../common';
+import { LogLevel, asyncSerialMap, delay, noop, toMessage, tuplify, VERSION_ID } from '../common';
 import { BrightnessHistory, Client, Display, Host, PortArg } from '../ipc';
 import { DeviceId, Devices, IDevice, toInt } from '../mib';
 
@@ -55,6 +55,7 @@ export interface NibusSessionEvents {
   foreign: (port: PortArg) => void;
   health: (health: Record<string, unknown>) => void;
 }
+
 // noinspection JSUnusedLocalSymbols
 export interface INibusSession {
   on<U extends keyof NibusSessionEvents>(event: U, listener: NibusSessionEvents[U]): this;
@@ -65,8 +66,8 @@ export interface INibusSession {
   start(port?: number, host?: string): Promise<number>;
   // connectDevice(device: IDevice, connection: INibusConnection): void;
   close(): void;
-  pingDevice(device: IDevice): Promise<number>;
-  ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
+  // pingDevice(device: IDevice): Promise<number>;
+  ping(address: AddressParam): Promise<readonly [-1, undefined] | readonly [number, VersionInfo]>;
   reloadDevices(): void;
   setLogLevel(logLevel: LogLevel): void;
   saveConfig(config: Record<string, unknown>): void;
@@ -91,14 +92,21 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
   constructor(readonly port: number, readonly host?: string) {
     super();
     this.devices.on('new', device => {
-      if (!device.connection) {
-        this.pingDevice(device).catch();
-      }
+      const connectHandler = () => this.emit('connected', device);
+      const disconnectHandler = () => this.emit('disconnected', device);
+      device.on('disconnected', disconnectHandler);
+      device.on('connected', connectHandler);
+      device.once('release', () => {
+        device.off('connected', connectHandler);
+        device.off('disconnected', disconnectHandler);
+      })
+      // if (!device.connection) {
+      //   this.pingDevice(device).catch();
+      // }
     });
     this.devices.on('delete', device => {
       if (device.connection) {
         device.connection = undefined;
-        this.emit('disconnected', device);
       }
     });
   }
@@ -117,9 +125,15 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
         resolve(this.connections.length);
         return;
       }
-      const { port, host } = this;
+      const {
+        port,
+        host,
+      } = this;
       // this.isStarted = true;
-      this.socket = Client.connect({ port, host });
+      this.socket = Client.connect({
+        port,
+        host,
+      });
       // let connected = false;
       this.socket.on('online', value => this.emit('online', value));
       this.socket.on('displays', value => this.emit('displays', value));
@@ -176,14 +190,20 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
   }
 
   //
+/*
   async pingDevice(device: IDevice): Promise<number> {
     const { connections } = this;
     const deviceType = Reflect.getMetadata('deviceType', device);
-    if (device.connection && connections.includes(device.connection)) {
-      const [timeout, info] = await device.connection.ping(device.address);
-      if (timeout !== -1) {
-        const { type } = info!;
-        if (deviceType === type) return timeout;
+    if (device.connection) {
+      let timeout = 0;
+      let info: VersionInfo | undefined;
+      for (let i = 0; i < 3; i += 1) {
+
+        [timeout, info] = await device.connection.ping(device.address);
+        if (timeout !== -1 && info) {
+          const { type } = info;
+          if (deviceType === type) return timeout;
+        }
       }
 
       device.connection = undefined;
@@ -191,31 +211,34 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
       // device.emit('disconnected');
     }
 
-    const mib = Reflect.getMetadata('mib', device);
-    const occupied: INibusConnection[] = this.devices
-      .get()
-      .map(item => item.connection!)
-      .filter(connection => connection != null && !connection.description.link);
-    const acceptable = _.difference(connections, occupied).filter(
-      ({ description }) => description.link || description.mib === mib
-    );
-    if (acceptable.length === 0) return -1;
+    return -1;
 
-    const [timeout, connection] = await Promise.race(
-      acceptable.map(item =>
-        item
-          .ping(device.address)
-          .then(([t, info]) => tuplify(info?.type === deviceType ? t : -1, item))
-      )
-    );
-    if (timeout === -1) {
-      // ping(acceptables[0], device.address);
-      return -1;
-    }
-
-    this.connectDevice(device, connection);
-    return timeout;
+    // const mib = Reflect.getMetadata('mib', device);
+    // const occupied: INibusConnection[] = this.devices
+    //   .get()
+    //   .map(item => item.connection!)
+    //   .filter(connection => connection != null && !connection.description.link);
+    // const acceptable = _.difference(connections, occupied).filter(
+    //   ({ description }) => description.link || description.mib === mib,
+    // );
+    // if (acceptable.length === 0) return -1;
+    //
+    // const [timeout, connection] = await Promise.race(
+    //   acceptable.map(item =>
+    //     item
+    //       .ping(device.address)
+    //       .then(([t, info]) => tuplify(info?.type === deviceType ? t : -1, item)),
+    //   ),
+    // );
+    // if (timeout === -1) {
+    //   // ping(acceptables[0], device.address);
+    //   return -1;
+    // }
+    //
+    // this.connectDevice(device, connection);
+    // return timeout;
   }
+*/
 
   /*
   emit: TypedEmitter<NibusSessionEvents>['emit'] = (...args) => {
@@ -246,7 +269,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
   //   debug('started');
   // }
 
-  async ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]> {
+  async ping(address: AddressParam): Promise<readonly [-1, undefined] | readonly [number, VersionInfo]> {
     const { connections } = this;
     const addr = new Address(address);
     if (connections.length === 0) return Promise.resolve([-1, undefined]);
@@ -312,7 +335,10 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
       return;
     }
     try {
-      const { port, host } = this;
+      const {
+        port,
+        host,
+      } = this;
       const connection = new NibusConnection(this, path, description, port, host);
       const nmsListener: NibusEvents['nms'] = nms => {
         if (nms.service === NmsServiceType.InformationReport) {
@@ -358,7 +384,7 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
       .forEach(device => {
         // eslint-disable-next-line no-param-reassign
         device.connection = undefined;
-        this.emit('disconnected', device);
+        // this.emit('disconnected', device);
         debug(`mib-device ${connection.path}#${device.address} was disconnected`);
       });
     this.emit('remove', connection);
@@ -428,7 +454,10 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
           }
           case 'version':
             try {
-              const { type, source: address } = (await connection.getVersion(Address.empty)) ?? {};
+              const {
+                type,
+                source: address,
+              } = (await connection.getVersion(Address.empty)) ?? {};
               // debug(
               //   `find version - type:${type}, address: ${address}, desc: ${JSON.stringify(desc)}`
               // );
@@ -467,7 +496,7 @@ let defaultSession: INibusSession | undefined;
 
 export const getNibusSession = (
   port = +(process.env.NIBUS_PORT ?? 9001),
-  host: string | undefined = undefined
+  host: string | undefined = undefined,
 ): INibusSession => {
   const key = getKey(port, host);
   if (!sessions.has(key)) {

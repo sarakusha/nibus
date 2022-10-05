@@ -7,30 +7,48 @@
     "nibus",
     "sarakusha"
   ],
-  "main": "lib/service/index.js",
-  "types": "lib/service/index.d.ts",
-  "module": "lib/service/index.mjs",
+  "main": "build/main/service/index.js",
+  "types": "build/module/service/index.d.ts",
+  "module": "build/module/service/index.js",
+  "exports": {
+    ".": {
+      "require": "./build/main/service/index.js",
+      "default": "./build/module/service/index.js"
+    },
+    "./": {
+      "require": "./build/main/",
+      "default": "./build/module/"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./build/module/*",
+        "./build/module/service/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "type-check": "tsc --noEmit",
     "service": "cross-env NODE_ENV=production DEBUG=nibus:*,-nibus:decoder pm2 --name=nibus.service start lib/service/daemon.js",
-    "build": "run-p build:* && yarn hybrid",
+    "build": "run-p build:*",
     "build:main": "tsc -p tsconfig.json",
     "build:module": "tsc -p tsconfig.module.json",
-    "hybrid": "node ../../scripts/hybrid.mjs",
     "compile": "cross-env NODE_ENV=development tsc",
-    "clean": "shx rm -rf lib tsconfig.tsbuildinfo",
+    "clean": "shx rm -rf build *.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
     "yalc:push": "yalc push"
   },
   "bin": {
-    "nibus": "lib/index.js"
+    "nibus": "build/main/index.js"
   },
   "author": "Andrei Sarakeev <avs@nata-info.ru>",
   "license": "MIT",
   "files": [
-    "lib",
-    "assets",
+    "build",
+    "!**/*.tsbuildinfo",
     "!**/*.spec.*",
     "CHANGELOG.md",
     "README.md"
@@ -59,6 +77,9 @@
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
+    "@nibus/core": "^3.5.5",
+    "@nibus/detection": "^3.5.5",
+    "@nibus/mibs": "^3.5.5",
     "@serialport/bindings-cpp": "^10.7.0",
     "bonjour-hap": "^3.6.2",
     "chalk": "^5.0.0",

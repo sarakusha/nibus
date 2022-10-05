@@ -19,7 +19,7 @@ export * from './nibus';
 export * from './mib';
 export * from './ipc';
 export * from './MibDescription';
-export * from './config';
+// export * from './config';
 
 export * from './session';
 // export { default } from './session';

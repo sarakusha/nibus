@@ -8,7 +8,8 @@
  * the EULA file that was distributed with this source code.
  */
 /* eslint-disable no-bitwise */
-import { IKnownPort, LogLevel, config, toMessage } from '@nibus/core';
+import { IKnownPort, LogLevel, toMessage } from '@nibus/core';
+import { config } from '@nibus/core/config';
 import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
@@ -99,6 +100,8 @@ export class NibusService {
 
   private ad?: Bonjour.Service;
 
+  private token?: string;
+
   constructor() {
     this.server = new Server();
     this.server.on('connection', this.connectionHandler);
@@ -118,8 +121,9 @@ export class NibusService {
     }
   */
 
-  public async start(): Promise<void> {
+  public async start(token?: string): Promise<void> {
     if (this.isStarted) return;
+    this.token = token;
     await this.server.listen(this.port, process.env.NIBUS_HOST);
     this.isStarted = true;
     try {
@@ -181,7 +185,8 @@ export class NibusService {
     // pickFields: Fields,
     // omitFields: Fields
   ): void => {
-    debug(`setLogLevel: ${logLevel}`);
+    const prev = config().get('logLevel');
+    if (prev !== logLevel) debug(`setLogLevel: ${logLevel}/${prev}`);
     if (logLevel) {
       config().set('logLevel', logLevel);
       this.server
@@ -208,6 +213,7 @@ export class NibusService {
         platform: os.platform(),
         arch: os.arch(),
         version: os.version(),
+        token: this.token,
       })
       .catch(err => debug(`<error> while send 'host': ${err.message}`));
     debug(`logLevel: ${config().get('logLevel')}`);

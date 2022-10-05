@@ -8,18 +8,19 @@
  * the EULA file that was distributed with this source code.
  */
 
-import 'reflect-metadata';
-
-import debugFactory from 'debug';
 /* eslint-disable max-classes-per-file,no-plusplus,no-bitwise,no-await-in-loop */
+import 'reflect-metadata';
+import debugFactory from 'debug';
 import { isLeft } from 'fp-ts/Either';
 import { PathReporter } from 'io-ts/PathReporter';
 import remove from 'lodash/remove';
+import debounce from 'lodash/debounce';
 import { Socket, connect } from 'net';
 import pump from 'pump';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import Address, { AddressParam } from '../Address';
-import { Datagram, MINIHOST_TYPE, VERSION_ID, delay, tuplify } from '../common';
+import { Datagram, MINIHOST_TYPE, VERSION_ID, delay } from '../common';
+import Deferred from '../Deferred';
 import { TimeoutError } from '../errors';
 import type { IDevice } from '../mib';
 import { MibDescription, MibDescriptionV } from '../MibDescription';
@@ -35,6 +36,8 @@ import { config } from '../config';
 
 const debug = debugFactory('nibus:connection');
 
+export const IDLE_TIMEOUT = 5000;
+
 class WaitedNmsDatagram {
   readonly resolve: (datagram: NmsDatagram) => void;
 
@@ -42,7 +45,7 @@ class WaitedNmsDatagram {
     public readonly req: NmsDatagram,
     resolve: (datagram: NmsDatagram | NmsDatagram[]) => void,
     reject: (reason: Error) => void,
-    callback: (self: WaitedNmsDatagram) => void
+    callback: (self: WaitedNmsDatagram) => void,
   ) {
     let timer: NodeJS.Timer;
     let counter: number =
@@ -53,8 +56,8 @@ class WaitedNmsDatagram {
       if (datagrams.length === 0) {
         reject(
           new TimeoutError(
-            `Timeout error on ${req.destination} while ${NmsServiceType[req.service]}`
-          )
+            `Timeout error on ${req.destination} while ${NmsServiceType[req.service]}`,
+          ),
         );
       } else {
         resolve(datagrams);
@@ -85,6 +88,7 @@ export interface NibusEvents {
   nms: (datagram: NmsDatagram) => void;
   close: () => void;
   chunk: (offset: number) => void;
+  idle: (lastActivity: number) => void;
 }
 
 export interface INibusConnection {
@@ -92,7 +96,7 @@ export interface INibusConnection {
   once<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
   off<U extends keyof NibusEvents>(event: U, listener: NibusEvents[U]): this;
   sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined>;
-  ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]>;
+  ping(address: AddressParam): Promise<readonly [-1, undefined] | readonly [number, VersionInfo]>;
   findByType(type: number): Promise<SarpDatagram>;
   getVersion(address: AddressParam): Promise<VersionInfo | undefined>;
   close(): void;
@@ -104,6 +108,7 @@ export interface INibusConnection {
   execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram>;
   owner?: IDevice;
   readonly session: INibusSession;
+  readonly lastActivity: number;
 }
 
 export type VersionInfo = {
@@ -135,12 +140,14 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
 
   private finishSlip: (() => void) | undefined;
 
+  #lastActivity = 0;
+
   constructor(
     public readonly session: INibusSession,
     public readonly path: string,
     description: MibDescription,
     readonly port: number,
-    readonly host?: string
+    readonly host?: string,
   ) {
     super();
     const validate = MibDescriptionV.decode(description);
@@ -161,7 +168,8 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
       }, 100);
     });
     this.decoder.on('data', this.onDatagram);
-    // this.encoder.on('data', datagram => debug('datagram send', JSON.stringify(datagram.toJSON())));
+    // this.encoder.on('data', datagram => debug('datagram send',
+    // JSON.stringify(datagram.toJSON())));
     this.socket.once('close', this.close);
     debug(`new connection on ${path} (${description.category})`);
   }
@@ -170,35 +178,53 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     return this.closed;
   }
 
+  private startIdle = debounce(() => this.emit('idle', this.#lastActivity), IDLE_TIMEOUT);
+
   public sendDatagram(datagram: NibusDatagram): Promise<NmsDatagram | NmsDatagram[] | undefined> {
+    this.#lastActivity = Date.now();
+    this.startIdle();
     // debug('write datagram from ', datagram.source.toString());
-    const { encoder, stopWaiting, waited, closed } = this;
-    return new Promise((resolve, reject) => {
-      this.ready = this.ready.finally(async () => {
-        if (closed) return reject(new Error('Closed'));
-        if (!encoder.write(datagram)) {
-          await new Promise(cb => {
-            encoder.once('drain', cb);
-          });
-        }
-        if (!(datagram instanceof NmsDatagram) || datagram.notReply) {
-          return resolve(undefined);
-        }
-        return waited.push(new WaitedNmsDatagram(datagram, resolve, reject, stopWaiting));
-      });
-    });
+    const {
+      encoder,
+      stopWaiting,
+      waited,
+      closed,
+    } = this;
+    const deferred = new Deferred<NmsDatagram | NmsDatagram[] | undefined>();
+    // return new Promise((resolve, reject) => {
+    this.ready = this.ready.finally().then(async () => {
+      if (closed) return deferred.reject(new Error('Closed'));
+      if (!encoder.write(datagram)) {
+        await new Promise(cb => {
+          encoder.once('drain', cb);
+        });
+      }
+      if (!(datagram instanceof NmsDatagram) || datagram.notReply) {
+        return deferred.resolve(undefined);
+      }
+      waited.push(new WaitedNmsDatagram(
+        datagram,
+        deferred.resolve,
+        deferred.reject,
+        stopWaiting,
+      ));
+      await deferred.promise.catch(() => {});
+      // await delay(100);
+    }).catch(() => {});
+    return deferred.promise;
+    // });
   }
 
-  public ping(address: AddressParam): Promise<[-1, undefined] | [number, VersionInfo]> {
+  public ping(address: AddressParam): Promise<readonly [-1, undefined] | readonly [number, VersionInfo]> {
     // debug(`ping [${address.toString()}] ${this.path}`);
     const now = Date.now();
     return this.getVersion(address)
       .then(response =>
         response
-          ? tuplify(response.timestamp - now, response)
-          : ([-1, undefined] as [-1, undefined])
+          ? [response.timestamp - now, response] as const
+          : ([-1, undefined] as const),
       )
-      .catch(() => [-1, undefined]);
+      .catch(() => [-1, undefined] as const);
   }
 
   public findByType(type: number = MINIHOST_TYPE): Promise<SarpDatagram> {
@@ -207,8 +233,8 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     let sarpHandler: NibusEvents['sarp'] = () => {};
     return new Promise<SarpDatagram>((resolve, reject) => {
       const timeout = setTimeout(
-        () => reject(new TimeoutError("Device didn't respond")),
-        config().get('timeout') || 1000
+        () => reject(new TimeoutError('Device didn\'t respond')),
+        config().get('timeout') || 1000,
       );
       sarpHandler = sarpDatagram => {
         clearTimeout(timeout);
@@ -223,7 +249,11 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     const nmsRead = createNmsRead(address, VERSION_ID);
     try {
       const datagram = (await this.sendDatagram(nmsRead)) as NmsDatagram;
-      const { value, status, source } = datagram;
+      const {
+        value,
+        status,
+        source,
+      } = datagram;
       const timestamp = Number(Reflect.getOwnMetadata('timeStamp', datagram));
       if (status !== 0) {
         debug(`<error> ${status}`);
@@ -231,7 +261,13 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
       }
       const version = (value as number) & 0xffff;
       const type = (value as number) >>> 16;
-      return { version, type, source, timestamp, connection: this };
+      return {
+        version,
+        type,
+        source,
+        timestamp,
+        connection: this,
+      };
     } catch (err) {
       // debug(`<error> ${err.message || err}`);
       return undefined;
@@ -240,12 +276,16 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
 
   public close = (): void => {
     if (this.closed) return;
-    const { path, description } = this;
+    const {
+      path,
+      description,
+    } = this;
     debug(`close connection on ${path} (${description.category})`);
     this.closed = true;
     this.encoder.end();
     this.decoder.removeAllListeners('data');
     this.socket.destroy();
+    this.startIdle.cancel();
     this.emit('close');
   };
 
@@ -272,7 +312,11 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
   };
 
   async execBootloader(fn: BootloaderFunction, data?: LikeArray): Promise<SlipDatagram> {
-    const { finishSlip, encoder, decoder } = this;
+    const {
+      finishSlip,
+      encoder,
+      decoder,
+    } = this;
     if (!finishSlip) throw new Error('SLIP mode required');
     const chunks = slipChunks(fn, data);
     const wait = (): Promise<SlipDatagram> => {
@@ -335,6 +379,10 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
       this.finishSlip();
       this.finishSlip = undefined;
     }
+  }
+
+  get lastActivity() {
+    return this.#lastActivity;
   }
 }
 

@@ -31,38 +31,49 @@ export const PortArgV = t.type({
   portInfo: KnownPortV,
   description: MibDescriptionV,
 });
+
 export interface PortArg extends t.TypeOf<typeof PortArgV> {
   portInfo: IKnownPort;
   description: MibDescription;
 }
 
-export const HostV = t.type({
-  name: t.string,
-  platform: t.string,
-  arch: t.string,
-  version: t.string,
-});
+export const HostV =
+  t.type({
+    name: t.string,
+    platform: t.string,
+    arch: t.string,
+    version: t.string,
+    token: t.union([t.string, t.undefined]),
+  });
+
 export interface Host extends t.TypeOf<typeof HostV> {}
 
 export const PortsEventV = eventType('ports', t.array(PortArgV));
+
 export interface PortsEvent extends t.TypeOf<typeof PortsEventV> {}
 
 export const PortAddedEventV = eventType('add', PortArgV);
+
 export interface PortAddedEvent extends t.TypeOf<typeof PortAddedEventV> {}
 
 export const PortRemovedEventV = eventType('remove', PortArgV);
+
 export interface PortRemovedEvent extends t.TypeOf<typeof PortRemovedEventV> {}
 
 export const LogLevelEventV = eventType('logLevel', LogLevelV);
+
 export interface LogLevelEvent extends t.TypeOf<typeof LogLevelEventV> {}
 
 export const ConfigEventV = eventType('config', t.UnknownRecord);
+
 export interface ConfigEvent extends t.TypeOf<typeof ConfigEventV> {}
 
 export const HostEventV = eventType('host', HostV);
+
 export interface HostEvent extends t.TypeOf<typeof HostEventV> {}
 
 export const LogLineEventV = eventType('log', t.string);
+
 export interface LogLineEvent extends t.TypeOf<typeof LogLineEventV> {}
 
 export const PongEventV = eventType('pong', t.void);
@@ -158,16 +169,16 @@ class FromStringType<A> extends t.Type<A, string> {
           isRight(jv)
             ? jv.right
             : [
-                {
-                  value: sv.right,
-                  context: c,
-                  message: toError(jv.left).message,
-                },
-              ],
-          c
+              {
+                value: sv.right,
+                context: c,
+                message: toError(jv.left).message,
+              },
+            ],
+          c,
         );
       },
-      JSON.stringify
+      JSON.stringify,
     );
   }
 }

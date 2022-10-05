@@ -13,11 +13,11 @@ import {
   Address,
   IDevice,
   INibusConnection,
-  config,
   getDefaultSession,
   toMessage,
 } from '@nibus/core';
 
+import { config } from '@nibus/core/config';
 import { CommonOpts } from './options';
 import serviceWrapper, { Handler } from './serviceWrapper';
 

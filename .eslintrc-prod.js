@@ -12,17 +12,9 @@ const path = require('path');
 
 module.exports = {
   parser: '@typescript-eslint/parser', // Specifies the ESLint parser
-  plugins: [
-    'import',
-    '@typescript-eslint',
-    'react-hooks',
-    'eslint-plugin-tsdoc',
-    'prettier',
-    'unused-imports',
-  ],
+  plugins: ['import', '@typescript-eslint', 'eslint-plugin-tsdoc', 'prettier', 'unused-imports'],
   extends: [
-    'airbnb',
-    // 'plugin:react/recommended',
+    'airbnb-base',
     'prettier',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the
@@ -44,15 +36,6 @@ module.exports = {
     // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended
     // configs e.g. "@typescript-eslint/explicit-function-return-type": "off",
     'import/extensions': ['error', 'never'],
-    'react/jsx-filename-extension': ['error', { extensions: ['.jsx', '.tsx'] }],
-    'react/jsx-one-expression-per-line': 'off',
-    'react/jsx-props-no-spreading': 'off',
-    'react/jsx-indent': 'off',
-    'react/prop-types': 'off',
-    'react/jsx-curly-brace-presence': 'off',
-    'react/state-in-constructor': 'off',
-    'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
     'spaced-comment': ['error', 'always', { markers: ['/'] }],
     '@typescript-eslint/no-non-null-assertion': 'off',
     '@typescript-eslint/interface-name-prefix': 'off',
@@ -110,24 +93,9 @@ module.exports = {
     'no-param-reassign': ['error', { props: false }],
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': 'error',
-    'react/require-default-props': 'off',
-    'react/jsx-wrap-multilines': [
-      'error',
-      {
-        declaration: false,
-        assignment: false,
-      },
-    ],
-    'no-restricted-imports': [
-      'error',
-      {
-        patterns: ['@material-ui/core/*', '!@material-ui/core/styles'],
-      },
-    ],
     // note you must disable the base rule as it can report incorrect errors
     'no-shadow': 'off',
     '@typescript-eslint/no-shadow': ['error'],
-    'react/function-component-definition': 'off',
   },
   overrides: [
     {
@@ -139,10 +107,6 @@ module.exports = {
     },
   ],
   settings: {
-    react: {
-      version: 'detect', // Tells eslint-plugin-react to automatically detect the version of React
-      // to use
-    },
     'import/parsers': {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },

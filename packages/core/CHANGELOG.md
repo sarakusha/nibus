@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.6.0](https://github.com/sarakusha/nibus/compare/v3.5.4...v3.6.0) (2022-10-28)
+
+
+### Bug Fixes
+
+* boolean converter ([e03b01c](https://github.com/sarakusha/nibus/commit/e03b01cc9f93e0ec70ced57939ced56a921cbf05))
+* nibus log ([ce890bc](https://github.com/sarakusha/nibus/commit/ce890bcc2d3d5bbb6c11f87644ea77f49eac6e25))
+* wrong endianness and address offset ([3eb32ff](https://github.com/sarakusha/nibus/commit/3eb32ff26344952729096edf5c7b53f365938d2e))
+
+
+
+
+
 ## [3.5.5](https://github.com/sarakusha/nibus/compare/v3.5.4...v3.5.5) (2022-05-25)
 
 **Note:** Version bump only for package @nibus/core

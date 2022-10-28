@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "3.5.5",
+  "version": "3.6.0",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -77,9 +77,9 @@
   },
   "dependencies": {
     "@homebridge/ciao": "^1.1.5",
-    "@nibus/core": "^3.5.5",
-    "@nibus/detection": "^3.5.5",
-    "@nibus/mibs": "^3.5.5",
+    "@nibus/core": "^3.6.0",
+    "@nibus/detection": "^3.6.0",
+    "@nibus/mibs": "^3.6.0",
     "@serialport/bindings-cpp": "^10.7.0",
     "chalk": "^5.0.0",
     "cli-table3": "^0.6.0",

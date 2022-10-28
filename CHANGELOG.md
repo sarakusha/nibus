@@ -3,6 +3,35 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.6.0](https://github.com/sarakusha/nibus/compare/v3.5.4...v3.6.0) (2022-10-28)
+
+
+### Bug Fixes
+
+* boolean converter ([e03b01c](https://github.com/sarakusha/nibus/commit/e03b01cc9f93e0ec70ced57939ced56a921cbf05))
+* crashes when quitting electron and closing nibus ([6840b10](https://github.com/sarakusha/nibus/commit/6840b10405ae8824cf8c97bbe4dcc4ad809faebe))
+* **detection:** removed manufacturer restriction ([2c9b295](https://github.com/sarakusha/nibus/commit/2c9b2955ead360b9aaac316d440f3cf174e92e1c))
+* nibus log ([ce890bc](https://github.com/sarakusha/nibus/commit/ce890bcc2d3d5bbb6c11f87644ea77f49eac6e25))
+* update timeout ([a733b50](https://github.com/sarakusha/nibus/commit/a733b5091c14231a322d52c42fe9f5b55f741a73))
+* wrong endianness and address offset ([3eb32ff](https://github.com/sarakusha/nibus/commit/3eb32ff26344952729096edf5c7b53f365938d2e))
+
+
+### Features
+
+* **AccordionList:** looks like a button (hover/selected) ([b11ef75](https://github.com/sarakusha/nibus/commit/b11ef7566d6d3522ddc55f029219307902eef74f))
+* add novastar mctrl300 ([60cd05b](https://github.com/sarakusha/nibus/commit/60cd05b64b25bc97b60ea91fe3d7221c7567b161))
+* all library files became hybrid (cjs/mjs) ([5eb289d](https://github.com/sarakusha/nibus/commit/5eb289d8ad8c700ef74770e0670b96ba419799a9))
+* increment/decrement brightness buttons ([90b542c](https://github.com/sarakusha/nibus/commit/90b542cb87a179266bd04126687edadabd44d96c))
+* increment/decrement brightness buttons ([c14222a](https://github.com/sarakusha/nibus/commit/c14222a1f7963bbd07de37415233ec05dd9f1970))
+* novastar rgbv/gamma/mode control ([070d4bb](https://github.com/sarakusha/nibus/commit/070d4bbbfde3b8a83a342e13c461089ba45d20b3))
+* novastar rgbv/gamma/mode control ([4104f0e](https://github.com/sarakusha/nibus/commit/4104f0e2ee442d8a4c57d7ca5ecb0bea23c6c9ca))
+* novastar telemetry tab ([e939d78](https://github.com/sarakusha/nibus/commit/e939d78e6db99b376e34341485fcf075f8dc83e4))
+* novastar telemetry tab ([0f2193b](https://github.com/sarakusha/nibus/commit/0f2193b0f2bf95a4db4b9e1dd1baca24f076576e))
+
+
+
+
+
 ## [3.5.5](https://github.com/sarakusha/nibus/compare/v3.5.4...v3.5.5) (2022-05-25)
 
 

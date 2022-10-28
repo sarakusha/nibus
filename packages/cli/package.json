@@ -62,7 +62,6 @@
     "url": "https://github.com/sarakusha/nibus/issues"
   },
   "devDependencies": {
-    "@types/bonjour": "^3.5.8",
     "@types/configstore": "^5.0.0",
     "@types/debug": "^4.1.0",
     "@types/jest-diff": "^24.3.0",
@@ -77,11 +76,11 @@
     "babel-plugin-transform-imports": "^2.0.0"
   },
   "dependencies": {
+    "@homebridge/ciao": "^1.1.5",
     "@nibus/core": "^3.5.5",
     "@nibus/detection": "^3.5.5",
     "@nibus/mibs": "^3.5.5",
     "@serialport/bindings-cpp": "^10.7.0",
-    "bonjour-hap": "^3.6.2",
     "chalk": "^5.0.0",
     "cli-table3": "^0.6.0",
     "configstore": "^6.0.0",

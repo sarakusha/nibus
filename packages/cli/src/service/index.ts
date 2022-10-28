@@ -8,12 +8,12 @@
  * the EULA file that was distributed with this source code.
  */
 /* eslint-disable no-bitwise */
-import { IKnownPort, LogLevel, toMessage } from '@nibus/core';
+import { IKnownPort, LogLevel } from '@nibus/core';
 import { config } from '@nibus/core/config';
 import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
-import Bonjour from 'bonjour-hap';
+import { CiaoService, getResponder } from '@homebridge/ciao';
 
 import debugFactory from 'debug';
 import { SerialTee, Server } from '../ipc';
@@ -23,7 +23,7 @@ import detector from './detector';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
 const version = process.env.npm_package_version ?? 'N/A';
 
-const bonjour = Bonjour();
+const responder = getResponder();
 const debug = debugFactory('nibus:service');
 // const debugIn = debugFactory('nibus:<<<');
 // const debugOut = debugFactory('nibus:>>>');
@@ -98,7 +98,7 @@ export class NibusService {
 
   private isStarted = false;
 
-  private ad?: Bonjour.Service;
+  private readonly ciaoService: CiaoService;
 
   private token?: string;
 
@@ -107,6 +107,12 @@ export class NibusService {
     this.server.on('connection', this.connectionHandler);
     this.server.on('client:setLogLevel', this.logLevelHandler);
     this.server.on('client:reloadDevices', this.reload);
+    this.ciaoService = responder.createService({
+      name: os.hostname().replace(/\.local\.?$/, ''),
+      type: 'nibus',
+      port: this.port,
+      txt: { version },
+    });
   }
 
   get path(): string {
@@ -126,16 +132,7 @@ export class NibusService {
     this.token = token;
     await this.server.listen(this.port, process.env.NIBUS_HOST);
     this.isStarted = true;
-    try {
-      this.ad = bonjour.publish({
-        name: os.hostname().replace(/\.local\.?$/, ''),
-        type: 'nibus',
-        port: this.port,
-        txt: { version },
-      });
-    } catch (err) {
-      debug(`error while bonjour.publish: ${toMessage(err)}`);
-    }
+    this.ciaoService.advertise().then(() => debug('service is published'));
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');
     detector.on('add', this.addHandler);
@@ -151,10 +148,7 @@ export class NibusService {
 
   public stop(): void {
     if (!this.isStarted) return;
-    if (this.ad) {
-      this.ad.stop();
-      this.ad = undefined;
-    }
+    this.ciaoService.end();
     // Нельзя сразу уничтожать иначе не отправится event:down
     // bonjour.unpublishAll();
     // bonjour.destroy();

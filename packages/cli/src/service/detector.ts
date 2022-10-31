@@ -183,12 +183,12 @@ async function reloadDevicesAsync(
 
     const checkCategory = (port: IKnownPort): void => {
       const category = matchCategory(port);
-      if (category !== port.category) {
-        debug(`device's category was changed ${port.category} to ${category}`);
+      // if (category !== port.category) {
+      //   debug(`device's category was changed ${port.category} to ${category}`);
         port.category && detector.emit('remove', port);
         port.category = safeGet(CategoryV.decode(category));
-        port.category && detector.emit('add', port);
-      }
+        port.category && setTimeout(() => detector.emit('add', port), 0);
+      // }
     };
 
     const detectCategory = (port: IKnownPort): void => {

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.7.0](https://github.com/sarakusha/nibus/compare/v3.6.0...v3.7.0) (2022-10-31)
+
+
+### Features
+
+* force reopen existing devices on reload ([d4e8607](https://github.com/sarakusha/nibus/commit/d4e8607ffa63a8cd0bc5b4967fc1db318ba6583a))
+
+
+
+
+
 # [3.6.0](https://github.com/sarakusha/nibus/compare/v3.5.4...v3.6.0) (2022-10-28)
 
 

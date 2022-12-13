@@ -18,9 +18,17 @@
       "require": "./build/main/index.js",
       "default": "./build/module/index.js"
     },
-    "./": {
-      "require": "./build/main/",
-      "import": "./build/module/"
+    "./sarp": {
+      "require": "./build/main/sarp/index.js",
+      "default": "./build/module/sarp/index.js"
+    },
+    "./session": {
+      "require": "./build/main/session/index.js",
+      "default": "./build/module/session/index.js"
+    },
+    "./*": {
+      "require": "./build/main/*.js",
+      "import": "./build/module/*.js"
     },
     "./package.json": "./package.json"
   },

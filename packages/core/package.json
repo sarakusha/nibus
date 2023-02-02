@@ -76,7 +76,6 @@
     "@types/pump": "^1.1.1",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-tsdoc": "^0.2.0",
-    "mkdirp": "^1.0.4",
     "replace-in-file": "^6.3.2",
     "typedoc": "^0.22.1"
   },
@@ -90,7 +89,6 @@
     "io-ts": "^2.0.5",
     "io-ts-types": "^0.5.5",
     "lodash": "^4.17.11",
-    "mkdirp": "^1.0.4",
     "monocle-ts": "^2.0.1",
     "newtype-ts": "^0.3.1",
     "printf": "^0.6.0",
@@ -102,7 +100,7 @@
   },
   "peerDependencies": {
     "@nibus/mibs": "^3.5.4",
-    "debug": "^4.3.1"
+    "debug": "^4.3.0"
   },
   "sideEffects": false,
   "publishConfig": {

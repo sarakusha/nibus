@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [4.0.0](https://github.com/sarakusha/nibus/compare/v3.8.0...v4.0.0) (2023-02-02)
+
+
+### Bug Fixes
+
+* improved device detection in Windows ([9f60023](https://github.com/sarakusha/nibus/commit/9f600234103ae0ae10e2f1fb9670c3d70cb95a6c))
+
+
+
+
+
 # [3.8.0](https://github.com/sarakusha/nibus/compare/v3.7.0...v3.8.0) (2022-12-13)
 
 **Note:** Version bump only for package @nibus/core

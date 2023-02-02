@@ -3,6 +3,32 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [4.0.0](https://github.com/sarakusha/nibus/compare/v3.8.0...v4.0.0) (2023-02-02)
+
+
+### Bug Fixes
+
+* improved device detection in Windows ([9f60023](https://github.com/sarakusha/nibus/commit/9f600234103ae0ae10e2f1fb9670c3d70cb95a6c))
+
+
+### Code Refactoring
+
+* divided into two packages, usb detection replaced with usb ([ae5cc69](https://github.com/sarakusha/nibus/commit/ae5cc69671d61826ef1e578680920b001867b989))
+
+
+### Features
+
+* added old minihost_v2.06.mib.json ([0844041](https://github.com/sarakusha/nibus/commit/0844041e9e4c34230657bbc7c8a4757a8332a8af))
+
+
+### BREAKING CHANGES
+
+* service API moved to a separate package
+
+
+
+
+
 # [3.8.0](https://github.com/sarakusha/nibus/compare/v3.7.0...v3.8.0) (2022-12-13)
 
 

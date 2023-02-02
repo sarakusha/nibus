@@ -1,6 +1,6 @@
 {
   "name": "@nibus/service",
-  "version": "3.6.0",
+  "version": "4.0.0",
   "description": "Nata-Info NiBUS service",
   "license": "MIT",
   "keywords": [
@@ -42,9 +42,9 @@
     "yalc:push": "yalc push"
   },
   "dependencies": {
-    "@nibus/core": "^3.8.0",
-    "@nibus/detection": "^3.6.0",
     "@homebridge/ciao": "^1.1.5",
+    "@nibus/core": "^4.0.0",
+    "@nibus/detection": "^4.0.0",
     "@serialport/bindings-cpp": "^10.8.0",
     "fp-ts": "^2.13.1",
     "lodash": "^4.17.21",

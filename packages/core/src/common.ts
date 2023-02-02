@@ -89,15 +89,15 @@ export const replaceBuffers = <T extends object>(obj: T): ReplaceType<T, Buffer,
 
 export function asyncSerialMap<T, R>(
   array: ReadonlyArray<T>,
-  action: (item: T, index: number, res: ReadonlyArray<R>) => Promise<R | R[]>
-): Promise<R[]> {
-  return array.reduce<Promise<R[]>>(
+  action: (item: T, index: number, res: ReadonlyArray<R>) => Promise<R | ReadonlyArray<R>>
+): Promise<ReadonlyArray<R>> {
+  return array.reduce<Promise<ReadonlyArray<R>>>(
     (acc, item, index) =>
       acc.then(async items => {
         const result = await action(item, index, items);
         return Array.isArray(result) ? [...items, ...result] : [...items, result];
       }),
-    Promise.resolve<R[]>([])
+    Promise.resolve<ReadonlyArray<R>>([])
   );
 }
 

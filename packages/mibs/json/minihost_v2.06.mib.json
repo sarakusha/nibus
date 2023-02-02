@@ -1,0 +1,851 @@
+{
+  "device": "MiniHost_v2.06",
+  "subroutines": {
+    "clear_stat": {
+      "annotation": "Обнулить статистику",
+      "appinfo": {
+        "nms_id": "4"
+      }
+    }
+  },
+  "types": {
+    "MiniHost_v2.06": {
+      "annotation": "MiniHost v2.06",
+      "appinfo": {
+        "mib_version": "1.1",
+        "device_type": "0xabc5",
+        "loader_type": "0x43",
+        "firmware": "minihost_v2.06.hex"
+      },
+      "properties": {
+        "version": {
+          "type": "versionType",
+          "annotation": "Версия загрузчика",
+          "appinfo": {
+            "nms_id": "2",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "firmware_version": {
+          "type": "versionType",
+          "annotation": "Версия firmware",
+          "appinfo": {
+            "nms_id": "0x85",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "serno": {
+          "type": "xs:unsignedLong",
+          "annotation": "Серийный номер",
+          "appinfo": {
+            "nms_id": "11",
+            "access": "r",
+            "representation": "%X",
+            "category": "Загрузчик"
+          }
+        },
+        "uptime": {
+          "type": "seconds",
+          "annotation": "Время с момента старта",
+          "appinfo": {
+            "nms_id": "3",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "post_result": {
+          "type": "xs:unsignedShort",
+          "annotation": "Результат POST",
+          "appinfo": {
+            "nms_id": "0x11f",
+            "access": "r",
+            "representation": "%X",
+            "category": "Загрузчик"
+          }
+        },
+        "upost_result": {
+          "type": "xs:byte",
+          "annotation": "Результат POST pcb-процесса",
+          "appinfo": {
+            "nms_id": "0x120",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "last_error": {
+          "type": "xs:short",
+          "annotation": "Последний код ошибки",
+          "appinfo": {
+            "nms_id": "0x84",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "rs485_errors": {
+          "type": "xs:unsignedInt",
+          "annotation": "Ошибок контрольной суммы в rs485 интерфейсе",
+          "appinfo": {
+            "nms_id": "0x100",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_collisions": {
+          "type": "xs:unsignedInt",
+          "annotation": "Коллизий при передаче дейтаграмм в rs485 интерфейсе",
+          "appinfo": {
+            "nms_id": "0x101",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_rx_datagrams": {
+          "type": "xs:unsignedInt",
+          "annotation": "Принято дейтаграмм в rs485 интерфейсе",
+          "appinfo": {
+            "nms_id": "0x102",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_tx_datagrams": {
+          "type": "xs:unsignedInt",
+          "annotation": "Отослано дейтаграмм в rs485 интерфейс",
+          "appinfo": {
+            "nms_id": "0x103",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_tx_failed": {
+          "type": "xs:unsignedInt",
+          "annotation": "Не отослано дейтаграмм в rs485 интерфейс",
+          "appinfo": {
+            "nms_id": "0x105",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "sarp_retries": {
+          "type": "xs:unsignedInt",
+          "annotation": "Коллизий при ответе на SARP-запрос",
+          "appinfo": {
+            "nms_id": "0x200",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "sarp_failed_resp": {
+          "type": "xs:unsignedInt",
+          "annotation": "Ошибок при ответе на SARP-запрос",
+          "appinfo": {
+            "nms_id": "0x201",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "sarp_requests": {
+          "type": "xs:unsignedInt",
+          "annotation": "SARP-запросов",
+          "appinfo": {
+            "nms_id": "0x202",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "sarp_resp": {
+          "type": "xs:unsignedInt",
+          "annotation": "SARP-ответов",
+          "appinfo": {
+            "nms_id": "0x203",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "pcb_ver": {
+          "type": "xs:unsignedByte",
+          "annotation": "Версия PCB",
+          "appinfo": {
+            "nms_id": "0x122",
+            "access": "r",
+            "category": "PCB"
+          }
+        },
+        "persist_error": {
+          "type": "xs:byte",
+          "annotation": "Ошибки при сохранении конфигурации",
+          "appinfo": {
+            "nms_id": "0x123",
+            "access": "r",
+            "category": "PCB"
+          }
+        },
+        "pld_version": {
+          "type": "xs:unsignedShort",
+          "annotation": "Версия PLD",
+          "appinfo": {
+            "nms_id": "0x350",
+            "access": "r",
+            "category": "PCB"
+          }
+        },
+        "pld_revision": {
+          "type": "xs:unsignedShort",
+          "annotation": "Версия Firmware",
+          "appinfo": {
+            "nms_id": "0x351",
+            "access": "r",
+            "category": "PCB"
+          }
+        },
+        "dvi_freq": {
+          "type": "xs:float",
+          "annotation": "Частота DVI-потока (МГц)",
+          "appinfo": {
+            "nms_id": "0x352",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "hsync": {
+          "type": "xs:unsignedShort",
+          "annotation": "H-Sync",
+          "appinfo": {
+            "nms_id": "0x353",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "hblank": {
+          "type": "xs:unsignedShort",
+          "annotation": "H-Blank",
+          "appinfo": {
+            "nms_id": "0x354",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "hde": {
+          "type": "xs:unsignedShort",
+          "annotation": "Горизонтальное разрешение (H-DE)",
+          "appinfo": {
+            "nms_id": "0x355",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "hperiod": {
+          "type": "xs:unsignedShort",
+          "annotation": "H-Period",
+          "appinfo": {
+            "nms_id": "0x356",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "vsync": {
+          "type": "xs:unsignedShort",
+          "annotation": "V-Sync",
+          "appinfo": {
+            "nms_id": "0x357",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "vblank": {
+          "type": "xs:unsignedShort",
+          "annotation": "V-Blank",
+          "appinfo": {
+            "nms_id": "0x358",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "vde": {
+          "type": "xs:unsignedShort",
+          "annotation": "Вертикальное разрешение (V-DE)",
+          "appinfo": {
+            "nms_id": "0x359",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "vperiod": {
+          "type": "xs:unsignedShort",
+          "annotation": "V-Period",
+          "appinfo": {
+            "nms_id": "0x35A",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "vfreq": {
+          "type": "xs:float",
+          "annotation": "Частота кадров (Гц)",
+          "appinfo": {
+            "nms_id": "0x35B",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "test_signal": {
+          "type": "xs:boolean",
+          "annotation": "Тестовый сигнал",
+          "appinfo": {
+            "nms_id": "0x35C",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "dvi_signal": {
+          "type": "xs:boolean",
+          "annotation": "DVI сигнал",
+          "appinfo": {
+            "nms_id": "0x35E",
+            "access": "r",
+            "category": "Параметры DVI потока"
+          }
+        },
+        "max_modules_h": {
+          "type": "xs:unsignedShort",
+          "annotation": "Макс. количество модулей по горизонтали",
+          "appinfo": {
+            "nms_id": "0x37F",
+            "access": "r",
+            "category": "Параметры FPGA"
+          }
+        },
+        "max_modules_v": {
+          "type": "xs:unsignedShort",
+          "annotation": "Макс. количество модулей по вертикали",
+          "appinfo": {
+            "nms_id": "0x380",
+            "access": "r",
+            "category": "Параметры FPGA"
+          }
+        },
+        "init_replay": {
+          "type": "xs:unsignedShort",
+          "annotation": "Reply Done",
+          "appinfo": {
+            "nms_id": "0x37C",
+            "access": "r",
+            "category": "Параметры FPGA"
+          }
+        },
+        "frames_delay": {
+          "type": "xs:unsignedByte",
+          "annotation": "Задержка в кадрах перед началом показа видео",
+          "appinfo": {
+            "nms_id": "0x382",
+            "access": "w\nr",
+            "category": "Параметры FPGA"
+          }
+        },
+        "domain": {
+          "type": "xs:unsignedByte",
+          "annotation": "Домен",
+          "appinfo": {
+            "nms_id": "0x81",
+            "access": "r\nw",
+            "category": "Сетевая адресация"
+          }
+        },
+        "subnet": {
+          "type": "xs:unsignedByte",
+          "annotation": "Подсеть",
+          "appinfo": {
+            "nms_id": "0x86",
+            "access": "r\nw",
+            "category": "Сетевая адресация"
+          }
+        },
+        "did": {
+          "type": "xs:unsignedShort",
+          "annotation": "Устройство",
+          "appinfo": {
+            "nms_id": "0x83",
+            "access": "r\nw",
+            "category": "Сетевая адресация"
+          }
+        },
+        "group": {
+          "type": "xs:unsignedByte",
+          "annotation": "Группа",
+          "appinfo": {
+            "nms_id": "0x82",
+            "access": "r\nws",
+            "category": "Сетевая адресация"
+          }
+        },
+        "module_hres": {
+          "type": "xs:unsignedByte",
+          "annotation": "Разрешение модуля по горизонтали",
+          "appinfo": {
+            "nms_id": "0x376",
+            "access": "r\nw",
+            "category": "Разрешение модуля"
+          }
+        },
+        "module_vres": {
+          "type": "xs:unsignedByte",
+          "annotation": "Разрешение модуля по вертикали",
+          "appinfo": {
+            "nms_id": "0x377",
+            "access": "r\nw",
+            "category": "Разрешение модуля"
+          }
+        },
+        "hres": {
+          "type": "resolutionType",
+          "annotation": "Разрешение экрана по горизонтали",
+          "appinfo": {
+            "nms_id": "0x378",
+            "access": "r\nw",
+            "category": "Разрешение экрана"
+          }
+        },
+        "vres": {
+          "type": "resolutionType",
+          "annotation": "Разрешение экрана по вертикали",
+          "appinfo": {
+            "nms_id": "0x379",
+            "access": "r\nw",
+            "category": "Разрешение экрана"
+          }
+        },
+        "hoffs": {
+          "type": "resolutionType",
+          "annotation": "Смещение экрана по горизонтали",
+          "appinfo": {
+            "nms_id": "0x37A",
+            "access": "r\nw",
+            "category": "Смещение экрана"
+          }
+        },
+        "voffs": {
+          "type": "resolutionType",
+          "annotation": "Смещение экрана по вертикали",
+          "appinfo": {
+            "nms_id": "0x37B",
+            "access": "r\nw",
+            "category": "Смещение экрана"
+          }
+        },
+        "rotation": {
+          "type": "rotationType",
+          "annotation": "Поворот",
+          "appinfo": {
+            "nms_id": "0x35F",
+            "access": "r\nw",
+            "category": "Управление"
+          }
+        },
+        "aad": {
+          "type": "addressingType",
+          "annotation": "Адресация",
+          "appinfo": {
+            "nms_id": "0x361",
+            "access": "r\nw",
+            "category": "Управление"
+          }
+        },
+        "indication": {
+          "type": "indicationType",
+          "annotation": "Режим индикации",
+          "appinfo": {
+            "nms_id": "0x360",
+            "access": "r\nw",
+            "category": "Управление"
+          }
+        },
+        "channel_rate": {
+          "type": "channelRateType",
+          "annotation": "Скорость в канале передачи",
+          "appinfo": {
+            "nms_id": "0x37D",
+            "access": "r\nw",
+            "category": "Скорость"
+          }
+        },
+        "brightness": {
+          "type": "brightnessType",
+          "annotation": "Яркость",
+          "appinfo": {
+            "browseable": "false",
+            "nms_id": "0x304",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "contrast": {
+          "type": "contrastType",
+          "annotation": "Контраст",
+          "appinfo": {
+            "nms_id": "0x305",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "uniColorCurve": {
+          "type": "xs:boolean",
+          "annotation": "Единая цветовая кривая",
+          "appinfo": {
+            "nms_id": "0x30a",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "gamma": {
+          "type": "gammaType",
+          "annotation": "Гамма",
+          "appinfo": {
+            "nms_id": "0x30b",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "gammaRed": {
+          "type": "gammaType",
+          "annotation": "Гамма (красный)",
+          "appinfo": {
+            "nms_id": "0x30b",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "gammaGreen": {
+          "type": "gammaType",
+          "annotation": "Гамма (зеленый)",
+          "appinfo": {
+            "nms_id": "0x30e",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "gammaBlue": {
+          "type": "gammaType",
+          "annotation": "Гамма (синий)",
+          "appinfo": {
+            "nms_id": "0x30f",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "wp": {
+          "type": "percentsType",
+          "annotation": "Точка белого",
+          "appinfo": {
+            "nms_id": "0x30d",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "wpRed": {
+          "type": "percentsType",
+          "annotation": "Точка белого (красный)",
+          "appinfo": {
+            "nms_id": "0x30d",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "wpGreen": {
+          "type": "percentsType",
+          "annotation": "Точка белого (зеленый)",
+          "appinfo": {
+            "nms_id": "0x312",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "wpBlue": {
+          "type": "percentsType",
+          "annotation": "Точка белого (синий)",
+          "appinfo": {
+            "nms_id": "0x313",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "bp": {
+          "type": "blackPointType",
+          "annotation": "Точка черного",
+          "appinfo": {
+            "nms_id": "0x30c",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "bpRed": {
+          "type": "blackPointType",
+          "annotation": "Точка черного (красный)",
+          "appinfo": {
+            "nms_id": "0x30c",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "bpGreen": {
+          "type": "blackPointType",
+          "annotation": "Точка черного (зеленый)",
+          "appinfo": {
+            "nms_id": "0x310",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "ColorTemperature": {
+          "type": "colorTemp",
+          "annotation": "Цветовая температура",
+          "appinfo": {
+            "nms_id": "0x381",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        },
+        "bpBlue": {
+          "type": "blackPointType",
+          "annotation": "Точка черного (синий)",
+          "appinfo": {
+            "nms_id": "0x311",
+            "access": "r\nw",
+            "category": "Цветовая кривая"
+          }
+        }
+      }
+    },
+    "versionType": {
+      "base": "xs:unsignedInt"
+    },
+    "indicationType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "видео"
+        },
+        "1": {
+          "annotation": "нарастание"
+        },
+        "2": {
+          "annotation": "красное поле"
+        },
+        "3": {
+          "annotation": "зеленое поле"
+        },
+        "4": {
+          "annotation": "синее поле"
+        },
+        "5": {
+          "annotation": "белое поле"
+        },
+        "6": {
+          "annotation": "гор/верт линии"
+        },
+        "7": {
+          "annotation": "черное поле"
+        }
+      }
+    },
+    "colorTemp": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "Выкл."
+        },
+        "1": {
+          "annotation": "4500K"
+        },
+        "2": {
+          "annotation": "5500K"
+        },
+        "3": {
+          "annotation": "6500K"
+        },
+        "4": {
+          "annotation": "7500K"
+        },
+        "5": {
+          "annotation": "8500K"
+        },
+        "6": {
+          "annotation": "9500K"
+        }
+      }
+    },
+    "addressingType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "принудительная"
+        },
+        "1": {
+          "annotation": "произвольная"
+        }
+      }
+    },
+    "channelRateType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "80 MBit/s"
+        },
+        "1": {
+          "annotation": "120 MBit/s"
+        },
+        "2": {
+          "annotation": "160 MBit/s"
+        },
+        "3": {
+          "annotation": "240 MBit/s"
+        }
+      }
+    },
+    "rotationType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "0°"
+        },
+        "1": {
+          "annotation": "180°"
+        }
+      }
+    },
+    "seconds": {
+      "appinfo": {
+        "units": "с"
+      },
+      "base": "xs:unsignedInt"
+    },
+    "brightnessType": {
+      "base": "xs:unsignedByte"
+    },
+    "contrastType": {
+      "base": "xs:unsignedByte",
+      "minInclusive": "0",
+      "maxInclusive": "100"
+    },
+    "packed8Float": {
+      "base": "xs:unsignedByte"
+    },
+    "gammaType": {
+      "appinfo": {
+        "zero": "1.0",
+        "precision": "2"
+      },
+      "base": "packed8Float",
+      "minInclusive": "0",
+      "maxInclusive": "200"
+    },
+    "percentsType": {
+      "appinfo": {
+        "units": "%"
+      },
+      "base": "xs:unsignedByte",
+      "minInclusive": "0",
+      "maxInclusive": "100"
+    },
+    "blackPointType": {
+      "base": "xs:byte",
+      "minInclusive": "-30",
+      "maxInclusive": "30"
+    },
+    "resolutionType": {
+      "base": "xs:unsignedShort",
+      "minInclusive": "0",
+      "maxInclusive": "2047"
+    },
+    "subroutine": {
+      "annotation": "Подпрограмма",
+      "properties": {
+        "id": {
+          "type": "xs:unsignedShort",
+          "annotation": "Идентификатор подпрограммы"
+        }
+      }
+    },
+    "errorType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "Успешное завершение"
+        },
+        "-1": {
+          "annotation": "i2c-шина заблокирована другим устройством"
+        },
+        "-2": {
+          "annotation": "Адресуемое i2c-устройство не обнаружено"
+        },
+        "-3": {
+          "annotation": "Транзакция остановлена адресуемым устройством"
+        },
+        "-4": {
+          "annotation": "Арбитраж проигран"
+        },
+        "-5": {
+          "annotation": "Таймаут ожидания"
+        },
+        "-6": {
+          "annotation": "Недопустимый аргумент или данные"
+        },
+        "-7": {
+          "annotation": "Неспецифируемая ошибка"
+        },
+        "-9": {
+          "annotation": "Требуемый ресурс не обнаружен"
+        },
+        "-10": {
+          "annotation": "Ошибка в файловой системе"
+        },
+        "-11": {
+          "annotation": "Отсутствует MAC-адрес"
+        },
+        "-12": {
+          "annotation": "Не совместимое устройство"
+        },
+        "-19": {
+          "annotation": "Ошибка в памяти устройства"
+        },
+        "-20": {
+          "annotation": "Требуемый файл не обнаружен в файловой системе"
+        },
+        "-22": {
+          "annotation": "Недостаточный размер буфера"
+        },
+        "-23": {
+          "annotation": "Недостаточно памяти"
+        },
+        "-24": {
+          "annotation": "Ошибка контрольной суммы"
+        },
+        "-25": {
+          "annotation": "Доступ запрещен"
+        },
+        "-26": {
+          "annotation": "Регистр имеет недопустимое значение"
+        },
+        "-30": {
+          "annotation": "Несовместимая конфигурация"
+        },
+        "-31": {
+          "annotation": "В конфигурационном файле обнаружена ошибка"
+        },
+        "-50": {
+          "annotation": "Недопустимая дейтаграмма"
+        },
+        "-51": {
+          "annotation": "Переполнение буфера дейтаграмм"
+        },
+        "-52": {
+          "annotation": "Обнаружена коллизия на последовательной шине"
+        },
+        "-53": {
+          "annotation": "Трансивером обнаружена коллизия на шине"
+        }
+      }
+    }
+  }
+}

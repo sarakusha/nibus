@@ -404,9 +404,11 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
     const baseCategory = Array.isArray(description.select) ? description.category : null;
     const tryFind = (): void => {
       if (connection.isClosed) return;
-      asyncSerialMap(descriptions, async desc => {
+      descriptions.reduce<Promise<boolean>>(async (acc, desc) => {
         // debug(`find ${JSON.stringify(connection.description)} ${baseCategory}`);
-        if (baseCategory && connection.description.category !== baseCategory) return;
+        const prev = await acc;
+        if (prev) return prev;
+        if (baseCategory && connection.description.category !== baseCategory) return false;
         const { category } = desc;
         switch (desc.find) {
           case 'sarp': {
@@ -437,20 +439,15 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
               if (devs?.length === 1) {
                 this.connectDevice(devs[0], connection);
               }
+              return true;
             } catch (e) {
               debug(`SARP error: ${toMessage(e)}, ${JSON.stringify(connection.description)}`);
-              if (!connection.isClosed) setTimeout(() => tryFind(), 5000);
-              // if (category === 'minihost' && !connection.description?.mib) {
-              //   debug(`inactive device ${category} was found on ${connection.path}`);
-              //   connection.description.mib = 'minihost3';
-              //   this.emit('found', {
-              //     connection,
-              //     category: 'minihost',
-              //     address: Address.empty,
-              //   });
-              // }
+              if (!connection.isClosed && descriptions.length === 1) setTimeout(
+                () => tryFind(),
+                5000,
+              );
             }
-            break;
+            return false;
           }
           case 'version':
             try {
@@ -473,16 +470,17 @@ export class NibusSession extends TypedEmitter<NibusSessionEvents> implements IN
                   address,
                 });
                 debug(`device ${category}[${address}] was found on ${connection.path}`);
+                return true;
               }
             } catch (err) {
               this.emit('pureConnection', connection);
             }
-            break;
+            return false;
           default:
             this.emit('pureConnection', connection);
-            break;
+            return true;
         }
-      }).catch(e => debug(`error while find ${e.message}`));
+      }, Promise.resolve(false)).catch(e => debug(`error while find ${e.message}`));
     };
     tryFind();
   }

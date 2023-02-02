@@ -19,12 +19,10 @@ import detectionPath from './assets';
 
 export { detectionPath };
 
-const HexOrNumberV = t.union([t.number, t.string]);
-
 const DetectorItemV = t.intersection([
   t.type({
-    vid: HexOrNumberV,
-    pid: HexOrNumberV,
+    vid: t.number,
+    pid: t.number,
     category: CategoryV,
   }),
   t.partial({
@@ -51,7 +49,7 @@ type Loader = {
   onChanged?: () => void;
 };
 
-const loadDetection: Loader = () => {
+export const loadDetection: Loader = () => {
   const raw = getRawDetection();
   Object.keys(raw.mibCategories).forEach(category => {
     const desc = raw.mibCategories[category];

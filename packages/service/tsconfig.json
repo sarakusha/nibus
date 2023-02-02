@@ -3,7 +3,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "esnext",
-    "outDir": "build",
+    "outDir": "build/main",
     "rootDir": "src",
     "strict": true,                           /* Enable all strict type-checking options. */
     "baseUrl": "./",

@@ -7,42 +7,17 @@
     "nibus",
     "sarakusha"
   ],
-  "main": "build/main/service/index.js",
-  "types": "build/module/service/index.d.ts",
-  "module": "build/module/service/index.js",
-  "exports": {
-    ".": {
-      "require": "./build/main/service/index.js",
-      "default": "./build/module/service/index.js"
-    },
-    "./*": {
-      "require": "./build/main/*.js",
-      "default": "./build/module/*.js"
-    },
-    "./package.json": "./package.json"
-  },
-  "typesVersions": {
-    "*": {
-      "*": [
-        "./build/module/*",
-        "./build/module/service/index.d.ts"
-      ]
-    }
-  },
   "scripts": {
     "type-check": "tsc --noEmit",
     "service": "cross-env NODE_ENV=production DEBUG=nibus:*,-nibus:decoder pm2 --name=nibus.service start lib/service/daemon.js",
-    "build": "run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build": "tsc -p tsconfig.json",
     "compile": "cross-env NODE_ENV=development tsc",
     "clean": "shx rm -rf build *.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
-    "yalc:push": "yalc push"
+    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/"
   },
   "bin": {
-    "nibus": "build/main/index.js"
+    "nibus": "build/index.js"
   },
   "author": "Andrei Sarakeev <avs@nata-info.ru>",
   "license": "MIT",
@@ -62,47 +37,30 @@
     "url": "https://github.com/sarakusha/nibus/issues"
   },
   "devDependencies": {
-    "@types/configstore": "^6.0.0",
     "@types/debug": "^4.1.0",
-    "@types/jest-diff": "^24.3.0",
-    "@types/js-yaml": "^4.0.0",
-    "@types/lodash": "^4.14.149",
-    "@types/mdns": "^0.0.34",
     "@types/progress": "^2.0.3",
-    "@types/serialport": "^8.0.0",
     "@types/tail": "^2.0.0",
-    "@types/xdg-basedir": "^4.0.2",
-    "@types/yargs": "^17.0.0",
-    "babel-plugin-transform-imports": "^2.0.0"
+    "@types/yargs": "^17.0.0"
   },
   "dependencies": {
-    "@homebridge/ciao": "^1.1.5",
     "@nibus/core": "^3.8.0",
-    "@nibus/detection": "^3.6.0",
     "@nibus/mibs": "^3.8.0",
-    "@serialport/bindings-cpp": "^10.7.0",
-    "chalk": "^4",
+    "@nibus/service": "^3.6.0",
+    "chalk": "4",
     "cli-table3": "^0.6.0",
-    "configstore": "^6.0.0",
+    "debug": "4",
     "fp-ts": "^2.4.1",
     "io-ts": "^2.0.5",
-    "io-ts-types": "^0.5.5",
     "lodash": "^4.17.10",
-    "monocle-ts": "^2.0.1",
-    "newtype-ts": "^0.3.2",
+    "onetime": "5",
     "pm2": "^5.0.0",
     "progress": "^2.0.3",
-    "serialport": "^10.4.0",
+    "supports-color": "8",
     "table-layout": "^1.0.0",
     "tail": "^2.0.2",
-    "tiny-typed-emitter": "^2.0.3",
-    "usb-detection": "^4.14.1",
     "yargs": "^17.0.1"
   },
   "peerDependencies": {
-    "@nibus/core": "^3.5.4",
-    "@nibus/detection": "^3.5.4",
-    "@nibus/mibs": "^3.5.4",
     "debug": "^4.3.0"
   },
   "jest": {

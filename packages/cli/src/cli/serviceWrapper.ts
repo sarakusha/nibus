@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 import { Arguments } from 'yargs';
-import type { NibusService } from '../service';
+import type { NibusService } from '@nibus/service';
 
 export type Handler<U> = (args: Arguments<U>) => Promise<void>;
 
@@ -22,7 +22,7 @@ export default function serviceWrapper<U>(handler: Handler<U>): Handler<U> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let nibus: NibusService | undefined;
     try {
-      const { default: service } = await import('../service');
+      const { default: service } = await import('@nibus/service');
       nibus = service;
       await service.start();
       await delay(1);

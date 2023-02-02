@@ -14,6 +14,7 @@ import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
 import { CiaoService, getResponder } from '@homebridge/ciao';
+// import { command as execaCommand, ExecaReturnValue } from 'execa';
 
 import debugFactory from 'debug';
 import { SerialTee, Server } from '../ipc';
@@ -30,6 +31,53 @@ const debug = debugFactory('nibus:service');
 
 const noop = (): void => {};
 
+/*
+const UsbDk = 'UsbDk Runtime Libraries';
+const started = new Date().toISOString();
+
+let firstCheck = true;
+let checkRequired = process.platform === 'win32';
+let ready = Promise.resolve();
+
+const checkResult =(verifier: (stdout: string) => boolean) => (result: ExecaReturnValue) => {
+  if (result.failed) throw new Error(result.stderr);
+  else return verifier(result.stdout);
+}
+
+const checkUsbImpl = async (): Promise<void> => {
+  if (!checkRequired) return;
+  let result: boolean;
+  if (firstCheck) {
+    firstCheck = false;
+    result = await execaCommand(
+      `Get-WmiObject -Class Win32_Product | Where Name -eq '${UsbDk}' | Select -ExpandProperty Version`,
+      {
+        shell: 'powershell.exe',
+        windowsHide: true,
+      },
+    ).then(checkResult(stdout => /\d+\.\d+\.\d+/.test(stdout)));
+  } else {
+    result = await execaCommand(
+      `Get-WinEvent -ProviderName msiinstaller | Where-Object {$_.id -eq 1033 -and $_.timecreated -ge ${started} -and $_.message -like '*${UsbDk}*'} | Select -ExpandProperty Message`,
+      {
+        shell: 'powershell.exe',
+        windowsHide: true,
+      },
+    ).then(checkResult(stdout => !!stdout));
+  }
+  if (result) {
+    checkRequired = false;
+  }
+  if (!result) throw new Error(`Install the latest USB driver: https://github.com/daynix/UsbDk/releases/latest`);
+};
+
+const checkUsb = (): Promise<void> => {
+  ready = ready.finally().then(checkUsbImpl);
+  return ready;
+};
+*/
+
+
 if (process.platform === 'win32') {
   const rl = createInterface({
     input: process.stdin,
@@ -37,6 +85,7 @@ if (process.platform === 'win32') {
   });
 
   rl.on('SIGINT', () => process.emit('SIGINT', 'SIGINT'));
+  // checkUsb().catch(noop);
 }
 
 // const direction = (dir: Direction) => dir === Direction.in ? '<<<' : '>>>';
@@ -129,6 +178,7 @@ export class NibusService {
 
   public async start(token?: string): Promise<void> {
     if (this.isStarted) return;
+    // await checkUsb();
     this.token = token;
     await this.server.listen(this.port, process.env.NIBUS_HOST);
     this.isStarted = true;
@@ -175,7 +225,7 @@ export class NibusService {
 
   private logLevelHandler = (
     client: Socket,
-    logLevel: LogLevel | undefined
+    logLevel: LogLevel | undefined,
     // pickFields: Fields,
     // omitFields: Fields
   ): void => {
@@ -198,7 +248,7 @@ export class NibusService {
       .send(
         socket,
         'ports',
-        Object.values(server.ports).map(port => port.toJSON())
+        Object.values(server.ports).map(port => port.toJSON()),
       )
       .catch(err => debug(`<error> while send 'ports': ${err.message}`));
     server

@@ -8,28 +8,37 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { EventEmitter } from 'events';
-import { Either, getOrElse } from 'fp-ts/Either';
-import find from 'lodash/find';
-import filter from 'lodash/filter';
-import findIndex from 'lodash/findIndex';
-import debounce from 'lodash/debounce';
-import { SerialPort } from 'serialport';
+import { asyncSerialMap, Category, CategoryV, IKnownPort, notEmpty, toStack } from '@nibus/core';
+import { Detection, detectionPath, loadDetection } from '@nibus/detection';
 import { PortInfo } from '@serialport/bindings-cpp';
-import usbDetection from 'usb-detection';
-import { Category, CategoryV, IKnownPort, asyncSerialMap, notEmpty, toStack } from '@nibus/core';
-import loadDetection, { Detection, detectionPath } from '@nibus/detection';
 
 import debugFactory from 'debug';
+import { EventEmitter } from 'events';
+import { Either, getOrElse } from 'fp-ts/Either';
+import debounce from 'lodash/debounce';
+import filter from 'lodash/filter';
+import find from 'lodash/find';
+import findIndex from 'lodash/findIndex';
+import { SerialPort } from 'serialport';
+import type { Device } from 'usb';
+import { usb } from 'usb';
+
+// useUsbDkBackend();
+
+type ExtraDevice = Device & {
+  serialNumber?: string;
+  product?: string;
+  manufacturer?: string;
+};
 
 function safeGet<E, A>(e: Either<E, A>): A | undefined {
   return getOrElse<E, A | undefined>(() => undefined)(e);
 }
 
-export const isElectron = {}.hasOwnProperty.call(process.versions, 'electron');
+const isWin32 = process.platform === 'win32';
 
 const debug = debugFactory('nibus:detector');
-debug(`Detection file: ${detectionPath}`);
+debug(`Detection file: ${detectionPath},${require.resolve('serialport')}`);
 let knownPorts: Promise<IKnownPort[]> = Promise.resolve([]);
 
 interface DetectorEvents {
@@ -41,7 +50,7 @@ interface DetectorEvents {
 
 let detection = loadDetection();
 
-function reloadDevices(lastAdded?: usbDetection.IDevice): void {
+function reloadDevices(lastAdded?: ExtraDevice): void {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   knownPorts = knownPorts.then(ports => reloadDevicesAsync(ports, lastAdded));
 }
@@ -68,28 +77,30 @@ interface IDetector extends NodeJS.EventEmitter {
 }
 
 const detector = new EventEmitter() as IDetector;
+
+const detachHandler = (device: ExtraDevice): void => {
+  delete device.serialNumber;
+  delete device.product;
+  delete device.manufacturer;
+  reloadDevices();
+};
+
 detector.start = () => {
-  usbDetection.startMonitoring();
   loadDetection.onChanged = detectionChanged;
   reloadDevices();
   // Должна быть debounce с задержкой, иначе Serial.list не определит
-  usbDetection.on('add', reload);
-  // Удаление без задержки!
-  usbDetection.on('remove', reloadDevices);
+  usb.on('attach', reload);
+  usb.on('detach', detachHandler);
 };
 
 detector.stop = () => {
   loadDetection.onChanged = undefined;
-  usbDetection && usbDetection.stopMonitoring();
+  usb.off('attach', reload);
+  usb.off('detach', detachHandler);
 };
 
 detector.restart = () => {
-  if (!usbDetection) {
-    detector.start();
-    return;
-  }
-  usbDetection.stopMonitoring();
-  process.nextTick(() => usbDetection.startMonitoring());
+  reloadDevices();
 };
 
 detector.getPorts = () => knownPorts;
@@ -101,21 +112,68 @@ detector.reload = reloadDevices;
 const getId = (id?: string | number): number | undefined =>
   typeof id === 'string' ? parseInt(id, 16) : id;
 
-function equals(port: PortInfo, device: usbDetection.IDevice): boolean {
-  return (
-    getId(port.productId) === device.productId &&
-    getId(port.vendorId) === device.vendorId &&
-    port.serialNumber === device.serialNumber
+const upgrade = async (device: ExtraDevice): Promise<ExtraDevice> => {
+  if (isWin32 || device.serialNumber != null || device.product != null || device.manufacturer != null) return device;
+  device.open();
+  const {
+    iSerialNumber,
+    iProduct,
+    iManufacturer,
+  } = device.deviceDescriptor;
+  const [serialNumber, product, manufacturer] = await Promise.all(
+    [iSerialNumber, iProduct, iManufacturer].map(i => new Promise<string | undefined>(resolve => {
+      i
+        ? device.getStringDescriptor(i, (err, value) => resolve(value))
+        : resolve(undefined);
+    })),
   );
+  device.close();
+  device.serialNumber = serialNumber;
+  device.product = product;
+  device.manufacturer = manufacturer;
+  return device;
+};
+
+async function equals(port: PortInfo, device: Device): Promise<boolean> {
+  if (
+    getId(port.productId) !== device.deviceDescriptor.idProduct ||
+    getId(port.vendorId) !== device.deviceDescriptor.idVendor
+  ) return false;
+  const { serialNumber } = await upgrade(device);
+  return serialNumber === port.serialNumber;
 }
 
-async function detectDevice(port: PortInfo, lastAdded?: usbDetection.IDevice): Promise<IKnownPort> {
-  let detected: usbDetection.IDevice | undefined;
-  if (lastAdded && equals(port, lastAdded)) {
+async function detectDevice(port: PortInfo, lastAdded?: Device): Promise<IKnownPort> {
+  let detected: ExtraDevice | undefined;
+  const {
+    serialNumber,
+    manufacturer,
+  } = port;
+  const productId = getId(port.productId)!;
+  const vendorId = getId(port.vendorId)!;
+  if (lastAdded && await equals(port, lastAdded)) {
     detected = lastAdded;
   } else {
-    let list = await usbDetection.find(getId(port.vendorId)!, getId(port.productId)!, () => {});
-    const { serialNumber, manufacturer } = port;
+    let list = await Promise.all(filter(
+      usb.getDeviceList(),
+      {
+        deviceDescriptor: {
+          idProduct: productId,
+          idVendor: vendorId,
+        },
+      },
+    ).map(upgrade));
+    // debug(`list: ${list.map(({
+    //   deviceDescriptor,
+    //   product,
+    //   serialNumber,
+    //   manufacturer,
+    // }) => JSON.stringify({
+    //   deviceDescriptor,
+    //   product,
+    //   serialNumber,
+    //   manufacturer,
+    // })).join(', ')}`);
     list = filter(list, {
       serialNumber,
       manufacturer,
@@ -129,19 +187,25 @@ async function detectDevice(port: PortInfo, lastAdded?: usbDetection.IDevice): P
     }
   }
   if (detected !== undefined) {
-    const { productId, vendorId, deviceName: device, deviceAddress } = detected;
+    const {
+      deviceDescriptor: {
+        idProduct: productId,
+        idVendor: vendorId,
+      },
+      product: device,
+    } = detected;
     return {
       ...port,
       productId,
       vendorId,
       device,
-      deviceAddress,
+      // deviceAddress,
     };
   }
   return {
     ...port,
-    productId: getId(port.productId)!,
-    vendorId: getId(port.vendorId)!,
+    productId,
+    vendorId,
   };
 }
 
@@ -151,16 +215,13 @@ const matchCategory = (port: IKnownPort): Category => {
     find(detection.knownDevices, item =>
       Boolean(
         (!item.device || (port.device && port.device.startsWith(item.device))) &&
-          (!item.serialNumber ||
-            (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
-          (!item.manufacturer || port.manufacturer === item.manufacturer) &&
-          getId(item.vid) === port.vendorId &&
-          getId(item.pid) === port.productId
-      )
+        (!item.serialNumber || (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
+        (!item.manufacturer || port.manufacturer === item.manufacturer) &&
+        item.vid === port.vendorId && item.pid === port.productId,
+      ),
     );
   if (
     !match &&
-    process.platform === 'win32' &&
     (port.productId === 0x6001 || port.productId === 0x6015) &&
     port.vendorId === 0x0403
   ) {
@@ -171,24 +232,24 @@ const matchCategory = (port: IKnownPort): Category => {
 
 async function reloadDevicesAsync(
   prevPorts: IKnownPort[],
-  lastAdded?: usbDetection.IDevice
-): Promise<IKnownPort[]> {
+  lastAdded?: ExtraDevice): Promise<IKnownPort[]> {
   try {
     if (detection == null) {
       detection = loadDetection();
     }
+    if (lastAdded) await upgrade(lastAdded);
     const list: PortInfo[] = await SerialPort.list();
     const externalPorts = list.filter(port => !!port.productId);
     debug(`externalPorts: ${JSON.stringify(externalPorts)}`);
 
     const checkCategory = (port: IKnownPort): void => {
       const category = matchCategory(port);
-      // if (category !== port.category) {
-      //   debug(`device's category was changed ${port.category} to ${category}`);
+      if (category !== port.category) {
+        debug(`device's category was changed ${port.category} to ${category}`);
         port.category && detector.emit('remove', port);
         port.category = safeGet(CategoryV.decode(category));
         port.category && setTimeout(() => detector.emit('add', port), 0);
-      // }
+      }
     };
 
     const detectCategory = (port: IKnownPort): void => {
@@ -196,11 +257,11 @@ async function reloadDevicesAsync(
       detector.emit('plug', port);
       if (port.category) {
         debug(
-          `new device ${port.device || port.vendorId}/${port.category} was plugged to ${port.path}`
+          `new device ${port.device || port.vendorId}/${port.category} was plugged to ${port.path}`,
         );
         detector.emit('add', port);
       } else {
-        debug(`unknown device %o was plugged: ${port}`);
+        debug(`unknown device ${JSON.stringify(port)} was plugged`);
       }
     };
 
@@ -211,7 +272,11 @@ async function reloadDevicesAsync(
         [port] = prevPorts.splice(index, 1);
         checkCategory(port);
       } else {
-        port = await detectDevice(portInfo, lastAdded);
+        port = isWin32 ? {
+          ...portInfo,
+          productId: getId(portInfo.productId)!,
+          vendorId: getId(portInfo.vendorId)!,
+        } : await detectDevice(portInfo, lastAdded);
         detectCategory(port);
       }
       return port.category && port;

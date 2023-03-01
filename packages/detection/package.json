@@ -40,7 +40,7 @@
     "js-yaml": "^4.1.0"
   },
   "peerDependencies": {
-    "@nibus/core": "^3.5.4"
+    "@nibus/core": "^4"
   },
   "scripts": {
     "build:main": "tsc -p tsconfig.json",

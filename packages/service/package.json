@@ -1,6 +1,6 @@
 {
   "name": "@nibus/service",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Nata-Info NiBUS service",
   "license": "MIT",
   "keywords": [
@@ -43,8 +43,8 @@
   },
   "dependencies": {
     "@homebridge/ciao": "^1.1.5",
-    "@nibus/core": "^4.0.0",
-    "@nibus/detection": "^4.0.0",
+    "@nibus/core": "^4.0.1",
+    "@nibus/detection": "^4.0.1",
     "@serialport/bindings-cpp": "^10.8.0",
     "fp-ts": "^2.13.1",
     "lodash": "^4.17.21",

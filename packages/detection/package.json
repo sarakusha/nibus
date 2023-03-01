@@ -1,6 +1,6 @@
 {
   "name": "@nibus/detection",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "license": "MIT",
   "description": "nibus.js auto detection config",
   "keywords": [

@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { asyncSerialMap, Category, CategoryV, IKnownPort, notEmpty, toStack } from '@nibus/core';
+import { Category, CategoryV, IKnownPort, asyncSerialMap, notEmpty, toStack } from '@nibus/core';
 import { Detection, detectionPath, loadDetection } from '@nibus/detection';
 import { PortInfo } from '@serialport/bindings-cpp';
 
@@ -189,15 +189,15 @@ async function detectDevice(port: PortInfo, lastAdded?: Device): Promise<IKnownP
   if (detected !== undefined) {
     const {
       deviceDescriptor: {
-        idProduct: productId,
-        idVendor: vendorId,
+        idProduct,
+        idVendor,
       },
       product: device,
     } = detected;
     return {
       ...port,
-      productId,
-      vendorId,
+      productId: idProduct,
+      vendorId: idVendor,
       device,
       // deviceAddress,
     };

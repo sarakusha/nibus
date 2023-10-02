@@ -9,11 +9,13 @@
  */
 /* eslint-disable no-bitwise */
 import { IKnownPort, LogLevel } from '@nibus/core';
+// eslint-disable-next-line import/no-unresolved
 import { config } from '@nibus/core/config';
 import { Socket } from 'net';
 import os from 'os';
 import { createInterface } from 'readline';
-import { CiaoService, getResponder } from '@homebridge/ciao';
+import { type CiaoService, getResponder } from '@homebridge/ciao';
+
 // import { command as execaCommand, ExecaReturnValue } from 'execa';
 
 import debugFactory from 'debug';
@@ -29,7 +31,7 @@ const debug = debugFactory('nibus:service');
 // const debugIn = debugFactory('nibus:<<<');
 // const debugOut = debugFactory('nibus:>>>');
 
-const noop = (): void => {};
+const noop = (): void => { };
 
 /*
 const UsbDk = 'UsbDk Runtime Libraries';
@@ -157,11 +159,13 @@ export class NibusService {
     this.server.on('client:setLogLevel', this.logLevelHandler);
     this.server.on('client:reloadDevices', this.reload);
     this.ciaoService = responder.createService({
-      name: os.hostname().replace(/\.local\.?$/, ''),
+      name: 'nibus',
+      // hostname: `nibus.local`,
       type: 'nibus',
       port: this.port,
-      txt: { version },
+      txt: { version, original: os.hostname(), platform: os.platform(), arch: os.arch(), osVersion: os.version() },
     });
+    this.ciaoService.on('name-change', () => { });
   }
 
   get path(): string {
@@ -199,9 +203,7 @@ export class NibusService {
   public stop(): void {
     if (!this.isStarted) return;
     this.ciaoService.end();
-    // Нельзя сразу уничтожать иначе не отправится event:down
-    // bonjour.unpublishAll();
-    // bonjour.destroy();
+    responder.shutdown()
     this.server.close();
     // const connections = this.connections.splice(0, this.connections.length);
     // if (connections.length) {

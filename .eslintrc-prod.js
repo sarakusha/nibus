@@ -111,6 +111,12 @@ module.exports = {
       '@typescript-eslint/parser': ['.ts', '.tsx'],
     },
     'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+        project: 'packages/*/tsconfig.json',
+      },
+    },
+    'import/resolver': {
       'eslint-import-resolver-lerna': {
         packages: path.resolve(__dirname, './packages'),
       },

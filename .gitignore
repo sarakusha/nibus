@@ -190,3 +190,8 @@ Temporary Items
 /packages/mibs/index.d.ts
 /packages/mibs/index.js
 /packages/mibs/index.mjs
+**/build/
+**/node_modules/
+**/bak/
+**/tsconfig.tsbuildinfo
+**/yarn-error.log

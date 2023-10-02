@@ -47,7 +47,7 @@ class WaitedNmsDatagram {
     reject: (reason: Error) => void,
     callback: (self: WaitedNmsDatagram) => void,
   ) {
-    let timer: NodeJS.Timer;
+    let timer: NodeJS.Timeout;
     let counter: number =
       req.service !== NmsServiceType.Read ? 1 : Math.floor(req.nms.length / 3) + 1;
     const datagrams: NmsDatagram[] = [];
@@ -65,7 +65,7 @@ class WaitedNmsDatagram {
     };
     const restart = (step = 1): boolean => {
       counter -= step;
-      clearTimeout(timer);
+      global.clearTimeout(timer);
       if (counter > 0) {
         timer = global.setTimeout(timeout, req.timeout || config().get('timeout') || 1000);
       } else if (counter === 0) {
@@ -193,14 +193,15 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     const deferred = new Deferred<NmsDatagram | NmsDatagram[] | undefined>();
     // return new Promise((resolve, reject) => {
     this.ready = this.ready.finally().then(async () => {
-      if (closed) return deferred.reject(new Error('Closed'));
+      if (closed) { deferred.reject(new Error('Closed')); return; }
       if (!encoder.write(datagram)) {
         await new Promise(cb => {
           encoder.once('drain', cb);
         });
       }
       if (!(datagram instanceof NmsDatagram) || datagram.notReply) {
-        return deferred.resolve(undefined);
+        deferred.resolve(undefined);
+        return;
       }
       waited.push(new WaitedNmsDatagram(
         datagram,
@@ -208,9 +209,9 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
         deferred.reject,
         stopWaiting,
       ));
-      await deferred.promise.catch(() => {});
+      await deferred.promise.catch(() => { });
       // await delay(100);
-    }).catch(() => {});
+    }).catch(() => { });
     return deferred.promise;
     // });
   }
@@ -230,7 +231,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
   public findByType(type: number = MINIHOST_TYPE): Promise<SarpDatagram> {
     debug(`findByType ${type} on ${this.path} (${this.description.category})`);
     const sarp = createSarp(SarpQueryType.ByType, [0, 0, 0, (type >> 8) & 0xff, type & 0xff]);
-    let sarpHandler: NibusEvents['sarp'] = () => {};
+    let sarpHandler: NibusEvents['sarp'] = () => { };
     return new Promise<SarpDatagram>((resolve, reject) => {
       const timeout = setTimeout(
         () => reject(new TimeoutError('Device didn\'t respond')),
@@ -320,7 +321,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     if (!finishSlip) throw new Error('SLIP mode required');
     const chunks = slipChunks(fn, data);
     const wait = (): Promise<SlipDatagram> => {
-      let onData = (__: SlipDatagram): void => {};
+      let onData = (__: SlipDatagram): void => { };
       return new Promise<SlipDatagram>((resolve, reject) => {
         const timer = setTimeout(() => {
           reject(new TimeoutError(`execBootloader timeout ${fn}`));
@@ -381,7 +382,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
     }
   }
 
-  get lastActivity() {
+  get lastActivity(): number {
     return this.#lastActivity;
   }
 }

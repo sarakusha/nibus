@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -43,9 +43,9 @@
     "@types/yargs": "^17.0.0"
   },
   "dependencies": {
-    "@nibus/core": "^4.0.1",
+    "@nibus/core": "^4.0.2",
     "@nibus/mibs": "^4.0.0",
-    "@nibus/service": "^4.0.1",
+    "@nibus/service": "^4.0.2",
     "chalk": "4",
     "cli-table3": "^0.6.0",
     "debug": "4",

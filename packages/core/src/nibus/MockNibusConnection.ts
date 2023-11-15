@@ -31,6 +31,7 @@ export default class MockNibusConnection
   extends TypedEmitter<NibusEvents>
   implements INibusConnection {
   description: MibDescription;
+
   readonly lastActivity = 0;
 
   readonly path = 'mock-serial';

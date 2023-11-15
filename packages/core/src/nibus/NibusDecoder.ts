@@ -55,6 +55,10 @@ export default class NibusDecoder extends Transform {
 
   public _transform(chunk: unknown, _: BufferEncoding, callback: TransformCallback): void {
     if (Buffer.isBuffer(chunk)) {
+      const logLevel = config().get('logLevel');
+      if (logLevel === 'hex') {
+        debug(printBuffer(chunk));
+      }
       const data = Buffer.concat([this.buf, chunk]);
       if (data.length > 0) {
         this.buf = this.recognize(data);
@@ -70,9 +74,6 @@ export default class NibusDecoder extends Transform {
 
   private recognize(data: Buffer): Buffer {
     const logLevel = config().get('logLevel');
-    if (logLevel === 'hex') {
-      debug(printBuffer(data));
-    }
     if (this.slipMode) {
       // Для SLIP актуален только последний ответ. Ищем один раз начиная с конца
       const pos = data.lastIndexOf(END);

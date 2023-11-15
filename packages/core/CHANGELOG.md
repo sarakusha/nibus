@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.0.4](https://github.com/sarakusha/nibus/compare/v4.0.3...v4.0.4) (2023-11-15)
+
+
+### Bug Fixes
+
+* повторный вывод hex-дампа ([a62603e](https://github.com/sarakusha/nibus/commit/a62603e589370d926674aaf2092d1eb1359199ba))
+
+
+
+
+
 ## [4.0.2](https://github.com/sarakusha/nibus/compare/v4.0.1...v4.0.2) (2023-10-02)
 
 **Note:** Version bump only for package @nibus/core

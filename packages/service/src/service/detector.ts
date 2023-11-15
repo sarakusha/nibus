@@ -20,12 +20,12 @@ import filter from 'lodash/filter';
 import find from 'lodash/find';
 import findIndex from 'lodash/findIndex';
 import { SerialPort } from 'serialport';
-import type { Device } from 'usb';
+// import type { usb } from 'usb';
 import { usb } from 'usb';
 
 // useUsbDkBackend();
 
-type ExtraDevice = Device & {
+type ExtraDevice = usb.Device & {
   serialNumber?: string;
   product?: string;
   manufacturer?: string;
@@ -134,7 +134,7 @@ const upgrade = async (device: ExtraDevice): Promise<ExtraDevice> => {
   return device;
 };
 
-async function equals(port: PortInfo, device: Device): Promise<boolean> {
+async function equals(port: PortInfo, device: usb.Device): Promise<boolean> {
   if (
     getId(port.productId) !== device.deviceDescriptor.idProduct ||
     getId(port.vendorId) !== device.deviceDescriptor.idVendor
@@ -143,7 +143,7 @@ async function equals(port: PortInfo, device: Device): Promise<boolean> {
   return serialNumber === port.serialNumber;
 }
 
-async function detectDevice(port: PortInfo, lastAdded?: Device): Promise<IKnownPort> {
+async function detectDevice(port: PortInfo, lastAdded?: usb.Device): Promise<IKnownPort> {
   let detected: ExtraDevice | undefined;
   const {
     serialNumber,

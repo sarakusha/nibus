@@ -94,6 +94,7 @@ enum PrivateProps {
 }
 
 // type DeviceConstructor = new (address: Address) => any;
+// eslint-disable-next-line @typescript-eslint/ban-types
 interface DeviceConstructor extends Function {
   prototype: DevicePrototype;
   (this: DevicePrototype, address: Address): void;
@@ -413,6 +414,7 @@ function defineMibProperty(
 //   return path.resolve(__dirname, '../../mibs/', `${mibname}.mib.json`);
 // }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
   // will be overridden for an instance
   $countRef = 1;
@@ -765,6 +767,14 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
         const datagrams: NmsDatagram[] = Array.isArray(response)
           ? (response as NmsDatagram[])
           : [response as NmsDatagram];
+        // принудительно задаем типы (ti_lux_2_3)
+        if (disableBatchReading) {
+          datagrams.forEach(data => {
+            const name = this.getName(data.id);
+            const type = Reflect.getMetadata('nmsType', this, name);
+            data.nms[1] = type;
+          });
+        }
         datagrams.forEach(({
             id,
             value,
@@ -979,15 +989,15 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     return this.$read.finally(clear);
   }
 
-  get lastActivity() {
+  get lastActivity(): number {
     return this.$lastActivity;
   }
 
-  private startIdle = debounce(function (this: DevicePrototype) {
+  private startIdle = debounce(function idle(this: DevicePrototype) {
     this.emit('idle', this.lastActivity);
   }, IDLE_TIMEOUT);
 
-  protected resetIdle() {
+  protected resetIdle(): void {
     this.$lastActivity = Date.now();
     this.startIdle.bind(this)();
   };
@@ -999,7 +1009,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     };
   }
 
-  async ping() {
+  async ping(): Promise<number> {
     const { connection } = this;
     if (!connection) return -1;
     const deviceType = Reflect.getMetadata('deviceType', this);
@@ -1007,6 +1017,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     let info: VersionInfo | undefined;
     for (let i = 0; i < 3; i += 1) {
       this.resetIdle();
+      // eslint-disable-next-line no-await-in-loop
       [timeout, info] = await connection.ping(this.address);
       if (timeout !== -1 && info) {
         const { type } = info;
@@ -1018,7 +1029,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
   }
 }
 
-// tslint:disable-next-line
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 interface DevicePrototype {
   readonly id: DeviceId;
   readonly address: Address;
@@ -1036,6 +1047,7 @@ let mibTypes: MibTypes | undefined;
 const minVersionToInt = (str?: string): number => {
   if (!str) return 0;
   const [high, low] = str.split('.', 2);
+  // eslint-disable-next-line no-bitwise
   return (toInt(high) << 8) + toInt(low);
 };
 

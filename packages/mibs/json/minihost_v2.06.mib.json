@@ -471,7 +471,7 @@
           }
         },
         "brightness": {
-          "type": "brightnessType",
+          "type": "xs:unsignedByte",
           "annotation": "Яркость",
           "appinfo": {
             "browseable": "false",
@@ -719,9 +719,6 @@
         "units": "с"
       },
       "base": "xs:unsignedInt"
-    },
-    "brightnessType": {
-      "base": "xs:unsignedByte"
     },
     "contrastType": {
       "base": "xs:unsignedByte",

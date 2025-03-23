@@ -1,7 +1,13 @@
-# Change Log
+# Changelog
 
-All notable changes to this project will be documented in this file.
-See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
+
+## [4.2.0](https://github.com/sarakusha/nibus/compare/v4.1.0...v4.2.0) (2025-03-23)
+
+
+### Features
+
+* упрощен тип для правильной конвертации процентов яркости ([83d7658](https://github.com/sarakusha/nibus/commit/83d76588b13f315f4e2dc2a170d3c96bf2baf411))
 
 # [4.1.0](https://github.com/sarakusha/nibus/compare/v4.0.4...v4.1.0) (2023-12-05)
 

@@ -195,3 +195,4 @@ Temporary Items
 **/bak/
 **/tsconfig.tsbuildinfo
 **/yarn-error.log
+.turbo

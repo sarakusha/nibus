@@ -72,7 +72,7 @@ export default class NibusDecoder extends Transform {
     callback();
   }
 
-  private recognize(data: Buffer): Buffer {
+  private recognize(data: Buffer): Buffer<ArrayBuffer> {
     const logLevel = config().get('logLevel');
     if (this.slipMode) {
       // Для SLIP актуален только последний ответ. Ищем один раз начиная с конца

@@ -7,41 +7,43 @@
     "nibus",
     "sarakusha"
   ],
+  "type": "module",
   "author": "Andrei Sarakeev <sarakusha@gmail.com>",
   "homepage": "https://github.com/sarakusha/nibus/packages/core#readme",
   "license": "MIT",
-  "main": "build/main/index.js",
-  "types": "build/module/index.d.ts",
-  "module": "build/module/index.js",
+  "main": "build/index.cjs",
+  "typings": "build/index.d.ts",
+  "module": "build/index.js",
   "exports": {
     ".": {
-      "require": "./build/main/index.js",
-      "default": "./build/module/index.js"
+      "require": "./build/index.cjs",
+      "default": "./build/index.js"
     },
     "./sarp": {
-      "require": "./build/main/sarp/index.js",
-      "default": "./build/module/sarp/index.js"
+      "require": "./build/sarp/index.cjs",
+      "default": "./build/sarp/index.js"
     },
     "./session": {
-      "require": "./build/main/session/index.js",
-      "default": "./build/module/session/index.js"
+      "require": "./build/session/index.cjs",
+      "default": "./build/session/index.js"
     },
     "./*": {
-      "require": "./build/main/*.js",
-      "import": "./build/module/*.js"
+      "require": "./build/*.cjs",
+      "import": "./build/*.js"
     },
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
       "*": [
-        "./build/module/*",
-        "./build/module/index.d.ts"
+        "./build/*",
+        "./build/index.d.ts"
       ]
     }
   },
   "files": [
     "build",
+    "src",
     "!**/*.spec.*",
     "!**/*.tsbuildinfo",
     "EULA.md",
@@ -54,12 +56,9 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "build": "run-p build:* ",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build": "tsup",
     "test": "jest src",
     "type-check": "tsc --noEmit",
-    "clean": "shx rm -rf buidl tsconfig.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
     "typedoc": "typedoc",
@@ -78,6 +77,7 @@
     "typedoc": "^0.22.1"
   },
   "dependencies": {
+    "@nibus/mibs": "^4",
     "conf": "^10.1.2",
     "crc": "^4.1.0",
     "fast-xml-parser": "^4.0.1",

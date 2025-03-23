@@ -8,50 +8,48 @@
     "nibus",
     "sarakusha"
   ],
-  "main": "build/main/service/index.js",
-  "types": "build/module/service/index.d.ts",
-  "module": "build/module/service/index.js",
+  "type": "module",
+  "main": "build/index.cjs",
+  "typings": "build/index.d.ts",
+  "module": "build/index.js",
   "exports": {
     ".": {
-      "require": "./build/main/service/index.js",
-      "default": "./build/module/service/index.js"
+      "require": "./build/index.cjs",
+      "default": "./build/index.js"
     },
     "./*": {
-      "require": "./build/main/*.js",
-      "default": "./build/module/*.js"
+      "require": "./build/*.cjs",
+      "default": "./build/*.js"
     },
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
       "*": [
-        "./build/module/*",
-        "./build/module/service/index.d.ts"
+        "./build/*",
+        "./build/index.d.ts"
       ]
     }
   },
   "scripts": {
     "rsync:ubuntu": "rsync -avz --delete --exclude=.git --include=.gitignore --filter=':- .gitignore' . user@192.168.2.33:~/src/nibus/packages/service",
     "type-check": "tsc --noEmit",
-    "build": "run-p build:*",
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
+    "build": "tsup",
     "compile": "cross-env NODE_ENV=development tsc",
-    "clean": "shx rm -rf build *.tsbuildinfo",
     "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
     "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
     "yalc:push": "yalc push"
   },
   "dependencies": {
     "@homebridge/ciao": "^1.1.5",
-    "@nibus/core": "^4.1.0",
-    "@nibus/detection": "^4.0.1",
-    "@serialport/bindings-cpp": "^12.0.1",
+    "@nibus/core": "^4",
+    "@nibus/detection": "^4",
+    "@serialport/bindings-cpp": "^13.0.1",
     "fp-ts": "^2.13.1",
     "lodash": "^4.17.21",
-    "serialport": "^12.0.0",
+    "serialport": "^13.0.0",
     "tiny-typed-emitter": "^2.1.0",
-    "usb": "2.4"
+    "usb": "~2.15.0"
   },
   "peerDependencies": {
     "debug": "^4.3.0"

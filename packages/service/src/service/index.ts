@@ -31,7 +31,7 @@ const debug = debugFactory('nibus:service');
 // const debugIn = debugFactory('nibus:<<<');
 // const debugOut = debugFactory('nibus:>>>');
 
-const noop = (): void => { };
+const noop = (): void => {};
 
 /*
 const UsbDk = 'UsbDk Runtime Libraries';
@@ -78,7 +78,6 @@ const checkUsb = (): Promise<void> => {
   return ready;
 };
 */
-
 
 if (process.platform === 'win32') {
   const rl = createInterface({
@@ -163,9 +162,15 @@ export class NibusService {
       // hostname: `nibus.local`,
       type: 'nibus',
       port: this.port,
-      txt: { version, original: os.hostname(), platform: os.platform(), arch: os.arch(), osVersion: os.version() },
+      txt: {
+        version,
+        original: os.hostname(),
+        platform: os.platform(),
+        arch: os.arch(),
+        osVersion: os.version(),
+      },
     });
-    this.ciaoService.on('name-change', () => { });
+    this.ciaoService.on('name-change', () => {});
   }
 
   get path(): string {
@@ -203,7 +208,7 @@ export class NibusService {
   public stop(): void {
     if (!this.isStarted) return;
     this.ciaoService.end();
-    responder.shutdown()
+    responder.shutdown();
     this.server.close();
     // const connections = this.connections.splice(0, this.connections.length);
     // if (connections.length) {
@@ -227,7 +232,7 @@ export class NibusService {
 
   private logLevelHandler = (
     client: Socket,
-    logLevel: LogLevel | undefined,
+    logLevel: LogLevel | undefined
     // pickFields: Fields,
     // omitFields: Fields
   ): void => {
@@ -250,7 +255,7 @@ export class NibusService {
       .send(
         socket,
         'ports',
-        Object.values(server.ports).map(port => port.toJSON()),
+        Object.values(server.ports).map(port => port.toJSON())
       )
       .catch(err => debug(`<error> while send 'ports': ${err.message}`));
     server

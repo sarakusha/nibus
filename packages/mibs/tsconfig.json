@@ -1,9 +1,5 @@
 {
   "extends": "../../tsconfig.settings.json",
-  "compilerOptions": {
-    "sourceMap": false,
-    "outDir": "."
-  },
   "include": ["./index.ts"],
   "exclude": [
     "node_modules"

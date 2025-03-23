@@ -6,23 +6,23 @@
     "nibus",
     "sarakusha"
   ],
+  "type": "module",
   "author": "Andrei Sarakeev <sarakusha@gmail.com>",
   "homepage": "https://github.com/sarakusha/nibus/packages/mibs#readme",
   "license": "MIT",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "module": "index.mjs",
+  "main": "build/index.cjs",
+  "typings": "build/index.d.ts",
+  "module": "build/index.js",
   "exports": {
     ".": {
-      "require": "./index.js",
-      "default": "./index.mjs"
+      "require": "./build/index.cjs",
+      "default": "./build/index.js"
     }
   },
   "files": [
     "json",
-    "index.js",
-    "index.d.js",
-    "index.mjs",
+    "build",
+    "index.ts",
     "!**/*.spec.*",
     "EULA.md",
     "CHANGELOG.md",
@@ -38,11 +38,10 @@
     "io-ts": "^2.2.16"
   },
   "scripts": {
-    "build:main": "tsc -p tsconfig.json",
-    "build:module": "tsc -p tsconfig.module.json",
-    "build": "rimraf *.tsbuildinfo && yarn build:module && yarn rename && yarn build:main",
-    "rename": "rimraf index.mjs && node -e \"require('fs').rename('index.js', 'index.mjs', err => err && console.error(err.message))\"",
-    "yalc:push": "yalc push"
+    "build": "tsup",
+    "yalc:push": "yalc push",
+    "lint": "eslint -c ../../.eslintrc-prod.js index.ts",
+    "lint:fix": "eslint -c ../../.eslintrc-prod.js --fix index.ts"
   },
   "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

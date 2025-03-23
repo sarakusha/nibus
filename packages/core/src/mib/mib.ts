@@ -352,8 +352,8 @@ export function maxInclusiveConverter(max: number): IConverter {
 }
 
 export const evalConverter = (get: string, set: string): IConverter => ({
-  from: eval(set),
-  to: eval(get),
+  from: (0, eval)(set),
+  to: (0, eval)(get),
 });
 
 export const convertTo =

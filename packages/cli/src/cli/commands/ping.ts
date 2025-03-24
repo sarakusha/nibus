@@ -44,41 +44,38 @@ const pingCommand: CommandModule<CommonOpts, PingOpts> = {
         number: true,
       })
       .demandOption(['mac']),
-  handler: serviceWrapper(
-    async ({ count = -1, timeout = 1, mac, quiet, raw }): Promise<void> => {
-      await session.start();
-      const stat: number[] = [];
-      let transmitted = 0;
-      process.on('exit', () => {
-        const loss = 100 - round((stat.length / transmitted) * 100);
-        const min = _.min(stat);
-        const max = _.max(stat);
-        const avg = round(_.mean(stat));
-        quiet ||
-          raw ||
-          console.info(`
+  handler: serviceWrapper(async ({ count = -1, timeout = 1, mac, quiet, raw }): Promise<void> => {
+    await session.start();
+    const stat: number[] = [];
+    let transmitted = 0;
+    process.on('exit', () => {
+      const loss = 100 - round((stat.length / transmitted) * 100);
+      const min = _.min(stat);
+      const max = _.max(stat);
+      const avg = round(_.mean(stat));
+      if (!quiet && !raw)
+        console.info(`
 ${transmitted} пакет(ов) отправлено, ${stat.length} пакет(ов) получено, ${loss}% пакетов потеряно
 min/avg/max = ${min || '-'}/${Number.isNaN(avg) ? '-' : avg}/${max || '-'}`);
-      });
-      let exit = false;
-      process.on('SIGINT', () => {
-        exit = true;
-      });
-      while (count - transmitted !== 0 && !exit) {
-        // eslint-disable-next-line no-await-in-loop
-        const [ping] = await session.ping(mac);
-        if (ping !== -1) stat.push(ping);
-        transmitted += 1;
-        quiet || raw || console.info(`${mac} ${ping !== -1 ? `${ping} ms` : '*'}`);
-        if (count - transmitted === 0) break;
-        // eslint-disable-next-line no-await-in-loop
-        await delay(timeout);
-      }
-      session.close();
-      if (raw) console.info(stat.length);
-      if (stat.length === 0) throw new TimeoutError();
+    });
+    let exit = false;
+    process.on('SIGINT', () => {
+      exit = true;
+    });
+    while (count - transmitted !== 0 && !exit) {
+      // eslint-disable-next-line no-await-in-loop
+      const [ping] = await session.ping(mac);
+      if (ping !== -1) stat.push(ping);
+      transmitted += 1;
+      if (!quiet && !raw) console.info(`${mac} ${ping !== -1 ? `${ping} ms` : '*'}`);
+      if (count - transmitted === 0) break;
+      // eslint-disable-next-line no-await-in-loop
+      await delay(timeout);
     }
-  ),
+    session.close();
+    if (raw) console.info(stat.length);
+    if (stat.length === 0) throw new TimeoutError();
+  }),
 };
 
 export default pingCommand;

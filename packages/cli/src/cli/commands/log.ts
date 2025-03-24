@@ -12,7 +12,8 @@ import { CommandModule } from 'yargs';
 import { Tail } from 'tail';
 import path from 'path';
 import { homedir } from 'os';
-import { Client, LogLevel } from '@nibus/core';
+import { LogLevel } from '@nibus/core';
+import { IPCClient as Client } from '@nibus/core/ipc/Client';
 import debugFactory from 'debug';
 import { CommonOpts } from '../options';
 import serviceWrapper from '../serviceWrapper';
@@ -54,7 +55,8 @@ const logCommand: CommandModule<CommonOpts, LogOpts> = {
         const socket = Client.connect({ port: +(process.env.NIBUS_PORT ?? 9001) });
         let resolved = false;
         socket.once('close', () => {
-          resolved ? resolve() : reject();
+          if (resolved) resolve();
+          else reject();
         });
         socket.on('error', err => {
           debug(`<error>: ${err}`);

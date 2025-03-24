@@ -13,4 +13,4 @@ export type { INibusOptions, INibusCommon, INibusDatagramJSON } from './NibusDat
 export { default as NibusEncoder } from './NibusEncoder';
 export { default as NibusDecoder } from './NibusDecoder';
 export { default as NibusConnection} from './NibusConnection';
-export type { INibusConnection, VersionInfo } from './NibusConnection';
+export type { INibusConnection } from './NibusConnection';

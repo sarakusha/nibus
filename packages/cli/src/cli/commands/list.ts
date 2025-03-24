@@ -13,7 +13,8 @@ import _ from 'lodash';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import Table from 'table-layout';
-import { Client, PortArg } from '@nibus/core';
+import type { PortArg } from '@nibus/core';
+import { IPCClient as Client } from "@nibus/core/ipc/Client";
 import debugFactory from 'debug';
 import { CommonOpts } from '../options';
 import serviceWrapper from '../serviceWrapper';
@@ -32,7 +33,8 @@ const listCommand: CommandModule<CommonOpts, ListOpts> = {
         let resolved = false;
         let error: Error;
         socket.once('close', () => {
-          resolved ? resolve() : reject(error && error.message);
+          if (resolved) resolve();
+          else reject(error && error.message);
         });
         socket.on('ports', (ports: PortArg[]) => {
           debug(`ports: ${ports}`);

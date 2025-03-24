@@ -64,7 +64,7 @@ async function dumpDevice(
     ids = argv.id.map(id => device.getId(id));
   }
   const save = config().get('timeout');
-  argv.timeout && config().set('timeout', argv.timeout * 1000);
+  if (argv.timeout) config().set('timeout', argv.timeout * 1000);
   const result = await device.read(...ids);
   config().set('timeout', save);
   const rows: RowType[] = Object.keys(result).map(key => {

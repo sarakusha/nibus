@@ -22,7 +22,7 @@ export async function action(device: IDevice, args: Arguments<ReadOpts>): Promis
     const id = device.getId(idOrName);
     const value = Object.values(await device.read(id))[0];
     if (value.error) throw new Error(value.error);
-    args.quiet || console.info(JSON.stringify(args.raw ? device.getRawValue(id) : value));
+    if (!args.quiet) console.info(JSON.stringify(args.raw ? device.getRawValue(id) : value));
   }
 }
 

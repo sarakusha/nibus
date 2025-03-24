@@ -8,7 +8,8 @@
  * the EULA file that was distributed with this source code.
  */
 
-import { ClientEventsArgs, ClientEventsArgsV, LogLevel, MSG_DELIMITER } from '@nibus/core';
+import { LogLevel, MSG_DELIMITER } from '@nibus/core';
+import { ClientEventsArgs, ClientEventsArgsV } from '@nibus/core/ipc/clientEvents';
 import { isRight } from 'fp-ts/Either';
 import net, { Server, Socket } from 'net';
 import { TypedEmitter } from 'tiny-typed-emitter';
@@ -120,7 +121,7 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
     return new Promise(resolve => {
       try {
         client.write(`${JSON.stringify(data)}${MSG_DELIMITER}`, () => resolve());
-      } catch (err) {
+      } catch {
         debug(`error while send ${JSON.stringify(data)}`);
         resolve();
       }
@@ -199,7 +200,7 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
                 this.emit(`client:${name}`, ...([socket, ...opts] as never));
               }
             }
-          } catch (err) {
+          } catch {
             debug(`error while parse ${line}`);
           }
         });

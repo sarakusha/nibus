@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
-    "noEmit": false,
-    "outDir": "build/main",
+    "noEmit": true,
     "baseUrl": "./",
     "paths": {
       "sax": [

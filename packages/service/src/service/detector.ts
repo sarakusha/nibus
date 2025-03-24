@@ -113,19 +113,23 @@ const getId = (id?: string | number): number | undefined =>
   typeof id === 'string' ? parseInt(id, 16) : id;
 
 const upgrade = async (device: ExtraDevice): Promise<ExtraDevice> => {
-  if (isWin32 || device.serialNumber != null || device.product != null || device.manufacturer != null) return device;
+  if (
+    isWin32 ||
+    device.serialNumber != null ||
+    device.product != null ||
+    device.manufacturer != null
+  )
+    return device;
   device.open();
-  const {
-    iSerialNumber,
-    iProduct,
-    iManufacturer,
-  } = device.deviceDescriptor;
+  const { iSerialNumber, iProduct, iManufacturer } = device.deviceDescriptor;
   const [serialNumber, product, manufacturer] = await Promise.all(
-    [iSerialNumber, iProduct, iManufacturer].map(i => new Promise<string | undefined>(resolve => {
-      i
-        ? device.getStringDescriptor(i, (err, value) => resolve(value))
-        : resolve(undefined);
-    })),
+    [iSerialNumber, iProduct, iManufacturer].map(
+      i =>
+        new Promise<string | undefined>(resolve => {
+          if (i) device.getStringDescriptor(i, (err, value) => resolve(value));
+          else resolve(undefined);
+        })
+    )
   );
   device.close();
   device.serialNumber = serialNumber;
@@ -138,31 +142,28 @@ async function equals(port: PortInfo, device: usb.Device): Promise<boolean> {
   if (
     getId(port.productId) !== device.deviceDescriptor.idProduct ||
     getId(port.vendorId) !== device.deviceDescriptor.idVendor
-  ) return false;
+  )
+    return false;
   const { serialNumber } = await upgrade(device);
   return serialNumber === port.serialNumber;
 }
 
 async function detectDevice(port: PortInfo, lastAdded?: usb.Device): Promise<IKnownPort> {
   let detected: ExtraDevice | undefined;
-  const {
-    serialNumber,
-    manufacturer,
-  } = port;
+  const { serialNumber, manufacturer } = port;
   const productId = getId(port.productId)!;
   const vendorId = getId(port.vendorId)!;
-  if (lastAdded && await equals(port, lastAdded)) {
+  if (lastAdded && (await equals(port, lastAdded))) {
     detected = lastAdded;
   } else {
-    let list = await Promise.all(filter(
-      usb.getDeviceList(),
-      {
+    let list = await Promise.all(
+      filter(usb.getDeviceList(), {
         deviceDescriptor: {
           idProduct: productId,
           idVendor: vendorId,
         },
-      },
-    ).map(upgrade));
+      }).map(upgrade)
+    );
     // debug(`list: ${list.map(({
     //   deviceDescriptor,
     //   product,
@@ -188,10 +189,7 @@ async function detectDevice(port: PortInfo, lastAdded?: usb.Device): Promise<IKn
   }
   if (detected !== undefined) {
     const {
-      deviceDescriptor: {
-        idProduct,
-        idVendor,
-      },
+      deviceDescriptor: { idProduct, idVendor },
       product: device,
     } = detected;
     return {
@@ -215,10 +213,12 @@ const matchCategory = (port: IKnownPort): Category => {
     find(detection.knownDevices, item =>
       Boolean(
         (!item.device || (port.device && port.device.startsWith(item.device))) &&
-        (!item.serialNumber || (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
-        (!item.manufacturer || port.manufacturer === item.manufacturer) &&
-        item.vid === port.vendorId && item.pid === port.productId,
-      ),
+          (!item.serialNumber ||
+            (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
+          (!item.manufacturer || port.manufacturer === item.manufacturer) &&
+          item.vid === port.vendorId &&
+          item.pid === port.productId
+      )
     );
   if (
     !match &&
@@ -232,7 +232,8 @@ const matchCategory = (port: IKnownPort): Category => {
 
 async function reloadDevicesAsync(
   prevPorts: IKnownPort[],
-  lastAdded?: ExtraDevice): Promise<IKnownPort[]> {
+  lastAdded?: ExtraDevice
+): Promise<IKnownPort[]> {
   try {
     if (detection == null) {
       detection = loadDetection();
@@ -246,9 +247,9 @@ async function reloadDevicesAsync(
       const category = matchCategory(port);
       if (category !== port.category) {
         debug(`device's category was changed ${port.category} to ${category}`);
-        port.category && detector.emit('remove', port);
+        if (port.category) detector.emit('remove', port);
         port.category = safeGet(CategoryV.decode(category));
-        port.category && setTimeout(() => detector.emit('add', port), 0);
+        if (port.category) setTimeout(() => detector.emit('add', port), 0);
       }
     };
 
@@ -257,7 +258,7 @@ async function reloadDevicesAsync(
       detector.emit('plug', port);
       if (port.category) {
         debug(
-          `new device ${port.device || port.vendorId}/${port.category} was plugged to ${port.path}`,
+          `new device ${port.device || port.vendorId}/${port.category} was plugged to ${port.path}`
         );
         detector.emit('add', port);
       } else {
@@ -272,11 +273,13 @@ async function reloadDevicesAsync(
         [port] = prevPorts.splice(index, 1);
         checkCategory(port);
       } else {
-        port = isWin32 ? {
-          ...portInfo,
-          productId: getId(portInfo.productId)!,
-          vendorId: getId(portInfo.vendorId)!,
-        } : await detectDevice(portInfo, lastAdded);
+        port = isWin32
+          ? {
+              ...portInfo,
+              productId: getId(portInfo.productId)!,
+              vendorId: getId(portInfo.vendorId)!,
+            }
+          : await detectDevice(portInfo, lastAdded);
         detectCategory(port);
       }
       return port.category && port;

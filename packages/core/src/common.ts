@@ -73,7 +73,6 @@ export type ReplaceType<Base, Condition, Type> = Pick<Base, ExcludeNames<Base, C
 // const x: ReplaceType<{ a: string | undefined, b: boolean | undefined }, string | undefined,
 // number | undefined> = { a: 1, b: 1 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const replaceBuffers = <T extends object>(obj: T): ReplaceType<T, Buffer, string> =>
   Object.entries(obj).reduce(
     (result, [name, value]) => ({

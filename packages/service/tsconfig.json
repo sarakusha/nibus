@@ -10,7 +10,8 @@
     "strictNullChecks": true,
     "paths": {
       "debug/src/node": ["../../node_modules/@types/debug"]
-    }
+    },
+    "types": ["w3c-web-usb"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules/", "**/*.spec.ts", "lib/"]

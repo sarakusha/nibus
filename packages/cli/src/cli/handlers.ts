@@ -48,7 +48,7 @@ export default function makeAddressHandler<O extends Defined<CommonOpts, 'mac'>>
         resolve();
       };
       const mac = new Address(args.mac);
-      args.timeout && config().set('timeout', args.timeout * 1000);
+      if (args.timeout) config().set('timeout', args.timeout * 1000);
       // if (args.timeout && args.timeout * 1000 !== config.get('timeout')) {
       //   console.log({ core: config.path, timeout: config.get('timeout') });
       // }

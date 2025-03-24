@@ -12,8 +12,7 @@ import * as yaml from 'js-yaml';
 import * as t from 'io-ts';
 import { isLeft } from 'fp-ts/Either';
 import { PathReporter } from 'io-ts/PathReporter';
-import { MibDescriptionV } from '@nibus/core/MibDescription';
-import { CategoryV } from '@nibus/core/session/KnownPorts';
+import { CategoryV, MibDescriptionV } from '@nibus/core';
 
 import detectionPath from './assets';
 
@@ -72,5 +71,3 @@ export const loadDetection: Loader = () => {
 fs.watchFile(detectionPath, { persistent: false }, (cur, prev) => {
   if (cur.mtime !== prev.mtime) loadDetection.onChanged?.();
 });
-
-export default loadDetection;

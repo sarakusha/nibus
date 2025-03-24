@@ -150,7 +150,7 @@ export function* slipChunks(
     const [, end] = encode(data, offset, CHUNK_SIZE);
     const length = end - offset + (hasAddress ? 4 : 0);
     const frame = [fn, length];
-    hasAddress && frame.push(...uint32ToBytes(offset));
+    if (hasAddress) frame.push(...uint32ToBytes(offset));
     frame.push(...data.slice(offset, end));
     const crc = crc81wire(Buffer.from(frame), CRC_END);
     const [encoded] = encode([...frame, crc]);

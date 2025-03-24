@@ -8,9 +8,8 @@
  * the EULA file that was distributed with this source code.
  */
 
-const path = require('path');
-
 module.exports = {
+  env: { es6: true },
   parser: '@typescript-eslint/parser', // Specifies the ESLint parser
   plugins: ['import', '@typescript-eslint', 'eslint-plugin-tsdoc', 'prettier', 'unused-imports'],
   extends: [
@@ -26,11 +25,8 @@ module.exports = {
     // 'plugin:prettier/recommended',
   ],
   parserOptions: {
-    ecmaVersion: 2018, // Allows for the parsing of modern ECMAScript features
+    ecmaVersion: 6, // Allows for the parsing of modern ECMAScript features
     sourceType: 'module', // Allows for the use of imports
-    ecmaFeatures: {
-      jsx: true, // Allows for the parsing of JSX
-    },
   },
   rules: {
     // Place to specify ESLint rules. Can be used to overwrite rules specified from the extended
@@ -114,11 +110,6 @@ module.exports = {
       typescript: {
         alwaysTryTypes: true,
         project: 'packages/*/tsconfig.json',
-      },
-    },
-    'import/resolver': {
-      'eslint-import-resolver-lerna': {
-        packages: path.resolve(__dirname, './packages'),
       },
       node: {
         extensions: ['.js', '.jsx', '.ts', '.tsx'],

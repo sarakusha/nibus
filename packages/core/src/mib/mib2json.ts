@@ -12,10 +12,10 @@
 import fs from 'fs';
 import { decode, encodingExists } from 'iconv-lite';
 import * as path from 'path';
-import sax, { SAXStream } from 'sax';
+import * as sax from 'sax';
 import { Stream, Transform, TransformCallback } from 'stream';
 
-type TextHandler = (this: SAXStream, text: string) => void;
+type TextHandler = (this: sax.SAXStream, text: string) => void;
 
 class Utf8Converter extends Transform {
   constructor(public encoding: string) {
@@ -151,7 +151,7 @@ ${text}`;
             appinfo[local] = text;
           }
         }
-        state === 'annotation' && (current.annotation = text);
+        if (state === 'annotation') (current.annotation = text);
       }
     };
 

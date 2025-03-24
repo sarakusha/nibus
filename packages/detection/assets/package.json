@@ -1,11 +1,9 @@
 {
-  "main": "./index.js",
-  "module": "./index.mjs",
+  "main": "./index.cjs",
   "types": "./index.d.ts",
   "exports": {
     ".": {
-      "require": "./index.js",
-      "default": "./index.mjs"
+      "require": "./index.cjs"
     }
   }
 }

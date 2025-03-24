@@ -23,7 +23,7 @@ import { Datagram, MINIHOST_TYPE, VERSION_ID, delay } from '../common';
 import Deferred from '../Deferred';
 import { TimeoutError } from '../errors';
 import type { IDevice } from '../mib';
-import { MibDescription, MibDescriptionV } from '../MibDescription';
+import { type MibDescription, MibDescriptionV } from '../MibDescription';
 import { NmsDatagram, createExecuteProgramInvocation, createNmsRead } from '../nms';
 import NmsServiceType from '../nms/NmsServiceType';
 import { SarpDatagram, SarpQueryType, createSarp } from '../sarp';
@@ -271,6 +271,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
       };
     } catch (err) {
       // debug(`<error> ${err.message || err}`);
+      console.error(err);
       return undefined;
     }
   }
@@ -368,7 +369,7 @@ export default class NibusConnection extends TypedEmitter<NibusEvents> implement
           this.finishSlip = finishSlip;
           this.decoder.setSlipMode(true);
         });
-        force || (await delay(1000));
+        if (!force) (await delay(1000));
         return resolve(true);
       });
     });

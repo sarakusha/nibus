@@ -15,8 +15,8 @@ import Address, { AddressParam } from '../Address';
 import { BrightnessHistory } from '../ipc';
 import { Devices, IDevice } from '../mib';
 import MockNibusConnection from '../nibus/MockNibusConnection';
-import { VersionInfo } from '../nibus';
 import { INibusSession, NibusSessionEvents } from './NibusSession';
+import type { VersionInfo } from "../nibus/NibusConnection";
 
 const debug = debugFactory('nibus:mock-session');
 

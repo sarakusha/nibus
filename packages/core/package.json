@@ -13,19 +13,24 @@
   "license": "MIT",
   "main": "build/index.cjs",
   "typings": "build/index.d.ts",
+  "types": "./index.d.ts",
   "module": "build/index.js",
   "exports": {
     ".": {
       "require": "./build/index.cjs",
-      "default": "./build/index.js"
+      "import": "./build/index.js"
     },
     "./sarp": {
       "require": "./build/sarp/index.cjs",
-      "default": "./build/sarp/index.js"
+      "import": "./build/sarp/index.js"
     },
     "./session": {
       "require": "./build/session/index.cjs",
-      "default": "./build/session/index.js"
+      "import": "./build/session/index.js"
+    },
+    "./session/*": {
+      "require": "./build/session/*.cjs",
+      "import": "./build/session/*.js"
     },
     "./*": {
       "require": "./build/*.cjs",
@@ -35,6 +40,10 @@
   },
   "typesVersions": {
     "*": {
+      "session": [
+        ",/build/sesssion/*",
+        "./build/session/index.d.ts"
+      ],
       "*": [
         "./build/*",
         "./build/index.d.ts"
@@ -56,11 +65,11 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup-node",
     "test": "jest src",
     "type-check": "tsc --noEmit",
-    "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
+    "lint": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx src/",
+    "lint:fix": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx --fix src/",
     "typedoc": "typedoc",
     "yalc:push": "yalc push"
   },

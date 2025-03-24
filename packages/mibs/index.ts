@@ -13,8 +13,13 @@ import * as path from 'path';
 import * as t from 'io-ts';
 import { isLeft } from 'fp-ts/Either';
 import { PathReporter } from 'io-ts/PathReporter';
+import debugFactory from 'debug';
 
 import root from './json';
+
+const debug = debugFactory('nibus:mibs');
+
+debug(`root: ${root}`);
 
 const MibPropertyAppInfoV = t.intersection([
   t.type({
@@ -38,9 +43,7 @@ const MibPropertyV = t.type({
   appinfo: MibPropertyAppInfoV,
 });
 
-export interface IMibProperty extends t.TypeOf<typeof MibPropertyV> {
-  // appinfo: IMibPropertyAppInfo;
-}
+export type IMibProperty = t.TypeOf<typeof MibPropertyV> ;
 
 const MibDeviceAppInfoV = t.intersection([
   t.type({
@@ -60,7 +63,7 @@ const MibDeviceTypeV = t.type({
   properties: t.record(t.string, MibPropertyV),
 });
 
-export interface IMibDeviceType extends t.TypeOf<typeof MibDeviceTypeV> {}
+export type IMibDeviceType = t.TypeOf<typeof MibDeviceTypeV>;
 
 const MibTypeV = t.intersection([
   t.type({
@@ -81,7 +84,7 @@ const MibTypeV = t.intersection([
   }),
 ]);
 
-export interface IMibType extends t.TypeOf<typeof MibTypeV> {}
+export type IMibType = t.TypeOf<typeof MibTypeV>;
 
 const MibSubroutineV = t.intersection([
   t.type({
@@ -122,13 +125,14 @@ export const MibDeviceV = t.intersection([
   }),
 ]);
 
-export interface MibSubroutines extends t.TypeOf<typeof MibSubroutineV> {}
+export type MibSubroutines = t.TypeOf<typeof MibSubroutineV>;
 
-export interface IMibDevice extends t.TypeOf<typeof MibDeviceV> {}
+export type IMibDevice = t.TypeOf<typeof MibDeviceV>;
 
 const decodeMib = (name: string): IMibDevice => {
+  const mibPath = `${root}/${name}.mib.json`;
   const mibValidation = MibDeviceV.decode(
-    JSON.parse(fs.readFileSync(`${root}/${name}.mib.json`).toString())
+    JSON.parse(fs.readFileSync(mibPath).toString())
   );
   if (isLeft(mibValidation)) {
     throw new Error(`Invalid mib file ${name} ${PathReporter.report(mibValidation).join('\n')}`);

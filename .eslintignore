@@ -1,7 +1,3 @@
 node_modules/
-**/lib/
-converter.js
-/packages/gmib
-**/build/
-**/bak/
-packages/gmib/
+build/
+bak/

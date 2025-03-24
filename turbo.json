@@ -2,14 +2,17 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "build": {
-      "outputs": ["packages/*/build/**"]
+      "outputs": ["packages/*/build/**"],
+      "dependsOn": ["^build"]
     },
-    "check-types": {
-      "dependsOn": ["^check-types"]
+    "type-check": {
+      "dependsOn": ["^type-check"]
     },
     "dev": {
       "persistent": true,
       "cache": false
-    }
+    },
+    "lint": {},
+    "yalc:push": {}
   }
 }

@@ -12,8 +12,8 @@
     "service": "cross-env NODE_ENV=production DEBUG=nibus:*,-nibus:decoder pm2 --name=nibus.service start lib/service/daemon.js",
     "build": "tsup",
     "compile": "cross-env NODE_ENV=development tsc",
-    "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/"
+    "lint": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx src/",
+    "lint:fix": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx --fix src/"
   },
   "bin": {
     "nibus": "build/index.js"
@@ -37,6 +37,7 @@
   },
   "devDependencies": {
     "@types/debug": "^4.1.0",
+    "@types/lodash": "^4.17.16",
     "@types/progress": "^2.0.3",
     "@types/tail": "^2.0.0",
     "@types/yargs": "^17.0.0"
@@ -50,7 +51,7 @@
     "debug": "4",
     "fp-ts": "^2.4.1",
     "io-ts": "^2.0.5",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.21",
     "onetime": "5",
     "pm2": "^5.0.0",
     "progress": "^2.0.3",

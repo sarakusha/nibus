@@ -8,9 +8,9 @@
  * the EULA file that was distributed with this source code.
  */
 
-export { default as Client } from './Client';
+// export { default as Client } from './Client';
 export type { PortArg, Host, Display, BrightnessHistory } from './events';
-export * from './clientEvents';
+// export * from './clientEvents';
 
 export function getSocketPath(path: string): string {
   return `/tmp/nibus.${path.replace(/^(\/dev\/)/, '')}`;

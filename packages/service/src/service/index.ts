@@ -9,7 +9,6 @@
  */
 /* eslint-disable no-bitwise */
 import { IKnownPort, LogLevel } from '@nibus/core';
-// eslint-disable-next-line import/no-unresolved
 import { config } from '@nibus/core/config';
 import { Socket } from 'net';
 import os from 'os';

@@ -10,7 +10,7 @@
 
 import 'reflect-metadata';
 
-import { IMibType } from '@nibus/mibs/index';
+import type { IMibType } from '@nibus/mibs';
 /* eslint-disable no-bitwise,no-eval */
 /* tslint:disable:no-eval */
 import printf from 'printf';

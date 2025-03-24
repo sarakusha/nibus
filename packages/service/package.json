@@ -34,10 +34,10 @@
   "scripts": {
     "rsync:ubuntu": "rsync -avz --delete --exclude=.git --include=.gitignore --filter=':- .gitignore' . user@192.168.2.33:~/src/nibus/packages/service",
     "type-check": "tsc --noEmit",
-    "build": "tsup",
+    "build": "tsup-node",
     "compile": "cross-env NODE_ENV=development tsc",
-    "lint": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --ext .js,.ts,.tsx --fix src/",
+    "lint": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx src/",
+    "lint:fix": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx --fix src/",
     "yalc:push": "yalc push"
   },
   "dependencies": {
@@ -53,5 +53,9 @@
   },
   "peerDependencies": {
     "debug": "^4.3.0"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.17.16",
+    "@types/w3c-web-usb": "^1.0.10"
   }
 }

@@ -43,10 +43,10 @@
     "@nibus/core": "^4"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup-node",
     "yalc:push": "yalc push",
-    "lint": "eslint -c ../../.eslintrc-prod.js index.ts",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --fix index.ts"
+    "lint": "eslint -c ../../.eslintrc.cjs index.ts",
+    "lint:fix": "eslint -c ../../.eslintrc.cjs --fix index.ts"
   },
   "jest": {
     "preset": "ts-jest",

@@ -41,7 +41,10 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
 
   // private logger: SerialLogger | null = null;
 
-  constructor(public readonly portInfo: IKnownPort, public readonly description: MibDescription) {
+  constructor(
+    public readonly portInfo: IKnownPort,
+    public readonly description: MibDescription
+  ) {
     super();
     const { path } = portInfo;
     const win32 = (process.platform === 'win32' && description.win32) || {};
@@ -56,7 +59,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
       err => {
         if (err) {
           debug(`error while open serial port: ${err.message}`);
-          process.platform === 'linux' &&
+          if (process.platform === 'linux')
             debug(
               `WARNING! You would add user '${process.env.USER}' to the dialout group: "sudo usermod -aG dialout ${process.env.USER}"`
             );
@@ -124,7 +127,7 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
 
   private releaseSocket(socket: Socket): void {
     socket.off('data', this.send);
-    socket.destroyed || socket.destroy();
+    if (!socket.destroyed) socket.destroy();
     const index = this.connections.findIndex(item => item === socket);
     if (index !== -1) this.connections.splice(index, 1);
   }

@@ -16,7 +16,7 @@ import debugFactory from 'debug';
 import { LogLevel, MSG_DELIMITER } from '../common';
 
 import { ClientEventsArgs } from './clientEvents';
-import { Display, EventFromString, Host, PortArg } from './events';
+import { type Display, EventFromString, type Host, type PortArg } from './events';
 
 const debug = debugFactory('nibus:IPCClient');
 
@@ -47,7 +47,7 @@ type RemoteServer = {
   port: number;
 };
 
-export default class IPCClient extends Socket implements Client {
+export class IPCClient extends Socket implements Client {
   timeoutTimer = 0;
 
   private online = false;
@@ -82,7 +82,7 @@ export default class IPCClient extends Socket implements Client {
         client.setOnline(true);
       }
       client.write('NIBUS');
-      connectionListener && connectionListener();
+      connectionListener?.();
     });
     client.once('error', error => {
       debug(`<error> ${error.message}`);

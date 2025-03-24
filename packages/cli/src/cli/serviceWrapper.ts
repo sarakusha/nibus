@@ -33,7 +33,7 @@ export default function serviceWrapper<U>(handler: Handler<U>): Handler<U> {
     handler(args)
       .catch(err => console.error(err.message))
       .finally(() => {
-        nibus && nibus.stop();
+        nibus?.stop();
         process.nextTick(() => process.exit(0));
       });
   };

@@ -29,23 +29,23 @@ const argsType1 = <M extends ClientMessages, A extends t.Mixed>(
 
 export const SetLogLevelArgsV = argsType1('setLogLevel', LogLevelV);
 
-export interface SetLogLevelArgs extends t.TypeOf<typeof SetLogLevelArgsV> {}
+export type SetLogLevelArgs = t.TypeOf<typeof SetLogLevelArgsV>
 
 export const ReloadDevicesArgsV = argsType0('reloadDevices');
 
-export interface ReloadDevicesArgs extends t.TypeOf<typeof ReloadDevicesArgsV> {}
+export type ReloadDevicesArgs = t.TypeOf<typeof ReloadDevicesArgsV>
 
 export const ConfigArgsV = argsType1('config', t.UnknownRecord);
 
-export interface ConfigArgs extends t.TypeOf<typeof ConfigArgsV> {}
+export type ConfigArgs = t.TypeOf<typeof ConfigArgsV>
 
 export const PingArgsV = argsType0('ping');
 
-export interface PingArgs extends t.TypeOf<typeof PingArgsV> {}
+export type PingArgs = t.TypeOf<typeof PingArgsV>
 
 export const GetBrightnessHistoryV = argsType1('getBrightnessHistory', t.number);
 
-export interface GetBrightnessHistory extends t.TypeOf<typeof GetBrightnessHistoryV> {}
+export type GetBrightnessHistory = t.TypeOf<typeof GetBrightnessHistoryV>
 
 export const ClientEventsArgsV = t.union([
   SetLogLevelArgsV,

@@ -23,18 +23,17 @@ import debounce from 'lodash/debounce';
 import { TypedEmitter } from 'tiny-typed-emitter';
 import debugFactory from 'debug';
 import {
-  IMibDevice,
-  IMibDeviceType,
-  IMibProperty,
-  IMibType,
+  type IMibDevice,
+  type IMibDeviceType,
+  type IMibProperty,
+  type IMibType,
   getMib,
   getMibNames,
 } from '@nibus/mibs';
 import Address, { AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
-import { INibusConnection, VersionInfo } from '../nibus';
-import { IDLE_TIMEOUT } from '../nibus/NibusConnection';
+import { IDLE_TIMEOUT, type INibusConnection, type VersionInfo } from '../nibus/NibusConnection';
 import NibusDatagram from '../nibus/NibusDatagram';
 import {
   TypedValue,
@@ -94,7 +93,7 @@ enum PrivateProps {
 }
 
 // type DeviceConstructor = new (address: Address) => any;
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 interface DeviceConstructor extends Function {
   prototype: DevicePrototype;
   (this: DevicePrototype, address: Address): void;
@@ -150,7 +149,7 @@ export interface IDevice {
   download(domain: string, data: Buffer, offset?: number, noTerm?: boolean): Promise<void>;
   execute(
     program: string,
-    args?: Record<string, any>,
+    args?: Record<string, any>
   ): Promise<NmsDatagram | NmsDatagram[] | undefined>;
   release(): number;
   getId(idOrName: string | number): number;
@@ -211,7 +210,7 @@ function defineMibProperty(
   target: DevicePrototype,
   key: string,
   types: IMibDevice['types'],
-  prop: IMibProperty,
+  prop: IMibProperty
 ): [number, string] {
   const propertyKey = validJsName(key);
   const { appinfo } = prop;
@@ -263,10 +262,7 @@ function defineMibProperty(
     max = undefined;
   } else if (isWritable) {
     if (type != null) {
-      const {
-        minInclusive,
-        maxInclusive,
-      } = type;
+      const { minInclusive, maxInclusive } = type;
       if (minInclusive) {
         const val = parseFloat(minInclusive);
         min = min !== undefined ? Math.max(min, val) : val;
@@ -289,16 +285,10 @@ function defineMibProperty(
   if (info != null) {
     //   const { appinfo: info = {} } = type;
     enumeration = type?.enumeration;
-    const {
-      units,
-      precision,
-      representation,
-      get,
-      set,
-    } = info;
+    const { units, precision, representation, get, set } = info;
     const size = getIntSize(simpleType);
     if (units) {
-      isWritable || converters.push(unitConverter(units));
+      if (!isWritable) converters.push(unitConverter(units));
       Reflect.defineMetadata('unit', units, target, propertyKey);
     }
     let precisionConv: IConverter = {
@@ -318,13 +308,13 @@ function defineMibProperty(
         'enum',
         Object.entries(enumeration).map(([enumKey, val]) => [val!.annotation, toInt(enumKey)]),
         target,
-        propertyKey,
+        propertyKey
       );
     }
     // if (representation) {
     //   debug('REPR', representation, size, propertyKey);
     // }
-    representation && size && converters.push(representationConverter(representation, size));
+    if (representation && size) converters.push(representationConverter(representation, size));
     if (get && set) {
       const conv = evalConverter(get, set);
       converters.push(conv);
@@ -364,7 +354,7 @@ function defineMibProperty(
         ['Нет', false],
       ],
       target,
-      propertyKey,
+      propertyKey
     );
   }
   Reflect.defineMetadata('isWritable', isWritable, target, propertyKey);
@@ -375,10 +365,10 @@ function defineMibProperty(
     'displayName',
     prop.annotation ? prop.annotation : key,
     target,
-    propertyKey,
+    propertyKey
   );
-  appinfo.category && Reflect.defineMetadata('category', appinfo.category, target, propertyKey);
-  appinfo.rank && Reflect.defineMetadata('rank', appinfo.rank, target, propertyKey);
+  if (appinfo.category) Reflect.defineMetadata('category', appinfo.category, target, propertyKey);
+  if (appinfo.rank) Reflect.defineMetadata('rank', appinfo.rank, target, propertyKey);
   Reflect.defineMetadata('nmsType', getNmsType(simpleType), target, propertyKey);
   const attributes: IPropertyDescriptor<DevicePrototype> = {
     enumerable: isReadable,
@@ -430,23 +420,20 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     super();
     const mib = getMib(mibname);
     if (!mib) throw new TypeError(`Unknown mib: ${mibname}`);
-    const {
-      types,
-      subroutines,
-    } = mib;
+    const { types, subroutines } = mib;
     const device = types[mib.device] as IMibDeviceType;
     Reflect.defineMetadata('mib', mibname, this);
     // Reflect.defineMetadata('mibfile', `${mibname}.mib.json`, this);
     Reflect.defineMetadata('annotation', device.annotation, this);
     Reflect.defineMetadata('mibVersion', device.appinfo.mib_version, this);
     Reflect.defineMetadata('deviceType', toInt(device.appinfo.device_type), this);
-    device.appinfo.loader_type &&
-    Reflect.defineMetadata('loaderType', toInt(device.appinfo.loader_type), this);
-    device.appinfo.firmware && Reflect.defineMetadata('firmware', device.appinfo.firmware, this);
-    device.appinfo.min_version &&
-    Reflect.defineMetadata('min_version', device.appinfo.min_version, this);
-    types.errorType &&
-    Reflect.defineMetadata('errorType', (types.errorType as IMibType).enumeration, this);
+    if (device.appinfo.loader_type)
+      Reflect.defineMetadata('loaderType', toInt(device.appinfo.loader_type), this);
+    if (device.appinfo.firmware) Reflect.defineMetadata('firmware', device.appinfo.firmware, this);
+    if (device.appinfo.min_version)
+      Reflect.defineMetadata('min_version', device.appinfo.min_version, this);
+    if (types.errorType)
+      Reflect.defineMetadata('errorType', (types.errorType as IMibType).enumeration, this);
 
     if (subroutines) {
       const metasubs = transform(
@@ -464,7 +451,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
               })),
           };
         },
-        {} as Dictionary<ISubroutineDesc>,
+        {} as Dictionary<ISubroutineDesc>
       );
       Reflect.defineMetadata('subroutines', metasubs, this);
     }
@@ -478,7 +465,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     // }
     if (device.appinfo.disable_batch_reading) {
       const disableBatchReading = Boolean(
-        JSON.parse(device.appinfo.disable_batch_reading.toLowerCase()),
+        JSON.parse(device.appinfo.disable_batch_reading.toLowerCase())
       );
       Reflect.defineMetadata('disableBatchReading', disableBatchReading, this);
     }
@@ -565,10 +552,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
   public setRawValue(idOrName: number | string, value: any, isDirty = true): void {
     // debug(`setRawValue(${idOrName}, ${JSON.stringify(safeNumber(value))})`);
     const id = this.getId(idOrName);
-    const {
-      [$values]: values,
-      [$errors]: errors,
-    } = this;
+    const { [$values]: values, [$errors]: errors } = this;
     const newVal = safeNumber(value);
     // if (id === 11) {
     //   console.log('SERNO', { value: value.toString(16), newVal: newVal.toString(16) });
@@ -626,7 +610,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       const value = this.serno;
       const prevAddress = this.address;
       const address = new Address(
-        Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex'),
+        Buffer.from(value.padStart(12, '0').substring(value.length - 12), 'hex')
       );
       Reflect.defineProperty(this, 'address', withValue(address, false, true));
       this.emit('addressChanged', prevAddress, address);
@@ -683,8 +667,8 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
               this.address,
               id,
               Reflect.getMetadata('nmsType', this, name),
-              this.getRawValue(id),
-            ),
+              this.getRawValue(id)
+            )
           );
         } catch (e) {
           console.error('Error while create NMS datagram', toError(e).message);
@@ -708,9 +692,9 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
           reason => {
             this.setError(datagram.id, reason);
             return -datagram.id;
-          },
-        ),
-      ),
+          }
+        )
+      )
     ).then(idss => idss.concat(invalidNms));
   }
 
@@ -760,33 +744,32 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       });
       return result;
     };
-    return requests.reduce(async (promise, [datagram, chunkIds]) => {
-      const result = await promise;
-      try {
-        const response = await sendDatagram(datagram);
-        const datagrams: NmsDatagram[] = Array.isArray(response)
-          ? (response as NmsDatagram[])
-          : [response as NmsDatagram];
-        // принудительно задаем типы (ti_lux_2_3)
-        if (disableBatchReading) {
-          datagrams.forEach(data => {
-            const name = this.getName(data.id);
-            const type = Reflect.getMetadata('nmsType', this, name);
-            data.nms[1] = type;
-          });
+    return requests.reduce(
+      async (promise, [datagram, chunkIds]) => {
+        const result = await promise;
+        try {
+          const response = await sendDatagram(datagram);
+          const datagrams: NmsDatagram[] = Array.isArray(response)
+            ? (response as NmsDatagram[])
+            : [response as NmsDatagram];
+          // принудительно задаем типы (ti_lux_2_3)
+          if (disableBatchReading) {
+            datagrams.forEach(data => {
+              const name = this.getName(data.id);
+              const type = Reflect.getMetadata('nmsType', this, name);
+              data.nms[1] = type;
+            });
+          }
+          datagrams.forEach(({ id, value, status }) =>
+            Object.assign(result, parseResult(id, status!, value))
+          );
+        } catch (e) {
+          chunkIds.forEach(id => Object.assign(result, parseResult(id, toError(e))));
         }
-        datagrams.forEach(({
-            id,
-            value,
-            status,
-          }) =>
-            Object.assign(result, parseResult(id, status!, value)),
-        );
-      } catch (e) {
-        chunkIds.forEach(id => Object.assign(result, parseResult(id, toError(e))));
-      }
-      return result;
-    }, Promise.resolve({} as { [name: string]: any }));
+        return result;
+      },
+      Promise.resolve({} as { [name: string]: any })
+    );
   }
 
   async upload(domain: string, offset = 0, size: number | undefined = undefined): Promise<Buffer> {
@@ -795,11 +778,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       if (!connection) throw new Error('disconnected');
       const sendDatagram = this.createSender(connection);
       const reqUpload = createNmsRequestDomainUpload(this.address, domain.padEnd(8, '\0'));
-      const {
-        id,
-        value: domainSize,
-        status,
-      } = (await sendDatagram(reqUpload)) as NmsDatagram;
+      const { id, value: domainSize, status } = (await sendDatagram(reqUpload)) as NmsDatagram;
       if (status !== 0) {
         // debug('<error>', status);
         throw new NibusError(status!, this, 'Request upload domain error');
@@ -860,11 +839,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
     if (!connection) throw new Error('disconnected');
     const sendDatagram = this.createSender(connection);
     const reqDownload = createNmsRequestDomainDownload(this.address, domain.padEnd(8, '\0'));
-    const {
-      id,
-      value: max,
-      status,
-    } = (await sendDatagram(reqDownload)) as NmsDatagram;
+    const { id, value: max, status } = (await sendDatagram(reqDownload)) as NmsDatagram;
     if (status !== 0) {
       // debug('<error>', status);
       throw new NibusError(status!, this, `Request download domain "${domain}" error`);
@@ -881,7 +856,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
         throw new NibusError(
           termStat!,
           this,
-          'Terminate download sequence error, maybe need --no-term',
+          'Terminate download sequence error, maybe need --no-term'
         );
       }
     };
@@ -911,9 +886,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       await prev;
       const pos = i * chunkSize + offset;
       const segmentDownload = createNmsDownloadSegment(this.address, id!, pos, chunk);
-      const { status: downloadStat } = (await sendDatagram(
-        segmentDownload,
-      )) as NmsDatagram;
+      const { status: downloadStat } = (await sendDatagram(segmentDownload)) as NmsDatagram;
       if (downloadStat !== 0) {
         await terminate(new NibusError(downloadStat!, this, 'Download segment error'));
       }
@@ -937,7 +910,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
 
   async execute(
     program: string,
-    args?: Record<string, any>,
+    args?: Record<string, any>
   ): Promise<NmsDatagram | NmsDatagram[] | undefined> {
     const { connection } = this;
     if (!connection) throw new Error('disconnected');
@@ -960,7 +933,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
       this.address,
       subroutine.id,
       subroutine.notReply,
-      ...props,
+      ...props
     );
     return sendDatagram(req);
   }
@@ -1000,7 +973,7 @@ class DevicePrototype extends TypedEmitter<IDeviceEvents> implements IDevice {
   protected resetIdle(): void {
     this.$lastActivity = Date.now();
     this.startIdle.bind(this)();
-  };
+  }
 
   protected createSender(connection: INibusConnection) {
     return (datagram: NibusDatagram) => {
@@ -1057,10 +1030,7 @@ export const getMibTypes = (): MibTypes => {
     getMibNames().forEach(mibname => {
       const mib = getMib(mibname);
       if (!mib) return;
-      const {
-        types,
-        device: deviceType,
-      } = mib;
+      const { types, device: deviceType } = mib;
       const device = types[deviceType] as IMibDeviceType;
       const type = toInt(device.appinfo.device_type);
       const minVersion = minVersionToInt(device.appinfo.min_version);
@@ -1156,7 +1126,7 @@ export class Devices extends TypedEmitter<DevicesEvents> {
     address: AddressParam,
     mibOrType: number | string,
     versionOrOwned?: number | INibusConnection,
-    ownedParam?: INibusConnection,
+    ownedParam?: INibusConnection
   ): IDevice => {
     let mib: string | undefined;
     let owned: INibusConnection | undefined;

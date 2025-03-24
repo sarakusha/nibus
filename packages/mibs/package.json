@@ -6,23 +6,16 @@
     "nibus",
     "sarakusha"
   ],
-  "type": "module",
+  "type": "commonjs",
   "author": "Andrei Sarakeev <sarakusha@gmail.com>",
   "homepage": "https://github.com/sarakusha/nibus/packages/mibs#readme",
   "license": "MIT",
-  "main": "build/index.cjs",
-  "typings": "build/index.d.ts",
-  "module": "build/index.js",
-  "exports": {
-    ".": {
-      "require": "./build/index.cjs",
-      "default": "./build/index.js"
-    }
-  },
+  "main": "./index.js",
+  "typings": "./index.d.ts",
   "files": [
     "json",
-    "build",
     "index.ts",
+    "index.js",
     "!**/*.spec.*",
     "EULA.md",
     "CHANGELOG.md",
@@ -34,14 +27,15 @@
     "directory": "packages/mibs"
   },
   "dependencies": {
+    "debug": "4",
     "fp-ts": "^2.11.10",
     "io-ts": "^2.2.16"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsc -p tsconfig.json",
     "yalc:push": "yalc push",
-    "lint": "eslint -c ../../.eslintrc-prod.js index.ts",
-    "lint:fix": "eslint -c ../../.eslintrc-prod.js --fix index.ts"
+    "lint": "eslint -c ../../.eslintrc.cjs index.ts",
+    "lint:fix": "eslint -c ../../.eslintrc.cjs --fix index.ts"
   },
   "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

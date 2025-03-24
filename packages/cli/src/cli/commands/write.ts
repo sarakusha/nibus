@@ -29,7 +29,7 @@ export async function action(device: IDevice, args: Arguments<WriteOpts>): Promi
   if (vars.length === 0) {
     return [];
   }
-  args.quiet ||
+  if (!args.quiet)
     console.info(`Writing to ${Reflect.getMetadata('mib', device)} [${device.address}]`);
   return device.write(...vars.map(([, id]) => id)).then(ids => {
     const names = ids.map(id => device.getName(id));

@@ -1,6 +1,6 @@
 {
   "name": "@nibus/detection",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "license": "MIT",
   "description": "nibus.js auto detection config",
   "keywords": [
@@ -40,7 +40,7 @@
     "js-yaml": "^4.1.0"
   },
   "peerDependencies": {
-    "@nibus/core": "^4"
+    "@nibus/core": "^5.0.0"
   },
   "scripts": {
     "build": "tsup-node",

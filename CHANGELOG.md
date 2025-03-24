@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [4.3.0](https://github.com/sarakusha/nibus/compare/v4.2.0...v4.3.0) (2025-03-24)
+
+
+### Features
+
+* обновление, pnpm, tsup ([35135ad](https://github.com/sarakusha/nibus/commit/35135adbd8ef5e38a4faf88c8039b35b32ecd94d))
+
+
+### Bug Fixes
+
+* svoid direct eval when bundling ([80eafe6](https://github.com/sarakusha/nibus/commit/80eafe685e2812d4249afb86d07c6ba1128831e2))
+
 ## [4.2.0](https://github.com/sarakusha/nibus/compare/v4.1.0...v4.2.0) (2025-03-23)
 
 

@@ -352,6 +352,24 @@
             "category": "Параметры FPGA"
           }
         },
+        "firmware_id": {
+          "type": "firmwareType",
+          "annotation": "Текущая прошивка FPGA",
+          "appinfo": {
+            "nms_id": "0x3AD",
+            "access": "w\nr",
+            "category": "Параметры FPGA"
+          }
+        },
+        "firmware_result": {
+          "type": "xs:unsignedInt",
+          "annotation": "Результат конфигурации FPGA",
+          "appinfo": {
+            "nms_id": "0x3AE",
+            "access": "r",
+            "category": "Параметры FPGA"
+          }
+        },
         "test_signal": {
           "type": "xs:boolean",
           "annotation": "Тестовый сигнал",
@@ -1011,6 +1029,17 @@
         },
         "63": {
           "annotation": "9600K"
+        }
+      }
+    },
+    "firmwareType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "Alpha1"
+        },
+        "1": {
+          "annotation": "Alpha2"
         }
       }
     },

@@ -14,7 +14,7 @@ mibCategories:
     link: true
   c22:
     link: true
-#    find: version
+    #    find: version
     # baudRate: 57600
     # В случае прямого подключения для эмуляции 9 бита любой even/odd (mark, space только на Windows)
     #    parity: even
@@ -33,89 +33,74 @@ mibCategories:
     foreign: true
 
 knownDevices:
-  -
-    vid: 0x2047
+  - vid: 0x2047
     pid: 0x0a3d
     category: minihost
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x2047
+    pid: 0x0b3d
+    category: minihost
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: Siolynx2
     category: siolynx
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: FT232R USB UART
     manufacturer: FTDI
     category: siolynx
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: FanControl
     manufacturer: NATA
     category: fancontrol
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: C22 USB to RS422 Converter
     manufacturer: NATA
     category: c22
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: C22 USB to RS422 Converter
     manufacturer: Nata-Info
     category: c22
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: AlphaHostControl
-    manufacturer: 'Nata-Info'
+    manufacturer: "Nata-Info"
     category: minihost
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6015 # 24597
     device: AlphaHostControl
-    manufacturer: 'Nata-Info'
+    manufacturer: "Nata-Info"
     category: minihost
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6015 # 24597
     device: MiniHost_alfa
-#    manufacturer: 'Nata-Info'
+    #    manufacturer: 'Nata-Info'
     category: minihost
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: HostControlMini
-    manufacturer: 'SlimDVI'
+    manufacturer: "SlimDVI"
     category: minihost
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6001 # 24577
     device: MiniHost_alfa
-    manufacturer: 'Nata-Info'
+    manufacturer: "Nata-Info"
     category: minihost
-  -
-    vid: 0x0403 # 1027
+  - vid: 0x0403 # 1027
     pid: 0x6015 # 24597
     device: FT230X Basic UART
     manufacturer: FTDI
     category: ftdi
-  -
-    vid: 1240
+  - vid: 1240
     pid: 10
     device: Ke-USB24R
     serialNumber: K_Ke-USB24R
     category: relay
-  -
-    vid: 0x10c4
+  - vid: 0x10c4
     pid: 0xea60
     category: novastar
-  -
-    vid: 0x0483
+  - vid: 0x0483
     pid: 0x5720
     category: novastar
-
-
-

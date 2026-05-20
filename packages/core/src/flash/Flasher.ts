@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* eslint-disable no-bitwise */
+/* eslint-disable no-bitwise, no-dupe-class-members */
 import { crc16ccitt } from 'crc';
 import { XMLParser } from 'fast-xml-parser';
 import fs from 'fs';

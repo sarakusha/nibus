@@ -8,7 +8,7 @@
  * the EULA file that was distributed with this source code.
  */
 
-/* eslint-disable max-classes-per-file,@typescript-eslint/no-explicit-any */
+/* eslint-disable max-classes-per-file,@typescript-eslint/no-explicit-any,no-redeclare */
 import 'reflect-metadata';
 
 import { crc16ccitt } from 'crc';
@@ -30,13 +30,13 @@ import {
   getMib,
   getMibNames,
 } from '@nibus/mibs';
-import Address, { AddressParam, AddressType } from '../Address';
+import Address, { type AddressParam, AddressType } from '../Address';
 import { NibusError } from '../errors';
 import { NMS_MAX_DATA_LENGTH } from '../nbconst';
 import { IDLE_TIMEOUT, type INibusConnection, type VersionInfo } from '../nibus/NibusConnection';
-import NibusDatagram from '../nibus/NibusDatagram';
+import type NibusDatagram from '../nibus/NibusDatagram';
 import {
-  TypedValue,
+  type TypedValue,
   createExecuteProgramInvocation,
   createNmsDownloadSegment,
   createNmsInitiateDownloadSequence,
@@ -50,12 +50,12 @@ import {
   createNmsWrite,
   getNmsType,
 } from '../nms';
-import NmsDatagram from '../nms/NmsDatagram';
+import type NmsDatagram from '../nms/NmsDatagram';
 import NmsValueType from '../nms/NmsValueType';
 import { chunkArray, toError, toMessage } from '../common';
 import timeid from '../timeid';
 import {
-  IConverter,
+  type IConverter,
   booleanConverter,
   convertFrom,
   convertTo,

@@ -2,16 +2,15 @@
   "extends": "../../tsconfig.settings.json",
   "compilerOptions": {
     "noEmit": true,
-    "baseUrl": "./",
     "paths": {
       "sax": [
-        "@types/sax"
+        "./@types/sax"
       ],
       "xpipe": [
-        "@types/xpipe"
+        "./@types/xpipe"
       ],
       "intel-hex": [
-        "@types/intel-hex"
+        "./@types/intel-hex"
       ],
       "debug/src/node": [
         "../../node_modules/@types/debug"

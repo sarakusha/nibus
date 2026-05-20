@@ -1,3 +1,10 @@
 declare const detectionPath: string;
+declare const detection: unknown;
 
-export = detectionPath;
+declare const _default: {
+  detectionPath: string;
+  detection: unknown;
+};
+
+export { detectionPath, detection };
+export default _default;

@@ -10,10 +10,10 @@
   "scripts": {
     "type-check": "tsc --noEmit",
     "service": "cross-env NODE_ENV=production DEBUG=nibus:*,-nibus:decoder pm2 --name=nibus.service start lib/service/daemon.js",
-    "build": "tsup",
+    "build": "tsdown",
     "compile": "cross-env NODE_ENV=development tsc",
-    "lint": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx --fix src/"
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix src/"
   },
   "bin": {
     "nibus": "build/index.js"
@@ -43,9 +43,9 @@
     "@types/yargs": "^17.0.0"
   },
   "dependencies": {
-    "@nibus/core": "^5.0.0",
-    "@nibus/mibs": "^5.0.0",
-    "@nibus/service": "^5.0.0",
+    "@nibus/core": "workspace:^",
+    "@nibus/mibs": "workspace:^",
+    "@nibus/service": "workspace:^",
     "chalk": "4",
     "cli-table3": "^0.6.0",
     "debug": "4",

@@ -1,6 +1,6 @@
 {
   "name": "@nibus/mibs",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "keywords": [
     "nata-info",
     "nibus",
@@ -10,12 +10,21 @@
   "author": "Andrei Sarakeev <sarakusha@gmail.com>",
   "homepage": "https://github.com/sarakusha/nibus/packages/mibs#readme",
   "license": "MIT",
-  "main": "./index.js",
-  "typings": "./index.d.ts",
+  "main": "./index.cjs",
+  "types": "./index.d.cts",
+  "module": "./index.mjs",
+  "exports": {
+    ".": {
+      "require": "./index.cjs",
+      "import": "./index.mjs",
+      "types": "./index.d.cts"
+    }
+  },
   "files": [
     "json",
     "index.ts",
-    "index.js",
+    "index.cjs",
+    "index.d.cts",
     "!**/*.spec.*",
     "EULA.md",
     "CHANGELOG.md",
@@ -32,10 +41,10 @@
     "io-ts": "^2.2.16"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsdown",
     "yalc:push": "yalc push",
-    "lint": "eslint -c ../../.eslintrc.cjs index.ts",
-    "lint:fix": "eslint -c ../../.eslintrc.cjs --fix index.ts"
+    "lint": "eslint index.ts",
+    "lint:fix": "eslint --fix index.ts"
   },
   "gitHead": "876cd1a510a30b9b3a4b59c012dd707db5e695b8"
 }

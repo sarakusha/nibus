@@ -1,0 +1,633 @@
+{
+  "device": "clock5",
+  "subroutines": {
+    "clear_stat": {
+      "annotation": "Обнулить статистику",
+      "appinfo": {
+        "nms_id": "4"
+      }
+    }
+  },
+  "types": {
+    "clock5": {
+      "annotation": "Часы 7205b (Clock V5)",
+      "appinfo": {
+        "mib_version": "1.1",
+        "device_type": "0x0044",
+        "loader_type": "0x26",
+        "firmware": "clock++.hex"
+      },
+      "properties": {
+        "version": {
+          "type": "versionType",
+          "annotation": "Версия firmware",
+          "appinfo": {
+            "nms_id": "2",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "serno": {
+          "type": "xs:unsignedLong",
+          "annotation": "Nibus MAC адресс",
+          "appinfo": {
+            "nms_id": "11",
+            "access": "r",
+            "representation": "%X",
+            "category": "Загрузчик"
+          }
+        },
+        "uptime": {
+          "type": "seconds",
+          "annotation": "Время с момента старта",
+          "appinfo": {
+            "nms_id": "3",
+            "access": "r",
+            "category": "Загрузчик"
+          }
+        },
+        "rs485_errors": {
+          "type": "xs:unsignedInt",
+          "annotation": "Ошибок контрольной суммы в rs485 интерфейсе",
+          "appinfo": {
+            "nms_id": "0x100",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_collisions": {
+          "type": "xs:unsignedInt",
+          "annotation": "Коллизий при передаче дейтаграмм в rs485 интерфейсе",
+          "appinfo": {
+            "nms_id": "0x101",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_rx_datagrams": {
+          "type": "xs:unsignedInt",
+          "annotation": "Принято дейтаграмм в rs485 интерфейсе",
+          "appinfo": {
+            "nms_id": "0x102",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "rs485_tx_datagrams": {
+          "type": "xs:unsignedInt",
+          "annotation": "Отослано дейтаграмм в rs485 интерфейс",
+          "appinfo": {
+            "nms_id": "0x103",
+            "access": "r",
+            "category": "RS485"
+          }
+        },
+        "sarp_retries": {
+          "type": "xs:unsignedInt",
+          "annotation": "Коллизий при ответе на SARP-запрос",
+          "appinfo": {
+            "nms_id": "0x200",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "sarp_failed_resp": {
+          "type": "xs:unsignedInt",
+          "annotation": "Ошибок при ответе на SARP-запрос",
+          "appinfo": {
+            "nms_id": "0x201",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "sarp_requests": {
+          "type": "xs:unsignedInt",
+          "annotation": "SARP-запросов",
+          "appinfo": {
+            "nms_id": "0x202",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "sarp_resp": {
+          "type": "xs:unsignedInt",
+          "annotation": "SARP-ответов",
+          "appinfo": {
+            "nms_id": "0x203",
+            "access": "r",
+            "category": "SARP"
+          }
+        },
+        "domain": {
+          "type": "xs:unsignedShort",
+          "annotation": "Домен",
+          "appinfo": {
+            "nms_id": "0x81",
+            "access": "r\nw",
+            "category": "Сетевая адресация"
+          }
+        },
+        "subnet": {
+          "type": "xs:unsignedByte",
+          "annotation": "Подсеть",
+          "appinfo": {
+            "nms_id": "0x86",
+            "access": "r\nw",
+            "category": "Сетевая адресация"
+          }
+        },
+        "did": {
+          "type": "xs:unsignedShort",
+          "annotation": "Устройство",
+          "appinfo": {
+            "nms_id": "0x83",
+            "access": "r\nw",
+            "category": "Сетевая адресация"
+          }
+        },
+        "group": {
+          "type": "xs:unsignedByte",
+          "annotation": "Группа",
+          "appinfo": {
+            "nms_id": "0x82",
+            "access": "r\nws",
+            "category": "Сетевая адресация"
+          }
+        },
+        "Vcc": {
+          "type": "xs:unsignedShort",
+          "annotation": "Напряжение питания(мВ)",
+          "appinfo": {
+            "nms_id": "0x315",
+            "access": "r",
+            "category": "Процессор"
+          }
+        },
+        "MCU_ID": {
+          "type": "MCUType",
+          "annotation": "Модель процессора",
+          "appinfo": {
+            "nms_id": "0x318",
+            "access": "r",
+            "category": "Процессор"
+          }
+        },
+        "MCU_HW": {
+          "type": "xs:unsignedByte",
+          "annotation": "Версия чипа",
+          "appinfo": {
+            "nms_id": "0x319",
+            "access": "r",
+            "category": "Процессор"
+          }
+        },
+        "MCU_FW": {
+          "type": "xs:unsignedByte",
+          "annotation": "Версия ПО",
+          "appinfo": {
+            "nms_id": "0x31A",
+            "access": "r",
+            "category": "Процессор"
+          }
+        },
+        "MCU_Temp": {
+          "type": "temperatureType",
+          "annotation": "Температура процессора",
+          "appinfo": {
+            "nms_id": "0x313",
+            "access": "r",
+            "category": "Процессор"
+          }
+        },
+        "Bright": {
+          "type": "BrightType",
+          "annotation": "Дневная яркость(0 - макс. уровень, 5 - мин.)",
+          "appinfo": {
+            "nms_id": "0x7F",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Bright_n": {
+          "type": "BrightType",
+          "annotation": "Ночная яркость(0 - макс. уровень, 5 - мин.)",
+          "appinfo": {
+            "nms_id": "0x316",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Hours": {
+          "type": "HourType",
+          "annotation": "Часы",
+          "appinfo": {
+            "nms_id": "0x306",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Minutes": {
+          "type": "MinuteType",
+          "annotation": "Минуты",
+          "appinfo": {
+            "nms_id": "0x307",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Seconds": {
+          "type": "MinuteType",
+          "annotation": "Секунды",
+          "appinfo": {
+            "nms_id": "0x309",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Date": {
+          "type": "DateType",
+          "annotation": "Дата",
+          "appinfo": {
+            "nms_id": "0x30A",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Month": {
+          "type": "MonthType",
+          "annotation": "Месяц",
+          "appinfo": {
+            "nms_id": "0x30B",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "TRTC": {
+          "type": "RTCType",
+          "annotation": "Источник RTC",
+          "appinfo": {
+            "nms_id": "0x30C",
+            "access": "r",
+            "category": "RTC"
+          }
+        },
+        "Year": {
+          "type": "YearType",
+          "annotation": "Год",
+          "appinfo": {
+            "nms_id": "0x30D",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Day_of_week": {
+          "type": "DayType",
+          "annotation": "День недели",
+          "appinfo": {
+            "nms_id": "0x30E",
+            "access": "r",
+            "category": "7205B"
+          }
+        },
+        "Enable_wt": {
+          "type": "xs:boolean",
+          "annotation": "Разрешить автоматический переход на летнее/зимнее время",
+          "appinfo": {
+            "nms_id": "0x314",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Temp_RTC": {
+          "type": "temperatureType",
+          "annotation": "Температура RTC",
+          "appinfo": {
+            "nms_id": "0x31B",
+            "access": "r",
+            "category": "RTC"
+          }
+        },
+        "Temp": {
+          "type": "temperatureType",
+          "annotation": "Температура (Внешний датчик)",
+          "appinfo": {
+            "nms_id": "0x80",
+            "access": "r",
+            "category": "Внешние датчики"
+          }
+        },
+        "BrightEnable": {
+          "type": "xs:boolean",
+          "annotation": "Разрешить менять яркость (день/ночь)",
+          "appinfo": {
+            "nms_id": "0x317",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "DayHour": {
+          "type": "HourType",
+          "annotation": "Начало дня (часы)",
+          "appinfo": {
+            "nms_id": "0x30F",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "DayMin": {
+          "type": "MinuteType",
+          "annotation": "Начало дня(минуты)",
+          "appinfo": {
+            "nms_id": "0x310",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "NightHour": {
+          "type": "HourType",
+          "annotation": "Конец дня(часы)",
+          "appinfo": {
+            "nms_id": "0x311",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "NightMin": {
+          "type": "MinuteType",
+          "annotation": "Конец дня (минуты)",
+          "appinfo": {
+            "nms_id": "0x312",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "RTC_int": {
+          "type": "xs:unsignedByte",
+          "annotation": "Интервал показа времени",
+          "appinfo": {
+            "nms_id": "0x7d",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Temp_int": {
+          "type": "xs:unsignedByte",
+          "annotation": "Интервал показа температуры",
+          "appinfo": {
+            "nms_id": "0x7c",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        },
+        "Date_int": {
+          "type": "xs:unsignedByte",
+          "annotation": "Интервал показа даты",
+          "appinfo": {
+            "nms_id": "0x7A",
+            "access": "r\nw",
+            "category": "7205B"
+          }
+        }
+      }
+    },
+    "MCUType": {
+      "base": "xs:unsignedShort",
+      "enumeration": {
+        "32817": {
+          "annotation": "MSP430F5510"
+        },
+        "32821": {
+          "annotation": "MSP430F5504"
+        },
+        "32822": {
+          "annotation": "MSP430F5505"
+        },
+        "32823": {
+          "annotation": "MSP430F5506"
+        },
+        "32824": {
+          "annotation": "MSP430F5507"
+        },
+        "32825": {
+          "annotation": "MSP430F5508"
+        },
+        "32826": {
+          "annotation": "MSP430F5509"
+        }
+      }
+    },
+    "temperatureType": {
+      "appinfo": {
+        "units": "°C"
+      },
+      "base": "xs:byte"
+    },
+    "HourType": {
+      "base": "xs:unsignedByte",
+      "minInclusive": "0",
+      "maxInclusive": "59"
+    },
+    "MinuteType": {
+      "base": "xs:unsignedByte",
+      "minInclusive": "0",
+      "maxInclusive": "59"
+    },
+    "DateType": {
+      "base": "xs:unsignedByte",
+      "minInclusive": "1",
+      "maxInclusive": "31"
+    },
+    "MonthType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "1": {
+          "annotation": "Январь"
+        },
+        "2": {
+          "annotation": "Февраль"
+        },
+        "3": {
+          "annotation": "Март"
+        },
+        "4": {
+          "annotation": "Апрель"
+        },
+        "5": {
+          "annotation": "Май"
+        },
+        "6": {
+          "annotation": "Июнь"
+        },
+        "7": {
+          "annotation": "Июль"
+        },
+        "8": {
+          "annotation": "Август"
+        },
+        "9": {
+          "annotation": "Сентябрь"
+        },
+        "10": {
+          "annotation": "Октябрь"
+        },
+        "11": {
+          "annotation": "Ноябрь"
+        },
+        "12": {
+          "annotation": "Декабрь"
+        }
+      }
+    },
+    "RTCType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "Внутренний RTC"
+        },
+        "1": {
+          "annotation": "Внешний RTC (DS3231SN)"
+        }
+      }
+    },
+    "YearType": {
+      "base": "xs:unsignedByte",
+      "minInclusive": "00",
+      "maxInclusive": "99"
+    },
+    "DayType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "1": {
+          "annotation": "Воскресенье"
+        },
+        "2": {
+          "annotation": "Понедельник"
+        },
+        "3": {
+          "annotation": "Вторник"
+        },
+        "4": {
+          "annotation": "Среда"
+        },
+        "5": {
+          "annotation": "Четверг"
+        },
+        "6": {
+          "annotation": "Пятница"
+        },
+        "7": {
+          "annotation": "Суббота"
+        }
+      }
+    },
+    "BrightType": {
+      "base": "xs:unsignedByte",
+      "minInclusive": "0",
+      "maxInclusive": "5"
+    },
+    "versionType": {
+      "base": "xs:unsignedInt"
+    },
+    "seconds": {
+      "appinfo": {
+        "units": "с"
+      },
+      "base": "xs:unsignedInt"
+    },
+    "packed8Float": {
+      "base": "xs:unsignedByte"
+    },
+    "fixedPointNumber4": {
+      "base": "xs:unsignedShort"
+    },
+    "subroutine": {
+      "annotation": "Подпрограмма",
+      "properties": {
+        "id": {
+          "type": "xs:unsignedShort",
+          "annotation": "Идентификатор подпрограммы"
+        }
+      }
+    },
+    "errorType": {
+      "base": "xs:NMTOKEN",
+      "enumeration": {
+        "0": {
+          "annotation": "Успешное завершение"
+        },
+        "-1": {
+          "annotation": "i2c-шина заблокирована другим устройством"
+        },
+        "-2": {
+          "annotation": "Адресуемое i2c-устройство не обнаружено"
+        },
+        "-3": {
+          "annotation": "Транзакция остановлена адресуемым устройством"
+        },
+        "-4": {
+          "annotation": "Арбитраж проигран"
+        },
+        "-5": {
+          "annotation": "Таймаут ожидания"
+        },
+        "-6": {
+          "annotation": "Недопустимый аргумент или данные"
+        },
+        "-7": {
+          "annotation": "Неспецифируемая ошибка"
+        },
+        "-9": {
+          "annotation": "Требуемый ресурс не обнаружен"
+        },
+        "-10": {
+          "annotation": "Ошибка в файловой системе"
+        },
+        "-11": {
+          "annotation": "Отсутствует MAC-адрес"
+        },
+        "-12": {
+          "annotation": "Не совместимое устройство"
+        },
+        "-19": {
+          "annotation": "Ошибка в памяти устройства"
+        },
+        "-20": {
+          "annotation": "Требуемый файл не обнаружен в файловой системе"
+        },
+        "-22": {
+          "annotation": "Недостаточный размер буфера"
+        },
+        "-23": {
+          "annotation": "Недостаточно памяти"
+        },
+        "-24": {
+          "annotation": "Ошибка контрольной суммы"
+        },
+        "-25": {
+          "annotation": "Доступ запрещен"
+        },
+        "-26": {
+          "annotation": "Регистр имеет недопустимое значение"
+        },
+        "-30": {
+          "annotation": "Несовместимая конфигурация"
+        },
+        "-31": {
+          "annotation": "В конфигурационном файле обнаружена ошибка"
+        },
+        "-50": {
+          "annotation": "Недопустимая дейтаграмма"
+        },
+        "-51": {
+          "annotation": "Переполнение буфера дейтаграмм"
+        },
+        "-52": {
+          "annotation": "Обнаружена коллизия на последовательной шине"
+        },
+        "-53": {
+          "annotation": "Трансивером обнаружена коллизия на шине"
+        }
+      }
+    }
+  }
+}

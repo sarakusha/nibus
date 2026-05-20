@@ -7,14 +7,18 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-import * as fs from 'fs';
-import * as yaml from 'js-yaml';
+// import * as fs from 'fs';
 import * as t from 'io-ts';
 import { isLeft } from 'fp-ts/Either';
 import { PathReporter } from 'io-ts/PathReporter';
 import { CategoryV, MibDescriptionV } from '@nibus/core';
 
-import detectionPath from './assets';
+import assets from './assets';
+
+const { detection, detectionPath } = assets as {
+  detection: unknown;
+  detectionPath: string;
+};
 
 export { detectionPath };
 
@@ -39,8 +43,7 @@ const DetectionV = t.type({
 export type Detection = t.TypeOf<typeof DetectionV>;
 
 const getRawDetection = (): Detection => {
-  const data = fs.readFileSync(detectionPath, 'utf8');
-  return yaml.load(data) as Detection;
+  return JSON.parse(JSON.stringify(detection)) as Detection;
 };
 
 type Loader = {
@@ -68,6 +71,8 @@ export const loadDetection: Loader = () => {
   return validate.right;
 };
 
-fs.watchFile(detectionPath, { persistent: false }, (cur, prev) => {
-  if (cur.mtime !== prev.mtime) loadDetection.onChanged?.();
-});
+// if (fs.existsSync(detectionPath)) {
+//   fs.watchFile(detectionPath, { persistent: false }, (cur, prev) => {
+//     if (cur.mtime !== prev.mtime) loadDetection.onChanged?.();
+//   });
+// }

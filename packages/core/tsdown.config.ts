@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { type Options, defineConfig } from 'tsup';
+import { type Options, defineConfig } from 'tsdown';
 
 const nodeConfig: Options = {
   entry: [

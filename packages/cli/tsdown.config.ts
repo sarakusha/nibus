@@ -1,17 +1,17 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { type Options, defineConfig } from 'tsup';
+import { type Options, defineConfig } from 'tsdown';
 
 const nodeConfig: Options = {
-  entry: ['src/service/index.ts'],
+  entry: ['src/index.ts'],
   clean: true,
-  dts: true,
-  format: ['cjs', 'esm'],
+  dts: false,
+  format: ['cjs'],
   minify: false,
   outDir: 'build',
-  splitting: true,
+  splitting: false,
   target: 'es2022',
   treeshake: true,
-  sourcemap: true,
+  sourcemap: false,
 };
 
 export default defineConfig(nodeConfig);

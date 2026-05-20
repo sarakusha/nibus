@@ -49,6 +49,7 @@ interface DetectorEvents {
 }
 
 let detection = loadDetection();
+debug(`initial detection: ${JSON.stringify(detection)}`);
 
 function reloadDevices(lastAdded?: ExtraDevice): void {
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -208,16 +209,18 @@ async function detectDevice(port: PortInfo, lastAdded?: usb.Device): Promise<IKn
 }
 
 const matchCategory = (port: IKnownPort): Category => {
+  debug(`matchCategory: ${JSON.stringify(port)}`);
+  debug(`detection: ${JSON.stringify(detection?.knownDevices)}`);
   const match =
     detection &&
     find(detection.knownDevices, item =>
       Boolean(
         (!item.device || (port.device && port.device.startsWith(item.device))) &&
-          (!item.serialNumber ||
-            (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
-          (!item.manufacturer || port.manufacturer === item.manufacturer) &&
-          item.vid === port.vendorId &&
-          item.pid === port.productId
+        (!item.serialNumber ||
+          (port.serialNumber && port.serialNumber.startsWith(item.serialNumber))) &&
+        (!item.manufacturer || port.manufacturer === item.manufacturer) &&
+        item.vid === port.vendorId &&
+        item.pid === port.productId
       )
     );
   if (

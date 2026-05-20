@@ -10,16 +10,18 @@
   ],
   "type": "module",
   "main": "build/index.cjs",
-  "typings": "build/index.d.ts",
-  "module": "build/index.js",
+  "types": "build/index.d.cts",
+  "module": "build/index.mjs",
   "exports": {
     ".": {
       "require": "./build/index.cjs",
-      "default": "./build/index.js"
+      "import": "./build/index.mjs",
+      "types": "./build/index.d.cts"
     },
     "./*": {
       "require": "./build/*.cjs",
-      "default": "./build/*.js"
+      "import": "./build/*.mjs",
+      "types": "./build/*.d.cts"
     },
     "./package.json": "./package.json"
   },
@@ -27,23 +29,23 @@
     "*": {
       "*": [
         "./build/*",
-        "./build/index.d.ts"
+        "./build/index.d.cts"
       ]
     }
   },
   "scripts": {
     "rsync:ubuntu": "rsync -avz --delete --exclude=.git --include=.gitignore --filter=':- .gitignore' . user@192.168.2.33:~/src/nibus/packages/service",
     "type-check": "tsc --noEmit",
-    "build": "tsup-node",
+    "build": "tsdown",
     "compile": "cross-env NODE_ENV=development tsc",
-    "lint": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx --fix src/",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix src/",
     "yalc:push": "yalc push"
   },
   "dependencies": {
     "@homebridge/ciao": "^1.1.5",
-    "@nibus/core": "^5.0.0",
-    "@nibus/detection": "^5.0.0",
+    "@nibus/core": "workspace:^",
+    "@nibus/detection": "workspace:^",
     "@serialport/bindings-cpp": "^13.0.1",
     "fp-ts": "^2.13.1",
     "lodash": "^4.17.21",

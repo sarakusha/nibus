@@ -7,13 +7,12 @@
  * For the full copyright and license information, please view
  * the EULA file that was distributed with this source code.
  */
-
-/* eslint-disable no-multi-assign,@typescript-eslint/no-explicit-any,no-underscore-dangle */
-import fs from 'fs';
+/* eslint-disable @typescript-eslint/no-explicit-any, no-multi-assign */
+import fs from 'node:fs';
+import * as path from 'node:path';
+import { type Stream, Transform, type TransformCallback } from 'node:stream';
 import { decode, encodingExists } from 'iconv-lite';
-import * as path from 'path';
 import * as sax from 'sax';
-import { Stream, Transform, TransformCallback } from 'stream';
 
 type TextHandler = (this: sax.SAXStream, text: string) => void;
 
@@ -142,6 +141,7 @@ export function mib2json(mibpath: string): Promise<any> {
     const textHandler: TextHandler = function textHandler(text) {
       if (current) {
         if (state === 'appinfo') {
+          /* eslint-disable no-underscore-dangle */
           const { local } = this._parser.tag;
           const { appinfo } = current;
           if (appinfo[local]) {

@@ -12,29 +12,33 @@
   "homepage": "https://github.com/sarakusha/nibus/packages/core#readme",
   "license": "MIT",
   "main": "build/index.cjs",
-  "typings": "build/index.d.ts",
-  "types": "./index.d.ts",
-  "module": "build/index.js",
+  "types": "./index.d.cts",
+  "module": "build/index.mjs",
   "exports": {
     ".": {
       "require": "./build/index.cjs",
-      "import": "./build/index.js"
+      "import": "./build/index.mjs",
+      "types": "./index.d.cts"
     },
     "./sarp": {
       "require": "./build/sarp/index.cjs",
-      "import": "./build/sarp/index.js"
+      "import": "./build/sarp/index.mjs",
+      "types": "./build/sarp/index.d.cts"
     },
     "./session": {
       "require": "./build/session/index.cjs",
-      "import": "./build/session/index.js"
+      "import": "./build/session/index.mjs",
+      "types": "./build/session/index.d.cts"
     },
     "./session/*": {
       "require": "./build/session/*.cjs",
-      "import": "./build/session/*.js"
+      "import": "./build/session/*.mjs",
+      "types": "./build/session/*.d.cts"
     },
     "./*": {
       "require": "./build/*.cjs",
-      "import": "./build/*.js"
+      "import": "./build/*.mjs",
+      "types": "./build/*.d.cts"
     },
     "./package.json": "./package.json"
   },
@@ -65,11 +69,11 @@
     "directory": "packages/core"
   },
   "scripts": {
-    "build": "tsup-node",
+    "build": "tsdown",
     "test": "jest src",
     "type-check": "tsc --noEmit",
-    "lint": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx src/",
-    "lint:fix": "eslint -c ../../.eslintrc.cjs --ext .js,.ts,.tsx --fix src/",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix src/",
     "typedoc": "typedoc",
     "yalc:push": "yalc push"
   },
@@ -86,7 +90,7 @@
     "typedoc": "^0.22.1"
   },
   "dependencies": {
-    "@nibus/mibs": "^5.0.0",
+    "@nibus/mibs": "workspace:^",
     "conf": "^10.1.2",
     "crc": "^4.1.0",
     "fast-xml-parser": "^4.0.1",

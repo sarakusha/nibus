@@ -33,14 +33,13 @@
     "directory": "packages/detection"
   },
   "dependencies": {
+    "@nibus/core": "workspace:^",
     "@types/js-yaml": "^4.0.9",
     "fp-ts": "^2.16.11",
     "io-ts": "^2.2.22",
     "js-yaml": "^4.1.1"
   },
-  "peerDependencies": {
-    "@nibus/core": "workspace:^"
-  },
+  "peerDependencies": {},
   "scripts": {
     "build": "node ./scripts/generate-assets.mjs && tsdown",
     "yalc:push": "pnpm run build && yalc push",

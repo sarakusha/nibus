@@ -10,12 +10,7 @@
 
 import 'reflect-metadata';
 
-import * as AddressModule from './Address';
-
-const Address = AddressModule.default;
-const { AddressType } = AddressModule;
-
-export { Address, AddressType };
+export { Address, AddressType } from './Address';
 export type { AddressParam } from './Address';
 export * from './errors';
 export * from './sarp';

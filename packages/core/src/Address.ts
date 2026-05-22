@@ -74,7 +74,7 @@ export type AddressParam = string | number[] | Uint8Array | Address;
 /**
  * Представляет обертку для адреса
  */
-export default class Address {
+export class Address {
   /**
    * Пустой адрес
    */
@@ -394,3 +394,5 @@ export default class Address {
     return Address.toAddress(other)!.toString() === this.toString();
   }
 }
+
+export default Address;

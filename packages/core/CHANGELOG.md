@@ -1,5 +1,12 @@
 # Change Log
 
+## 6.0.1
+
+### Patch Changes
+
+- c014830: исправлен экспорт Address
+  - @nibus/mibs@6.0.1
+
 ## 6.0.0
 
 ### Minor Changes

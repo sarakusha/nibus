@@ -1,5 +1,12 @@
 # Change Log
 
+## 6.0.1
+
+### Patch Changes
+
+- Updated dependencies [c014830]
+  - @nibus/core@6.0.1
+
 ## 6.0.0
 
 ### Minor Changes

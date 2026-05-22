@@ -22,8 +22,6 @@
     }
   },
   "files": [
-    "assets",
-    "index.ts",
     "build",
     "EULA.md",
     "CHANGELOG.md",

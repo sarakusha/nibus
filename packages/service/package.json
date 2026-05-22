@@ -8,7 +8,6 @@
     "nibus",
     "sarakusha"
   ],
-  "type": "module",
   "main": "build/index.cjs",
   "types": "build/index.d.cts",
   "module": "build/index.mjs",
@@ -32,6 +31,17 @@
         "./build/index.d.cts"
       ]
     }
+  },
+  "files": [
+    "build",
+    "src",
+    "!**/*.spec.*",
+    "CHANGELOG.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sarakusha/nibus.git",
+    "directory": "packages/service"
   },
   "scripts": {
     "rsync:ubuntu": "rsync -avz --delete --exclude=.git --include=.gitignore --filter=':- .gitignore' . user@192.168.2.33:~/src/nibus/packages/service",

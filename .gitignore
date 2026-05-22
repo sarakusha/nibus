@@ -196,3 +196,13 @@ Temporary Items
 **/tsconfig.tsbuildinfo
 **/yarn-error.log
 .turbo
+packages/detection/assets/index.*
+packages/detection/assets/index.cjs
+packages/detection/assets/index.mjs
+packages/mibs/json/index.d.ts
+packages/mibs/json/index.js
+packages/mibs/json/index.mjs
+packages/mibs/index.cjs
+.gitignore
+packages/mibs/index.d.mts
+packages/mibs/index.d.cts

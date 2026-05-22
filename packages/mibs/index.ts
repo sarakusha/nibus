@@ -8,18 +8,18 @@
  * the EULA file that was distributed with this source code.
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import * as t from 'io-ts';
 import { isLeft } from 'fp-ts/Either';
 import { PathReporter } from 'io-ts/PathReporter';
 import debugFactory from 'debug';
 
-import root from './json';
+import mibData from './json';
 
 const debug = debugFactory('nibus:mibs');
 
-debug(`root: ${root}`);
+const mibs = mibData as Record<string, IMibDevice>;
+
+debug(`mib count: ${Object.keys(mibs).length}`);
 
 const MibPropertyAppInfoV = t.intersection([
   t.type({
@@ -43,7 +43,7 @@ const MibPropertyV = t.type({
   appinfo: MibPropertyAppInfoV,
 });
 
-export type IMibProperty = t.TypeOf<typeof MibPropertyV> ;
+export type IMibProperty = t.TypeOf<typeof MibPropertyV>;
 
 const MibDeviceAppInfoV = t.intersection([
   t.type({
@@ -129,11 +129,8 @@ export type MibSubroutines = t.TypeOf<typeof MibSubroutineV>;
 
 export type IMibDevice = t.TypeOf<typeof MibDeviceV>;
 
-const decodeMib = (name: string): IMibDevice => {
-  const mibPath = `${root}/${name}.mib.json`;
-  const mibValidation = MibDeviceV.decode(
-    JSON.parse(fs.readFileSync(mibPath).toString())
-  );
+const decodeMib = (name: string, mib: unknown): IMibDevice => {
+  const mibValidation = MibDeviceV.decode(mib);
   if (isLeft(mibValidation)) {
     throw new Error(`Invalid mib file ${name} ${PathReporter.report(mibValidation).join('\n')}`);
   }
@@ -144,15 +141,11 @@ function notEmpty<TValue>(value: TValue | null | undefined): value is TValue {
   return value !== null && value !== undefined;
 }
 
-const mibs = Object.fromEntries(
-  fs
-    .readdirSync(root)
-    .filter(file => file.endsWith('.mib.json'))
-    .map(file => path.basename(file, '.mib.json'))
-    .map(mibname => {
+const mibsByName = Object.fromEntries(
+  Object.entries(mibs)
+    .map(([mibname, mib]) => {
       try {
-        const mib = decodeMib(mibname);
-        return [mibname, mib];
+        return [mibname, decodeMib(mibname, mib)];
       } catch (err) {
         console.error(`Invalid mib ${mibname}: ${(err as Error).message}`);
         return undefined;
@@ -161,6 +154,6 @@ const mibs = Object.fromEntries(
     .filter(notEmpty)
 ) as Record<string, IMibDevice>;
 
-export const getMibNames = (): string[] => Object.keys(mibs);
+export const getMibNames = (): string[] => Object.keys(mibsByName);
 
-export const getMib = (name: string): IMibDevice | undefined => mibs[name];
+export const getMib = (name: string): IMibDevice | undefined => mibsByName[name];

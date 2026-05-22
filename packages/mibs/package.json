@@ -21,10 +21,11 @@
     }
   },
   "files": [
-    "json",
     "index.ts",
     "index.cjs",
     "index.d.cts",
+    "index.mjs",
+    "index.d.mts",
     "!**/*.spec.*",
     "EULA.md",
     "CHANGELOG.md",
@@ -41,8 +42,8 @@
     "io-ts": "^2.2.16"
   },
   "scripts": {
-    "build": "tsdown",
-    "yalc:push": "yalc push",
+    "build": "node ./scripts/generate-index.mjs && tsdown",
+    "yalc:push": "pnpm run build && yalc push",
     "lint": "eslint index.ts",
     "lint:fix": "eslint --fix index.ts"
   },

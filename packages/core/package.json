@@ -1,6 +1,6 @@
 {
   "name": "@nibus/core",
-  "version": "5.0.1",
+  "version": "6.0.0",
   "description": "nibus.js client",
   "keywords": [
     "nata-info",
@@ -109,7 +109,7 @@
     "tiny-typed-emitter": "^2.0.3"
   },
   "peerDependencies": {
-    "@nibus/mibs": "^5.0.0",
+    "@nibus/mibs": "^6.0.0",
     "debug": "^4.3.0"
   },
   "sideEffects": false,

@@ -1,5 +1,18 @@
 # Change Log
 
+## 6.0.0
+
+### Minor Changes
+
+- обновлена сборка пакетов
+
+### Patch Changes
+
+- Updated dependencies
+  - @nibus/core@6.0.0
+  - @nibus/mibs@6.0.0
+  - @nibus/service@6.0.0
+
 ## 5.0.0
 
 ### Major Changes
@@ -244,7 +257,6 @@ All notable changes to this project will be documented in this file. See
 # 1.2.3
 
 - **Bug Fix**
-
   - выход по ^C из пинга
   - зависание при отсутствии устройств на ping
 

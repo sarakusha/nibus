@@ -43,8 +43,8 @@
     "lint": "turbo run lint",
     "yalc:push": "turbo run yalc:push",
     "type-check": "turbo run type-check",
-    "publish-packages": "turbo run build lint && changeset publish",
-    "version": "changeset version"
+    "version-packages": "turbo run build lint && changeset version",
+    "publish-packages": "turbo run build lint && changeset publish"
   },
   "config": {
     "commitizen": {

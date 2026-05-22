@@ -1,5 +1,11 @@
 # Change Log
 
+## 6.0.0
+
+### Minor Changes
+
+- обновлена сборка пакетов
+
 ## 5.0.0
 
 ### Major Changes

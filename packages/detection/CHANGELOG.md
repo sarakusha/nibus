@@ -1,5 +1,16 @@
 # Change Log
 
+## 6.0.0
+
+### Minor Changes
+
+- обновлена сборка пакетов
+
+### Patch Changes
+
+- Updated dependencies
+  - @nibus/core@6.0.0
+
 ## 5.0.0
 
 ### Major Changes

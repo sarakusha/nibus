@@ -1,4 +1,9 @@
 mibCategories:
+  siolynx3:
+    mib: siolynx
+    link: true
+    find: version
+    type: 7
   siolynx:
     mib: siolynx
     link: true
@@ -45,7 +50,7 @@ knownDevices:
     category: siolynx
   - vid: 0x2047 # 8263
     pid: 0x0b40 # 2880
-    device: Siolynx3
+    device: SioLynxV3
     category: siolynx
   - vid: 0x0403 # 1027
     pid: 0x6001 # 24577

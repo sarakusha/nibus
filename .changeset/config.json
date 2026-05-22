@@ -12,5 +12,6 @@
     ]
   ],
   "access": "public",
-  "baseBranch": "master"
+  "baseBranch": "master",
+  "updateInternalDependencies": "patch"
 }

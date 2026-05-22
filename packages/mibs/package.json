@@ -37,9 +37,9 @@
     "directory": "packages/mibs"
   },
   "dependencies": {
-    "debug": "4",
-    "fp-ts": "^2.11.10",
-    "io-ts": "^2.2.16"
+    "debug": "^4.4.3",
+    "fp-ts": "^2.16.11",
+    "io-ts": "^2.2.22"
   },
   "scripts": {
     "build": "node ./scripts/generate-index.mjs && tsdown",

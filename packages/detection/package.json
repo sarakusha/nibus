@@ -33,10 +33,10 @@
     "directory": "packages/detection"
   },
   "dependencies": {
-    "@types/js-yaml": "^4.0.5",
-    "fp-ts": "^2.11.10",
-    "io-ts": "^2.2.16",
-    "js-yaml": "^4.1.0"
+    "@types/js-yaml": "^4.0.9",
+    "fp-ts": "^2.16.11",
+    "io-ts": "^2.2.22",
+    "js-yaml": "^4.1.1"
   },
   "peerDependencies": {
     "@nibus/core": "workspace:^"

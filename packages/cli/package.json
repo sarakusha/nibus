@@ -36,29 +36,29 @@
     "url": "https://github.com/sarakusha/nibus/issues"
   },
   "devDependencies": {
-    "@types/debug": "^4.1.0",
-    "@types/lodash": "^4.17.16",
-    "@types/progress": "^2.0.3",
-    "@types/tail": "^2.0.0",
-    "@types/yargs": "^17.0.0"
+    "@types/debug": "^4.1.13",
+    "@types/lodash": "^4.17.24",
+    "@types/progress": "^2.0.7",
+    "@types/tail": "^2.2.3",
+    "@types/yargs": "^17.0.35"
   },
   "dependencies": {
     "@nibus/core": "workspace:^",
     "@nibus/mibs": "workspace:^",
     "@nibus/service": "workspace:^",
-    "chalk": "4",
-    "cli-table3": "^0.6.0",
-    "debug": "4",
-    "fp-ts": "^2.4.1",
-    "io-ts": "^2.0.5",
-    "lodash": "^4.17.21",
-    "onetime": "5",
-    "pm2": "^5.0.0",
+    "chalk": "^5.6.2",
+    "cli-table3": "^0.6.5",
+    "debug": "^4.4.3",
+    "fp-ts": "^2.16.11",
+    "io-ts": "^2.2.22",
+    "lodash": "^4.18.1",
+    "onetime": "^8.0.0",
+    "pm2": "^7.0.1",
     "progress": "^2.0.3",
-    "supports-color": "8",
-    "table-layout": "^1.0.0",
-    "tail": "^2.0.2",
-    "yargs": "^17.0.1"
+    "supports-color": "^10.2.2",
+    "table-layout": "^4.1.1",
+    "tail": "^2.2.6",
+    "yargs": "^18.0.0"
   },
   "peerDependencies": {
     "debug": "^4.3.0"

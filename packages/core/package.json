@@ -12,13 +12,13 @@
   "homepage": "https://github.com/sarakusha/nibus/packages/core#readme",
   "license": "MIT",
   "main": "build/index.cjs",
-  "types": "./index.d.cts",
+  "types": "./build/index.d.cts",
   "module": "build/index.mjs",
   "exports": {
     ".": {
       "require": "./build/index.cjs",
       "import": "./build/index.mjs",
-      "types": "./index.d.cts"
+      "types": "./build/index.d.cts"
     },
     "./sarp": {
       "require": "./build/sarp/index.cjs",
@@ -81,32 +81,32 @@
     "url": "https://github.com/sarakusha/nibus/issues"
   },
   "devDependencies": {
-    "@types/crc": "^3.4.0",
-    "@types/debug": "^4.1.3",
-    "@types/lodash": "^4.14.149",
-    "@types/pump": "^1.1.1",
+    "@types/crc": "^4.0.0",
+    "@types/debug": "^4.1.13",
+    "@types/lodash": "^4.17.24",
+    "@types/pump": "^1.1.3",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-tsdoc": "^0.2.0",
-    "typedoc": "^0.22.1"
+    "eslint-plugin-tsdoc": "^0.5.2",
+    "typedoc": "^0.28.19"
   },
   "dependencies": {
     "@nibus/mibs": "workspace:^",
-    "conf": "^10.1.2",
-    "crc": "^4.1.0",
-    "fast-xml-parser": "^4.0.1",
-    "fp-ts": "^2.4.1",
-    "iconv-lite": "^0.6.2",
-    "intel-hex": "^0.1.2",
-    "io-ts": "^2.0.5",
-    "io-ts-types": "^0.5.5",
-    "lodash": "^4.17.11",
-    "monocle-ts": "^2.0.1",
-    "newtype-ts": "^0.3.1",
-    "printf": "^0.6.0",
-    "pump": "^3.0.0",
-    "reflect-metadata": "^0.1.13",
-    "sax": "^1.2.4",
-    "tiny-typed-emitter": "^2.0.3"
+    "conf": "^15.1.0",
+    "crc": "^4.3.2",
+    "fast-xml-parser": "^5.8.0",
+    "fp-ts": "^2.16.11",
+    "iconv-lite": "^0.7.2",
+    "intel-hex": "^0.2.0",
+    "io-ts": "^2.2.22",
+    "io-ts-types": "^0.5.19",
+    "lodash": "^4.18.1",
+    "monocle-ts": "^2.3.13",
+    "newtype-ts": "^0.3.5",
+    "printf": "^0.6.1",
+    "pump": "^3.0.4",
+    "reflect-metadata": "^0.2.2",
+    "sax": "^1.6.0",
+    "tiny-typed-emitter": "^2.1.0"
   },
   "peerDependencies": {
     "@nibus/mibs": "^6.0.0",

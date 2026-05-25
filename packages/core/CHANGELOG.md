@@ -1,5 +1,12 @@
 # Change Log
 
+## 6.0.2
+
+### Patch Changes
+
+- handle conf default export in cjs build
+  - @nibus/mibs@6.0.2
+
 ## 6.0.1
 
 ### Patch Changes

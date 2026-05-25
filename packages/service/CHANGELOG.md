@@ -1,5 +1,13 @@
 # Change Log
 
+## 6.0.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @nibus/core@6.0.2
+  - @nibus/detection@6.0.2
+
 ## 6.0.1
 
 ### Patch Changes

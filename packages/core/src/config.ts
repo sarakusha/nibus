@@ -13,6 +13,10 @@ import debugFactory from 'debug';
 import { Config, logLevels } from './common';
 
 const debug = debugFactory('nibus');
+type ConfInterop = typeof Conf & { default?: typeof Conf };
+
+// Rolldown wraps Node's require(esm) namespace once more in CJS output.
+const ConfConstructor = ((Conf as ConfInterop).default ?? Conf) as typeof Conf;
 
 export const schema: Schema<Config> = {
   logLevel: {
@@ -49,7 +53,7 @@ export function config(newValue?: NibusConfig): NibusConfig {
     debug(`Config: ${JSON.stringify(current)}`);
   }
   if (!current) {
-    const value = new Conf<Config>({
+    const value = new ConfConstructor<Config>({
       schema,
       clearInvalidConfig: true,
       projectName: 'nibus',

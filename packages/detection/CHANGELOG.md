@@ -1,5 +1,12 @@
 # Change Log
 
+## 6.0.3
+
+### Patch Changes
+
+- b1e27c3: убрали уточнение для siolinx3
+  - @nibus/core@6.0.3
+
 ## 6.0.2
 
 ### Patch Changes

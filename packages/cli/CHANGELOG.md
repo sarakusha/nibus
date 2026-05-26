@@ -1,5 +1,13 @@
 # Change Log
 
+## 6.0.3
+
+### Patch Changes
+
+- @nibus/core@6.0.3
+- @nibus/service@6.0.3
+- @nibus/mibs@6.0.3
+
 ## 6.0.2
 
 ### Patch Changes

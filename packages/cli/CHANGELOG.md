@@ -1,5 +1,14 @@
 # Change Log
 
+## 6.0.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @nibus/service@6.0.4
+  - @nibus/core@6.0.4
+  - @nibus/mibs@6.0.4
+
 ## 6.0.3
 
 ### Patch Changes

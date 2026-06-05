@@ -5,8 +5,7 @@
     "target": "esnext",
     "outDir": "build",
     "rootDir": "src",
-    "strict": true,                           /* Enable all strict type-checking options. */
-    "baseUrl": "./",
+    "strict": true, /* Enable all strict type-checking options. */
     "strictNullChecks": true,
     "paths": {
       "debug/src/node": [

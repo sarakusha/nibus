@@ -6,13 +6,22 @@
     "outDir": "build/main",
     "rootDir": "src",
     "strict": true /* Enable all strict type-checking options. */,
-    "baseUrl": "./",
     "strictNullChecks": true,
     "paths": {
-      "debug/src/node": ["../../node_modules/@types/debug"]
+      "debug/src/node": [
+        "../../node_modules/@types/debug"
+      ]
     },
-    "types": ["w3c-web-usb"]
+    "types": [
+      "w3c-web-usb"
+    ]
   },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules/", "**/*.spec.ts", "lib/"]
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules/",
+    "**/*.spec.ts",
+    "lib/"
+  ]
 }

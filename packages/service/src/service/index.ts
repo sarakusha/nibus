@@ -197,30 +197,28 @@ export class NibusService {
     detector.on('remove', this.removeHandler);
 
     detector.start();
-    process.once('SIGINT', () => this.stop());
-    process.once('SIGTERM', () => this.stop());
+    process.once('SIGINT', () => void this.stop());
+    process.once('SIGTERM', () => void this.stop());
     debug('started');
     // console.log('nibus started');
     await detector.getPorts();
   }
 
-  public stop(): void {
+  public async stop(): Promise<void> {
     if (!this.isStarted) return;
-    this.ciaoService.end();
-    responder.shutdown();
-    this.server.close();
-    // const connections = this.connections.splice(0, this.connections.length);
-    // if (connections.length) {
-    //   // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
-    //   setTimeout(() => {
-    //     connections.forEach(connection => connection.close());
-    //   }, 0);
-    // }
+    this.isStarted = false;
     detector.removeListener('add', this.addHandler);
     detector.removeListener('remove', this.removeHandler);
     detector.stop();
-    this.server.close();
-    this.isStarted = false;
+    await Promise.all([
+      this.ciaoService
+        .end()
+        .catch(err => debug(`error while stop ciao service: ${(err as Error).message}`)),
+      responder
+        .shutdown()
+        .catch(err => debug(`error while shutdown responder: ${(err as Error).message}`)),
+      this.server.close(),
+    ]);
     debug('stopped');
   }
 

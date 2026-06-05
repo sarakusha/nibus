@@ -54,6 +54,8 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
 
   private closed = false;
 
+  private closePromise?: Promise<void>;
+
   private tail = '';
 
   // private reading = false;
@@ -134,18 +136,26 @@ class IPCServer extends TypedEmitter<IPCServerEvents> /* extends Duplex */ {
     );
   }
 
-  close = (): void => {
-    if (this.closed) return;
+  close = (): Promise<void> => {
+    if (this.closePromise) return this.closePromise;
     this.closed = true;
     const path = this.server.address();
     this.clients.forEach(client => client.destroy());
     this.clients.length = 0;
-    this.server.close();
-    // Хак, нужен чтобы успеть закрыть все соединения, иначе не успевает их закрыть и выходит
-    // setTimeout(() => Object.values(this.ports).forEach(serial => serial.close()), 0);
-    Object.values(this.ports).forEach(serial => serial.close());
-    // this.raw && this.push(null);
-    debug(`${JSON.stringify(path)} closed`);
+    const closeServer = new Promise<void>(resolve => {
+      if (this.server.listening) this.server.close(() => resolve());
+      else resolve();
+    });
+    const closePorts = Promise.all(Object.values(this.ports).map(serial => serial.close())).then(
+      () => {}
+    );
+
+    this.closePromise = Promise.all([closeServer, closePorts]).then(() => {
+      this.ports = {};
+      debug(`${JSON.stringify(path)} closed`);
+    });
+
+    return this.closePromise;
   };
 
   private connectionHandler = (socket: Socket): void => {

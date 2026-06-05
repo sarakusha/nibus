@@ -39,6 +39,8 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
 
   private closed = false;
 
+  private closePromise?: Promise<void>;
+
   // private logger: SerialLogger | null = null;
 
   constructor(
@@ -77,18 +79,34 @@ export default class SerialTee extends TypedEmitter<SerialTeeEvents> {
     return this.portInfo.path;
   }
 
-  public close = (): void => {
-    if (this.closed) return;
+  public close = (): Promise<void> => {
+    if (this.closePromise) return this.closePromise;
     const { serial } = this;
-    if (serial.isOpen) {
-      debug(`close serial: ${serial.path}`);
-      serial.close();
-    }
+    this.closed = true;
     const connections = this.connections.slice();
     this.connections.length = 0;
     connections.forEach(socket => this.releaseSocket(socket));
-    this.closed = true;
-    this.emit('close', this.portInfo.path);
+
+    this.closePromise = new Promise(resolve => {
+      const finish = (): void => {
+        serial.off('close', this.close);
+        serial.off('error', this.close);
+        this.emit('close', this.portInfo.path);
+        resolve();
+      };
+
+      if (serial.isOpen) {
+        debug(`close serial: ${serial.path}`);
+        serial.close(err => {
+          if (err) debug(`error while close serial port: ${err.message}`);
+          finish();
+        });
+      } else {
+        finish();
+      }
+    });
+
+    return this.closePromise;
   };
 
   /*

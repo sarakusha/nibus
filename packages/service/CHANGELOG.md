@@ -1,5 +1,13 @@
 # Change Log
 
+## 6.0.5
+
+### Patch Changes
+
+- 0dfa214: Allow callers to configure the advertised DNS-SD service name and hostname.
+  - @nibus/core@6.0.5
+  - @nibus/detection@6.0.5
+
 ## 6.0.4
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # Change Log
 
+## 6.0.7
+
+### Patch Changes
+
+- Allow callers to disable DNS-SD advertising, lazily create the default service, and avoid creating
+  an mDNS responder when discovery is managed externally.
+  - @nibus/core@6.0.7
+  - @nibus/detection@6.0.7
+
 ## 6.0.6
 
 ### Patch Changes

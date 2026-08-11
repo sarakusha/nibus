@@ -25,7 +25,6 @@ import detector from './detector';
 // eslint-disable-next-line @typescript-eslint/no-var-requires,global-require
 const version = process.env.npm_package_version ?? 'N/A';
 
-const responder = getResponder();
 const debug = debugFactory('nibus:service');
 // const debugIn = debugFactory('nibus:<<<');
 // const debugOut = debugFactory('nibus:>>>');
@@ -143,6 +142,7 @@ const loggers = {
 export type NibusServiceOptions = {
   name?: string;
   hostname?: string;
+  discovery?: boolean;
 };
 
 export class NibusService {
@@ -152,16 +152,20 @@ export class NibusService {
 
   private isStarted = false;
 
-  private readonly ciaoService: CiaoService;
+  private readonly ciaoService?: CiaoService;
+
+  private readonly responder?: ReturnType<typeof getResponder>;
 
   private token?: string;
 
-  constructor({ name = 'nibus', hostname }: NibusServiceOptions = {}) {
+  constructor({ name = 'nibus', hostname, discovery = true }: NibusServiceOptions = {}) {
     this.server = new Server();
     this.server.on('connection', this.connectionHandler);
     this.server.on('client:setLogLevel', this.logLevelHandler);
     this.server.on('client:reloadDevices', this.reload);
-    this.ciaoService = responder.createService({
+    if (!discovery) return;
+    this.responder = getResponder();
+    this.ciaoService = this.responder.createService({
       name,
       hostname,
       type: 'nibus',
@@ -195,7 +199,7 @@ export class NibusService {
     this.token = token;
     await this.server.listen(this.port, process.env.NIBUS_HOST);
     this.isStarted = true;
-    this.ciaoService.advertise().then(() => debug('service is published'));
+    this.ciaoService?.advertise().then(() => debug('service is published'));
     const detection = detector.getDetection();
     if (detection == null) throw new Error('detection is N/A');
     detector.on('add', this.addHandler);
@@ -217,10 +221,10 @@ export class NibusService {
     detector.stop();
     await Promise.all([
       this.ciaoService
-        .end()
+        ?.end()
         .catch(err => debug(`error while stop ciao service: ${(err as Error).message}`)),
-      responder
-        .shutdown()
+      this.responder
+        ?.shutdown()
         .catch(err => debug(`error while shutdown responder: ${(err as Error).message}`)),
       this.server.close(),
     ]);
@@ -298,6 +302,20 @@ export class NibusService {
   };
 }
 
-const service = new NibusService();
+let defaultService: NibusService | undefined;
+
+const getDefaultService = (): NibusService => {
+  defaultService ??= new NibusService();
+  return defaultService;
+};
+
+const service = new Proxy({} as NibusService, {
+  get: (_target, property) => {
+    const instance = getDefaultService();
+    const value = Reflect.get(instance, property) as unknown;
+    return typeof value === 'function' ? value.bind(instance) : value;
+  },
+  set: (_target, property, value) => Reflect.set(getDefaultService(), property, value),
+});
 
 export default service;

@@ -1,5 +1,11 @@
 # Change Log
 
+## 6.0.7
+
+### Patch Changes
+
+- @nibus/core@6.0.7
+
 ## 6.0.6
 
 ### Patch Changes

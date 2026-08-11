@@ -1,5 +1,11 @@
 # Change Log
 
+## 6.0.6
+
+### Patch Changes
+
+- @nibus/mibs@6.0.6
+
 ## 6.0.5
 
 ### Patch Changes

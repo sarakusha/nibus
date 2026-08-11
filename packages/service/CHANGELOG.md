@@ -1,5 +1,13 @@
 # Change Log
 
+## 6.0.6
+
+### Patch Changes
+
+- Publish installable registry dependency ranges and correct the CLI executable path.
+  - @nibus/core@6.0.6
+  - @nibus/detection@6.0.6
+
 ## 6.0.5
 
 ### Patch Changes

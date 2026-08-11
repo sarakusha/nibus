@@ -1,6 +1,6 @@
 {
   "name": "@nibus/cli",
-  "version": "6.0.5",
+  "version": "6.0.6",
   "description": "Nata-Info NiBUS",
   "keywords": [
     "nata-info",
@@ -16,7 +16,7 @@
     "lint:fix": "eslint --fix src/"
   },
   "bin": {
-    "nibus": "build/index.js"
+    "nibus": "build/index.cjs"
   },
   "author": "Andrei Sarakeev <avs@nata-info.ru>",
   "license": "MIT",

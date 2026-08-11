@@ -140,6 +140,11 @@ const loggers = {
 };
 */
 
+export type NibusServiceOptions = {
+  name?: string;
+  hostname?: string;
+};
+
 export class NibusService {
   readonly port = +(process.env.NIBUS_PORT ?? 9001);
 
@@ -151,14 +156,14 @@ export class NibusService {
 
   private token?: string;
 
-  constructor() {
+  constructor({ name = 'nibus', hostname }: NibusServiceOptions = {}) {
     this.server = new Server();
     this.server.on('connection', this.connectionHandler);
     this.server.on('client:setLogLevel', this.logLevelHandler);
     this.server.on('client:reloadDevices', this.reload);
     this.ciaoService = responder.createService({
-      name: 'nibus',
-      // hostname: `nibus.local`,
+      name,
+      hostname,
       type: 'nibus',
       port: this.port,
       txt: {
